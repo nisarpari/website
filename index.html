@@ -3168,11 +3168,19 @@
                                 {/* Product Name - smaller font */}
                                 <h1 className="font-display text-lg md:text-xl lg:text-2xl font-bold text-navy leading-tight">{product.name}</h1>
 
-                                {/* SKU - above price */}
+                                {/* SKU - above description */}
                                 {product.sku && <p className="text-bella-500 mt-1 text-xs">SKU: {product.sku}</p>}
 
+                                {/* Description - above price/cart */}
+                                {product.ecommerceDescription && (
+                                    <div className="mt-2 text-bella-600 prose prose-sm max-w-none text-sm" dangerouslySetInnerHTML={{ __html: product.ecommerceDescription }} />
+                                )}
+                                {!product.ecommerceDescription && product.description && (
+                                    <p className="mt-2 text-bella-600 leading-relaxed text-sm">{product.description}</p>
+                                )}
+
                                 {/* Price and Stock - inline */}
-                                <div className="mt-2 flex items-center gap-4">
+                                <div className="mt-3 flex items-center gap-4">
                                     <p className="text-xl md:text-2xl font-bold text-navy">{countryConfig.currencySymbol} {product.price}</p>
                                     <p className={`text-sm ${product.inStock ? 'text-green-600' : 'text-red-600'}`}>
                                         {product.inStock ? `✓ ${t('inStock')}` : `✗ ${t('outOfStock')}`}
@@ -3228,17 +3236,6 @@
                                         </svg>
                                     </button>
                                 </div>
-
-                                {/* Description - above documents */}
-                                {product.ecommerceDescription && (
-                                    <div className="mt-4 text-bella-600 prose prose-sm max-w-none text-sm" dangerouslySetInnerHTML={{ __html: product.ecommerceDescription }} />
-                                )}
-
-                                {!product.ecommerceDescription && product.description && (
-                                    <div className="mt-4">
-                                        <p className="text-bella-600 leading-relaxed text-sm">{product.description}</p>
-                                    </div>
-                                )}
 
                                 {/* Documents */}
                                 {product.documents?.length > 0 && (
