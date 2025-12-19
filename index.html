@@ -2830,8 +2830,32 @@
                                                 .sort((a, b) => (b.totalCount || b.count || 0) - (a.totalCount || a.count || 0))
                                                 .slice(0, 8)
                                                 .map(category => {
-                                                    // Get first product image from this category for the tile
-                                                    const categoryImage = `https://erp.bellastore.in/web/image/product.public.category/${category.id}/image_1920`;
+                                                    // Category image mapping based on name
+                                                    const getCategoryImage = (catName) => {
+                                                        const name = catName?.toLowerCase() || '';
+                                                        const imageMap = {
+                                                            'collections': 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=600&h=450&fit=crop',
+                                                            'bathroom': 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=450&fit=crop',
+                                                            'bath essentials': 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=450&fit=crop',
+                                                            'washroom': 'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=600&h=450&fit=crop',
+                                                            'washlet': 'https://images.unsplash.com/photo-1585128792020-803d29415281?w=600&h=450&fit=crop',
+                                                            'wellness': 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600&h=450&fit=crop',
+                                                            'bath assist': 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=600&h=450&fit=crop',
+                                                            'kitchen': 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=450&fit=crop',
+                                                            'misc': 'https://images.unsplash.com/photo-1581876832484-c6a6a1aee755?w=600&h=450&fit=crop',
+                                                            'water heaters': 'https://images.unsplash.com/photo-1585128792020-803d29415281?w=600&h=450&fit=crop',
+                                                            'switches': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=450&fit=crop',
+                                                        };
+                                                        // Check for exact match first
+                                                        if (imageMap[name]) return imageMap[name];
+                                                        // Check for partial match
+                                                        for (const [key, url] of Object.entries(imageMap)) {
+                                                            if (name.includes(key) || key.includes(name)) return url;
+                                                        }
+                                                        // Fallback
+                                                        return 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=450&fit=crop';
+                                                    };
+                                                    const categoryImage = getCategoryImage(category.name);
 
                                                     return (
                                                         <div
@@ -2915,7 +2939,38 @@
                                                 {subcategories
                                                     .sort((a, b) => (b.totalCount || b.count || 0) - (a.totalCount || a.count || 0))
                                                     .map(subcat => {
-                                                        const subcatImage = `https://erp.bellastore.in/web/image/product.public.category/${subcat.id}/image_1920`;
+                                                        // Subcategory image mapping based on name
+                                                        const getSubcatImage = (catName) => {
+                                                            const name = catName?.toLowerCase() || '';
+                                                            const imageMap = {
+                                                                // Bathroom related
+                                                                'shower': 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=600&h=450&fit=crop',
+                                                                'faucet': 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=450&fit=crop',
+                                                                'mixer': 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=450&fit=crop',
+                                                                'basin': 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=450&fit=crop',
+                                                                'toilet': 'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=600&h=450&fit=crop',
+                                                                'bathtub': 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600&h=450&fit=crop',
+                                                                'jacuzzi': 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600&h=450&fit=crop',
+                                                                'drain': 'https://images.unsplash.com/photo-1585128792020-803d29415281?w=600&h=450&fit=crop',
+                                                                'valve': 'https://images.unsplash.com/photo-1585128792020-803d29415281?w=600&h=450&fit=crop',
+                                                                'accessory': 'https://images.unsplash.com/photo-1581876832484-c6a6a1aee755?w=600&h=450&fit=crop',
+                                                                'tap': 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=450&fit=crop',
+                                                                'sink': 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=450&fit=crop',
+                                                                'concealed': 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=600&h=450&fit=crop',
+                                                                'vanity': 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=600&h=450&fit=crop',
+                                                                'cabinet': 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=600&h=450&fit=crop',
+                                                                'mirror': 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=600&h=450&fit=crop',
+                                                                'heater': 'https://images.unsplash.com/photo-1585128792020-803d29415281?w=600&h=450&fit=crop',
+                                                                'wellness': 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600&h=450&fit=crop',
+                                                                'spa': 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600&h=450&fit=crop',
+                                                                'sauna': 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600&h=450&fit=crop',
+                                                            };
+                                                            for (const [key, url] of Object.entries(imageMap)) {
+                                                                if (name.includes(key)) return url;
+                                                            }
+                                                            return 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=450&fit=crop';
+                                                        };
+                                                        const subcatImage = getSubcatImage(subcat.name);
 
                                                         return (
                                                             <div
