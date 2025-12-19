@@ -24,8 +24,9 @@ app.use(cors());
 app.use(express.json());
 
 // Odoo Configuration from environment variables
+// Note: Use direct Odoo.sh URL to avoid Cloudflare blocking
 const ODOO_CONFIG = {
-    baseUrl: process.env.ODOO_URL || 'https://www.bellabathwares.com',
+    baseUrl: process.env.ODOO_URL || 'https://bellagcc-production-13616817.dev.odoo.com',
     database: process.env.ODOO_DATABASE || 'bellagcc-production-13616817',
     apiKey: process.env.ODOO_API_KEY || 'de6b7193044f410d428e101981088632cbbfb587',
 };
