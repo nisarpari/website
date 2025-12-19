@@ -3168,6 +3168,9 @@
                                 {/* Product Name - smaller font */}
                                 <h1 className="font-display text-lg md:text-xl lg:text-2xl font-bold text-navy leading-tight">{product.name}</h1>
 
+                                {/* SKU - above price */}
+                                {product.sku && <p className="text-bella-500 mt-1 text-xs">SKU: {product.sku}</p>}
+
                                 {/* Price and Stock - inline */}
                                 <div className="mt-2 flex items-center gap-4">
                                     <p className="text-xl md:text-2xl font-bold text-navy">{countryConfig.currencySymbol} {product.price}</p>
@@ -3225,9 +3228,6 @@
                                         </svg>
                                     </button>
                                 </div>
-
-                                {/* SKU - moved below buttons */}
-                                {product.sku && <p className="text-bella-500 mt-3 text-xs">SKU: {product.sku}</p>}
 
                                 {/* Description - above documents */}
                                 {product.ecommerceDescription && (
