@@ -306,7 +306,10 @@
         // ODOO CONFIGURATION - Using Proxy Server
         // ============================================
         const ODOO_CONFIG = {
-            baseUrl: 'http://localhost:3001',
+            // Use relative URL in production, localhost for development
+            baseUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3001'
+                : '',
             useOdoo: true
         };
 
@@ -359,7 +362,10 @@
                 let hash = '/';
                 if (page === 'shop') {
                     hash = '/shop';
-                    if (params.categoryId) hash += `?category=${params.categoryId}`;
+                    const queryParts = [];
+                    if (params.categoryId) queryParts.push(`category=${params.categoryId}`);
+                    if (params.search) queryParts.push(`search=${encodeURIComponent(params.search)}`);
+                    if (queryParts.length > 0) hash += `?${queryParts.join('&')}`;
                 } else if (page === 'product') {
                     hash = `/shop/${params.slug}`;
                 } else if (page === 'about') {
@@ -976,6 +982,12 @@
             const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
             const [showLangMenu, setShowLangMenu] = useState(false);
             const [showCountryMenu, setShowCountryMenu] = useState(false);
+            const [showSearch, setShowSearch] = useState(false);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [searchResults, setSearchResults] = useState([]);
+            const [searchLoading, setSearchLoading] = useState(false);
+            const searchInputRef = React.useRef(null);
+            const searchContainerRef = React.useRef(null);
             const { cartCount } = useCart();
             const { wishlistCount } = useWishlist();
             const { isDark, toggleTheme } = useTheme();
@@ -986,6 +998,58 @@
                 window.addEventListener('scroll', handleScroll);
                 return () => window.removeEventListener('scroll', handleScroll);
             }, []);
+
+            // Close search when clicking outside
+            useEffect(() => {
+                const handleClickOutside = (e) => {
+                    if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+                        setShowSearch(false);
+                    }
+                };
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => document.removeEventListener('mousedown', handleClickOutside);
+            }, []);
+
+            // Auto-search after 3 characters
+            useEffect(() => {
+                if (searchQuery.length >= 3) {
+                    setSearchLoading(true);
+                    const timer = setTimeout(async () => {
+                        try {
+                            const products = await OdooAPI.fetchProducts();
+                            const query = searchQuery.toLowerCase();
+                            const filtered = products.filter(p =>
+                                p.name.toLowerCase().includes(query) ||
+                                p.category?.toLowerCase().includes(query) ||
+                                p.sku?.toLowerCase().includes(query)
+                            ).slice(0, 6);
+                            setSearchResults(filtered);
+                        } catch (err) {
+                            setSearchResults([]);
+                        }
+                        setSearchLoading(false);
+                    }, 300);
+                    return () => clearTimeout(timer);
+                } else {
+                    setSearchResults([]);
+                }
+            }, [searchQuery]);
+
+            // Handle product click from search
+            const handleSearchProductClick = (product) => {
+                navigate('product', { slug: product.slug });
+                setShowSearch(false);
+                setSearchQuery('');
+                setSearchResults([]);
+            };
+
+            // Handle view all results
+            const handleViewAllResults = () => {
+                navigate('shop', { search: searchQuery.trim() });
+                setShowSearch(false);
+                setSearchQuery('');
+                setSearchResults([]);
+            };
 
             // Get root categories for nav
             const rootCategories = categories.filter(c => c.parentId === null).slice(0, 6);
@@ -1164,11 +1228,67 @@
                                 {/* Right Icons */}
                                 <div className="flex items-center gap-3">
                                     {/* Search */}
-                                    <button className="p-2 hover:bg-bella-100 rounded-full transition-colors">
-                                        <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                        </svg>
-                                    </button>
+                                    <div className="relative" ref={searchContainerRef}>
+                                        <button onClick={() => { setShowSearch(!showSearch); setTimeout(() => searchInputRef.current?.focus(), 100); }} className="p-2 hover:bg-bella-100 rounded-full transition-colors">
+                                            <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                        </button>
+
+                                        {/* Search Dropdown */}
+                                        {showSearch && (
+                                            <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-2xl border border-bella-200 overflow-hidden z-50">
+                                                <div className="p-3 border-b border-bella-100">
+                                                    <input
+                                                        ref={searchInputRef}
+                                                        type="text"
+                                                        value={searchQuery}
+                                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                                        onKeyDown={(e) => e.key === 'Enter' && searchQuery.length >= 3 && handleViewAllResults()}
+                                                        placeholder={t('searchProducts')}
+                                                        className="w-full px-4 py-2 text-sm border border-bella-200 rounded-lg focus:outline-none focus:border-gold"
+                                                        autoComplete="off"
+                                                    />
+                                                </div>
+
+                                                {searchLoading && (
+                                                    <div className="p-4 text-center text-gray-500 text-sm">Searching...</div>
+                                                )}
+
+                                                {!searchLoading && searchQuery.length >= 3 && searchResults.length === 0 && (
+                                                    <div className="p-4 text-center text-gray-500 text-sm">No products found</div>
+                                                )}
+
+                                                {!searchLoading && searchResults.length > 0 && (
+                                                    <div className="max-h-80 overflow-y-auto">
+                                                        {searchResults.map(product => (
+                                                            <div
+                                                                key={product.id}
+                                                                onClick={() => handleSearchProductClick(product)}
+                                                                className="flex items-center gap-3 p-3 hover:bg-bella-50 cursor-pointer border-b border-bella-50 last:border-0"
+                                                            >
+                                                                <img src={product.thumbnail} alt={product.name} className="w-12 h-12 object-cover rounded-lg" />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-sm font-medium text-navy truncate">{product.name}</p>
+                                                                    <p className="text-xs text-gold">{countryConfig.currencySymbol} {product.price.toLocaleString()}</p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                        <button
+                                                            onClick={handleViewAllResults}
+                                                            className="w-full p-3 text-sm text-center text-gold hover:bg-bella-50 font-medium"
+                                                        >
+                                                            View all results
+                                                        </button>
+                                                    </div>
+                                                )}
+
+                                                {searchQuery.length < 3 && searchQuery.length > 0 && (
+                                                    <div className="p-4 text-center text-gray-400 text-sm">Type {3 - searchQuery.length} more character{3 - searchQuery.length > 1 ? 's' : ''}</div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
 
                                     {/* Wishlist */}
                                     <button onClick={() => navigate('wishlist')} className="p-2 hover:bg-bella-100 rounded-full transition-colors hidden sm:flex relative">
@@ -1220,6 +1340,7 @@
                             })}
                         </div>
                     </div>
+
                 </>
             );
         };
@@ -2118,13 +2239,20 @@
             return 'Premium quality products for your perfect bathroom';
         };
 
-        const ShopPage = ({ navigate, categories, selectedCategoryId }) => {
+        const ShopPage = ({ navigate, categories, selectedCategoryId, initialSearch = '' }) => {
             const { t, countryConfig } = useLocale();
             const [products, setProducts] = useState([]);
             const [loading, setLoading] = useState(true);
             const [priceRange, setPriceRange] = useState([0, 10000]);
             const [sortBy, setSortBy] = useState('featured');
-            const [searchQuery, setSearchQuery] = useState('');
+            const [searchQuery, setSearchQuery] = useState(initialSearch);
+
+            // Update search query when initialSearch changes (from navigation)
+            useEffect(() => {
+                if (initialSearch) {
+                    setSearchQuery(initialSearch);
+                }
+            }, [initialSearch]);
 
             useEffect(() => {
                 const loadProducts = async () => {
@@ -3290,6 +3418,7 @@
                             navigate={navigate}
                             categories={categories}
                             selectedCategoryId={selectedCategoryId}
+                            initialSearch={route.params.search || ''}
                         />
                     )}
 
