@@ -56,42 +56,39 @@ let ribbonCache = {
     ttl: 60 * 60 * 1000 // 1 hour
 };
 
-// Helper function for Odoo 19 JSON-2 API calls
+// Helper function for Odoo JSON-RPC API calls
 async function odooApiCall(model, method, args = [], kwargs = {}) {
     try {
-        // Odoo 19 JSON-2 API format: /json/2/<model>/<method>
-        const url = `${ODOO_CONFIG.baseUrl}/json/2/${model}/${method}`;
+        // Standard Odoo JSON-RPC format
+        const url = `${ODOO_CONFIG.baseUrl}/jsonrpc`;
 
-        // Build request body based on method type
-        let body = {};
-        if (method === 'search_read') {
-            body = {
-                domain: args[0] || [],
-                fields: kwargs.fields || [],
-                limit: kwargs.limit || 100,
-                order: kwargs.order || 'name asc'
-            };
-        } else if (method === 'search_count') {
-            body = {
-                domain: args[0] || []
-            };
-        } else if (method === 'create') {
-            body = args[0] || {};
-        } else {
-            // Generic format for other methods
-            body = { args, kwargs };
-        }
+        const body = {
+            jsonrpc: '2.0',
+            method: 'call',
+            params: {
+                service: 'object',
+                method: 'execute_kw',
+                args: [
+                    ODOO_CONFIG.database,
+                    2, // User ID (2 is typically admin)
+                    ODOO_CONFIG.apiKey,
+                    model,
+                    method,
+                    args,
+                    kwargs
+                ]
+            },
+            id: Date.now()
+        };
 
         const response = await axios.post(url, body, {
             headers: {
-                'Content-Type': 'application/json; charset=utf-8',
-                'Authorization': `bearer ${ODOO_CONFIG.apiKey}`,
-                'X-Odoo-Database': ODOO_CONFIG.database
+                'Content-Type': 'application/json'
             }
         });
 
         if (response.data.error) {
-            throw new Error(response.data.error.message || JSON.stringify(response.data.error));
+            throw new Error(response.data.error.data?.message || response.data.error.message || JSON.stringify(response.data.error));
         }
 
         return response.data.result !== undefined ? response.data.result : response.data;
