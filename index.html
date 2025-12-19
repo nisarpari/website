@@ -306,9 +306,9 @@
         // ODOO CONFIGURATION - Using Proxy Server
         // ============================================
         const ODOO_CONFIG = {
-            // Use relative URL in production, localhost for development
-            baseUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? 'http://localhost:3001'
+            // Use production API for localhost testing, relative URL for Vercel
+            baseUrl: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                ? 'https://web.bellastore.in'
                 : '',
             useOdoo: true
         };
@@ -910,7 +910,15 @@
             },
 
             async fetchProductsByPublicCategory(categoryId) {
-                if (!ODOO_CONFIG.useOdoo) return MOCK_PRODUCTS;
+                if (!ODOO_CONFIG.useOdoo) {
+                    // Filter mock products by categoryId, also include products from child categories
+                    const catId = parseInt(categoryId);
+                    const category = MOCK_CATEGORIES.find(c => c.id === catId);
+                    const childIds = category?.childIds || [];
+                    const allCategoryIds = [catId, ...childIds];
+                    const filtered = MOCK_PRODUCTS.filter(p => allCategoryIds.includes(p.categoryId));
+                    return filtered.length > 0 ? filtered : MOCK_PRODUCTS.slice(0, 6);
+                }
                 try {
                     const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/products/public-category/${categoryId}`);
                     const products = await response.json();
@@ -954,15 +962,70 @@
         // MOCK DATA (Fallback)
         // ============================================
         const MOCK_CATEGORIES = [
-            { id: 1, name: 'Washroom', slug: 'washroom', totalCount: 100, childIds: [], parentId: null },
-            { id: 2, name: 'Bathroom', slug: 'bathroom', totalCount: 80, childIds: [], parentId: null },
-            { id: 3, name: 'Wellness', slug: 'wellness', totalCount: 40, childIds: [], parentId: null },
+            // Root categories
+            { id: 1, name: 'Collections', slug: 'collections', totalCount: 150, childIds: [10, 11, 12], parentId: null },
+            { id: 2, name: 'Bathroom', slug: 'bathroom', totalCount: 200, childIds: [20, 21, 22, 23], parentId: null },
+            { id: 3, name: 'Bath Essentials', slug: 'bath-essentials', totalCount: 120, childIds: [30, 31, 32], parentId: null },
+            { id: 4, name: 'Washroom', slug: 'washroom', totalCount: 100, childIds: [40, 41, 42], parentId: null },
+            { id: 5, name: 'Washlet', slug: 'washlet', totalCount: 60, childIds: [50, 51], parentId: null },
+            { id: 6, name: 'Wellness', slug: 'wellness', totalCount: 80, childIds: [60, 61, 62], parentId: null },
+            // Collections children
+            { id: 10, name: 'Premium Series', slug: 'premium-series', totalCount: 50, childIds: [], parentId: 1 },
+            { id: 11, name: 'Classic Collection', slug: 'classic-collection', totalCount: 50, childIds: [], parentId: 1 },
+            { id: 12, name: 'Modern Line', slug: 'modern-line', totalCount: 50, childIds: [], parentId: 1 },
+            // Bathroom children
+            { id: 20, name: 'Basin Mixers', slug: 'basin-mixers', totalCount: 60, childIds: [], parentId: 2 },
+            { id: 21, name: 'Shower Systems', slug: 'shower-systems', totalCount: 50, childIds: [], parentId: 2 },
+            { id: 22, name: 'Bathtubs', slug: 'bathtubs', totalCount: 40, childIds: [], parentId: 2 },
+            { id: 23, name: 'Bathroom Accessories', slug: 'bathroom-accessories', totalCount: 50, childIds: [], parentId: 2 },
+            // Bath Essentials children
+            { id: 30, name: 'Faucets', slug: 'faucets', totalCount: 40, childIds: [], parentId: 3 },
+            { id: 31, name: 'Showers', slug: 'showers', totalCount: 40, childIds: [], parentId: 3 },
+            { id: 32, name: 'Drains', slug: 'drains', totalCount: 40, childIds: [], parentId: 3 },
+            // Washroom children
+            { id: 40, name: 'Toilets', slug: 'toilets', totalCount: 35, childIds: [], parentId: 4 },
+            { id: 41, name: 'Urinals', slug: 'urinals', totalCount: 30, childIds: [], parentId: 4 },
+            { id: 42, name: 'Basins', slug: 'basins', totalCount: 35, childIds: [], parentId: 4 },
+            // Washlet children
+            { id: 50, name: 'Smart Toilets', slug: 'smart-toilets', totalCount: 30, childIds: [], parentId: 5 },
+            { id: 51, name: 'Bidet Seats', slug: 'bidet-seats', totalCount: 30, childIds: [], parentId: 5 },
+            // Wellness children
+            { id: 60, name: 'Jacuzzi', slug: 'jacuzzi', totalCount: 30, childIds: [], parentId: 6 },
+            { id: 61, name: 'Steam Rooms', slug: 'steam-rooms', totalCount: 25, childIds: [], parentId: 6 },
+            { id: 62, name: 'Spa Equipment', slug: 'spa-equipment', totalCount: 25, childIds: [], parentId: 6 },
         ];
 
         const MOCK_PRODUCTS = [
-            { id: 1, name: 'QV Rainfall Shower Head', price: 299, category: 'Showers', image: 'https://erp.bellastore.in/web/image/202919-e009c2cb/Basin%20Accessory_1.jpg', slug: 'qv-rainfall-shower-head-1', inStock: true },
-            { id: 2, name: 'NX Thermostatic Mixer', price: 449, category: 'Mixers', image: 'https://erp.bellastore.in/web/image/230956-b0ef75d8/Faucets.jpg', slug: 'nx-thermostatic-mixer-2', inStock: true },
-            { id: 3, name: 'LP Art Basin Round', price: 389, category: 'Basins', image: 'https://erp.bellastore.in/web/image/202913-d1140b9e/Basin%20Mixer%20Bella_2.jpg', slug: 'lp-art-basin-round-3', inStock: true },
+            // Basin Mixers (categoryId: 20)
+            { id: 1, name: 'Premium Basin Mixer Chrome', price: 299, category: 'Basin Mixers', categoryId: 20, image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&q=80', slug: 'premium-basin-mixer-chrome-1', inStock: true },
+            { id: 2, name: 'Luxury Gold Basin Mixer', price: 449, category: 'Basin Mixers', categoryId: 20, image: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=600&q=80', slug: 'luxury-gold-basin-mixer-2', inStock: true },
+            { id: 3, name: 'Modern Matte Black Mixer', price: 389, category: 'Basin Mixers', categoryId: 20, image: 'https://images.unsplash.com/photo-1585128792020-803d29415281?w=600&q=80', slug: 'modern-matte-black-mixer-3', inStock: true },
+            // Shower Systems (categoryId: 21)
+            { id: 4, name: 'Rainfall Shower System', price: 599, category: 'Shower Systems', categoryId: 21, image: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=600&q=80', slug: 'rainfall-shower-system-4', inStock: true },
+            { id: 5, name: 'Thermostatic Shower Set', price: 749, category: 'Shower Systems', categoryId: 21, image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&q=80', slug: 'thermostatic-shower-set-5', inStock: true },
+            // Bathtubs (categoryId: 22)
+            { id: 6, name: 'Freestanding Acrylic Bathtub', price: 1299, category: 'Bathtubs', categoryId: 22, image: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&q=80', slug: 'freestanding-acrylic-bathtub-6', inStock: true },
+            { id: 7, name: 'Corner Jacuzzi Tub', price: 2499, category: 'Bathtubs', categoryId: 22, image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&q=80', slug: 'corner-jacuzzi-tub-7', inStock: true },
+            // Faucets (categoryId: 30)
+            { id: 8, name: 'Classic Chrome Faucet', price: 199, category: 'Faucets', categoryId: 30, image: 'https://images.unsplash.com/photo-1585128792020-803d29415281?w=600&q=80', slug: 'classic-chrome-faucet-8', inStock: true },
+            { id: 9, name: 'Waterfall Faucet Gold', price: 349, category: 'Faucets', categoryId: 30, image: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=600&q=80', slug: 'waterfall-faucet-gold-9', inStock: true },
+            // Showers (categoryId: 31)
+            { id: 10, name: 'Handheld Shower Head', price: 89, category: 'Showers', categoryId: 31, image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&q=80', slug: 'handheld-shower-head-10', inStock: true },
+            { id: 11, name: 'LED Rain Shower Head', price: 159, category: 'Showers', categoryId: 31, image: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=600&q=80', slug: 'led-rain-shower-head-11', inStock: true },
+            // Drains (categoryId: 32)
+            { id: 12, name: 'Linear Floor Drain', price: 129, category: 'Drains', categoryId: 32, image: 'https://images.unsplash.com/photo-1585128792020-803d29415281?w=600&q=80', slug: 'linear-floor-drain-12', inStock: true },
+            { id: 13, name: 'Pop-Up Basin Drain', price: 49, category: 'Drains', categoryId: 32, image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&q=80', slug: 'pop-up-basin-drain-13', inStock: true },
+            // Toilets (categoryId: 40)
+            { id: 14, name: 'Wall Hung Toilet', price: 699, category: 'Toilets', categoryId: 40, image: 'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=600&q=80', slug: 'wall-hung-toilet-14', inStock: true },
+            { id: 15, name: 'One-Piece Modern Toilet', price: 549, category: 'Toilets', categoryId: 40, image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&q=80', slug: 'one-piece-modern-toilet-15', inStock: true },
+            // Basins (categoryId: 42)
+            { id: 16, name: 'Vessel Sink Round', price: 249, category: 'Basins', categoryId: 42, image: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=600&q=80', slug: 'vessel-sink-round-16', inStock: true },
+            { id: 17, name: 'Undermount Basin', price: 299, category: 'Basins', categoryId: 42, image: 'https://images.unsplash.com/photo-1585128792020-803d29415281?w=600&q=80', slug: 'undermount-basin-17', inStock: true },
+            // Jacuzzi (categoryId: 60)
+            { id: 18, name: 'Luxury Spa Jacuzzi', price: 4999, category: 'Jacuzzi', categoryId: 60, image: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&q=80', slug: 'luxury-spa-jacuzzi-18', inStock: true },
+            { id: 19, name: 'Outdoor Hot Tub', price: 3999, category: 'Jacuzzi', categoryId: 60, image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&q=80', slug: 'outdoor-hot-tub-19', inStock: true },
+            // Smart Toilets (categoryId: 50)
+            { id: 20, name: 'Smart Bidet Toilet', price: 1999, category: 'Smart Toilets', categoryId: 50, image: 'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=600&q=80', slug: 'smart-bidet-toilet-20', inStock: true },
         ];
 
         const COLORS = [
@@ -1346,6 +1409,92 @@
         };
 
         // ============================================
+        // ACCORDION CATEGORIES COMPONENT
+        // ============================================
+        const AccordionCategories = ({ navigate, categories }) => {
+            const [activeIndex, setActiveIndex] = useState(0);
+
+            const categoryImages = [
+                'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&q=80',
+                'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80',
+                'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800&q=80',
+                'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=800&q=80'
+            ];
+
+            const accordionCategories = categories.map((cat, index) => ({
+                ...cat,
+                image: categoryImages[index] || categoryImages[0]
+            }));
+
+            return (
+                <div className="flex flex-col lg:flex-row gap-2 lg:gap-3 h-auto lg:h-[500px]">
+                    {accordionCategories.map((cat, index) => (
+                        <div
+                            key={cat.id}
+                            className={`relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-500 ease-in-out ${
+                                activeIndex === index
+                                    ? 'flex-[3] lg:flex-[4]'
+                                    : 'flex-1 lg:flex-1'
+                            }`}
+                            style={{ minHeight: activeIndex === index ? '300px' : '100px' }}
+                            onMouseEnter={() => setActiveIndex(index)}
+                            onClick={() => navigate('shop', { categoryId: cat.id })}
+                        >
+                            {/* Background Image */}
+                            <img
+                                src={cat.image}
+                                alt={cat.name}
+                                className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 ${
+                                    activeIndex === index ? 'scale-100' : 'scale-110'
+                                }`}
+                            />
+
+                            {/* Overlay */}
+                            <div className={`absolute inset-0 transition-all duration-500 ${
+                                activeIndex === index
+                                    ? 'bg-gradient-to-t from-black/70 via-black/20 to-transparent'
+                                    : 'bg-black/40'
+                            }`} />
+
+                            {/* Content */}
+                            <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-6">
+                                <h3 className={`font-display font-bold text-white transition-all duration-500 ${
+                                    activeIndex === index
+                                        ? 'text-2xl lg:text-3xl mb-3'
+                                        : 'text-lg lg:text-xl'
+                                }`}>
+                                    {cat.name}
+                                </h3>
+
+                                {/* View All Button - Only visible on active */}
+                                <div className={`transition-all duration-500 overflow-hidden ${
+                                    activeIndex === index
+                                        ? 'opacity-100 max-h-20 mt-2'
+                                        : 'opacity-0 max-h-0'
+                                }`}>
+                                    <button className="bg-white text-navy font-semibold px-5 py-2.5 rounded-full text-sm hover:bg-gold hover:text-white transition-colors">
+                                        View All
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Product count badge - Only on active */}
+                            <div className={`absolute top-4 right-4 transition-all duration-500 ${
+                                activeIndex === index
+                                    ? 'opacity-100 translate-y-0'
+                                    : 'opacity-0 -translate-y-2'
+                            }`}>
+                                <span className="bg-white/20 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full">
+                                    {cat.totalCount || cat.count || 0}+ Products
+                                </span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        // ============================================
         // HOME PAGE - Mobile-First Design
         // ============================================
         const HomePage = ({ navigate, categories }) => {
@@ -1354,30 +1503,30 @@
             const [activeHeroIndex, setActiveHeroIndex] = useState(0);
             const [reviewIndex, setReviewIndex] = useState(0);
 
-            // Hero slides data
+            // Hero slides data with high-quality bathroom images
             const heroSlides = [
                 {
-                    image: 'https://erp.bellastore.in/web/image/230968-1bf5481b/Bella%20Jacuzzi.jpg',
-                    title: 'Jacuzzi & Spa',
-                    subtitle: 'Luxury relaxation for your home'
+                    image: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=1920&q=80',
+                    title: 'Luxury Jacuzzi',
+                    subtitle: 'Transform your bathroom into a spa retreat'
                 },
                 {
-                    image: 'https://erp.bellastore.in/web/image/230956-b0ef75d8/Faucets.jpg',
+                    image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1920&q=80',
                     title: 'Premium Faucets',
                     subtitle: 'Italian craftsmanship meets modern design'
                 },
                 {
-                    image: 'https://erp.bellastore.in/web/image/202913-d1140b9e/Basin%20Mixer%20Bella_2.jpg',
+                    image: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=1920&q=80',
                     title: 'Basin Mixers',
                     subtitle: 'Elegance in every detail'
                 },
                 {
-                    image: 'https://erp.bellastore.in/web/image/202964-991d1531/WC_1.jpg',
+                    image: 'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=1920&q=80',
                     title: 'Sanitary Ware',
                     subtitle: 'Complete bathroom solutions'
                 },
                 {
-                    image: 'https://erp.bellastore.in/web/image/155028-dce337ac/Bella_Kitchen%20Mixer.webp',
+                    image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1920&q=80',
                     title: 'Kitchen Collection',
                     subtitle: 'Transform your kitchen space'
                 }
@@ -1450,40 +1599,61 @@
                             {/* Content Overlay */}
                             <div className="absolute inset-0 flex items-center">
                                 <div className="px-5 md:px-8 lg:px-16 max-w-7xl mx-auto w-full">
-                                    <div className="max-w-xl">
-                                        <p className="text-white/80 text-sm md:text-base mb-2">25+ Years of Luxury Living</p>
-                                        <h1 className="text-3xl md:text-5xl lg:text-6xl font-display font-bold text-white mb-4 transition-all duration-500">
-                                            {heroSlides[activeHeroIndex].title}
-                                        </h1>
-                                        <p className="text-white/90 text-base md:text-lg mb-6">
-                                            {heroSlides[activeHeroIndex].subtitle}
-                                        </p>
-                                        <button
-                                            onClick={() => navigate('shop')}
-                                            className="inline-flex items-center gap-2 text-white font-semibold hover:text-gold transition-colors"
-                                        >
-                                            Shop Now
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </button>
+                                    <div className="flex justify-between items-center">
+                                        <div className="max-w-xl">
+                                            <p className="text-white/80 text-sm md:text-base mb-2">25+ Years of Luxury Living</p>
+                                            <h1 className="text-3xl md:text-5xl lg:text-6xl font-display font-bold text-white mb-4 transition-all duration-500">
+                                                {heroSlides[activeHeroIndex].title}
+                                            </h1>
+                                            <p className="text-white/90 text-base md:text-lg mb-6">
+                                                {heroSlides[activeHeroIndex].subtitle}
+                                            </p>
+                                            <button
+                                                onClick={() => navigate('shop')}
+                                                className="inline-flex items-center gap-2 text-white font-semibold hover:text-gold transition-colors"
+                                            >
+                                                Shop Now
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        {/* Thumbnail Selector - Right Side */}
+                                        <div className="hidden md:flex flex-col gap-3 mr-4 lg:mr-8">
+                                            {heroSlides.map((slide, index) => (
+                                                <button
+                                                    key={index}
+                                                    onClick={() => setActiveHeroIndex(index)}
+                                                    className={`flex-shrink-0 w-16 h-16 lg:w-20 lg:h-20 rounded-xl overflow-hidden transition-all duration-300 ${
+                                                        activeHeroIndex === index
+                                                            ? 'ring-2 ring-gold ring-offset-2 scale-105'
+                                                            : 'opacity-70 hover:opacity-100'
+                                                    }`}
+                                                >
+                                                    <img
+                                                        src={slide.image}
+                                                        alt={slide.title}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Thumbnail Selector */}
-                        <div className="bg-white py-6 md:py-8">
-                            <div className="px-5 md:px-8 lg:px-16 max-w-7xl mx-auto">
-                                <div className="flex justify-center gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-2">
+                            {/* Mobile Thumbnail Selector - Bottom */}
+                            <div className="absolute bottom-4 left-0 right-0 md:hidden">
+                                <div className="flex justify-center gap-2 px-4">
                                     {heroSlides.map((slide, index) => (
                                         <button
                                             key={index}
                                             onClick={() => setActiveHeroIndex(index)}
-                                            className={`flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden transition-all duration-300 ${
+                                            className={`flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden transition-all duration-300 ${
                                                 activeHeroIndex === index
-                                                    ? 'ring-2 ring-gold ring-offset-2 scale-105'
-                                                    : 'opacity-60 hover:opacity-100'
+                                                    ? 'ring-2 ring-gold ring-offset-1 scale-105'
+                                                    : 'opacity-70 hover:opacity-100'
                                             }`}
                                         >
                                             <img
@@ -1496,73 +1666,13 @@
                                 </div>
                             </div>
                         </div>
+
                     </section>
 
-                    {/* FEATURED CATEGORIES - Grid Style */}
-                    <section className="py-10 md:py-16 bg-bella-50">
+                    {/* FEATURED CATEGORIES - Interactive Accordion Style */}
+                    <section className="py-10 md:py-16 bg-gray-100">
                         <div className="px-5 md:px-8 lg:px-16 max-w-7xl mx-auto">
-                            <h2 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-navy text-center mb-8 md:mb-12">
-                                Featured Categories
-                            </h2>
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                                {rootCategories.slice(0, 4).map((cat, index) => {
-                                    const categoryImages = [
-                                        'https://erp.bellastore.in/web/image/230968-1bf5481b/Bella%20Jacuzzi.jpg',
-                                        'https://erp.bellastore.in/web/image/230956-b0ef75d8/Faucets.jpg',
-                                        'https://erp.bellastore.in/web/image/202913-d1140b9e/Basin%20Mixer%20Bella_2.jpg',
-                                        'https://erp.bellastore.in/web/image/202964-991d1531/WC_1.jpg'
-                                    ];
-                                    return (
-                                        <div
-                                            key={cat.id}
-                                            onClick={() => navigate('shop', { categoryId: cat.id })}
-                                            className="group cursor-pointer"
-                                        >
-                                            <div className="relative aspect-square rounded-2xl overflow-hidden mb-3">
-                                                <img
-                                                    src={categoryImages[index]}
-                                                    alt={cat.name}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                />
-                                            </div>
-                                            <h3 className="text-navy font-semibold text-sm md:text-base text-center group-hover:text-gold transition-colors">
-                                                {cat.name}
-                                            </h3>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                            {/* Second Row - if more categories */}
-                            {rootCategories.length > 4 && (
-                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-4 md:mt-6">
-                                    {rootCategories.slice(4, 8).map((cat, index) => {
-                                        const categoryImages = [
-                                            'https://erp.bellastore.in/web/image/155028-dce337ac/Bella_Kitchen%20Mixer.webp',
-                                            'https://erp.bellastore.in/web/image/163337-f6e133bc/BM%2011150%20BG%20Basin%20Mixer%20GOLD.webp',
-                                            'https://erp.bellastore.in/web/image/230970-9cad5bfa/Bella%20Jacuzzi.jpg',
-                                            'https://erp.bellastore.in/web/image/230968-1bf5481b/Bella%20Jacuzzi.jpg'
-                                        ];
-                                        return (
-                                            <div
-                                                key={cat.id}
-                                                onClick={() => navigate('shop', { categoryId: cat.id })}
-                                                className="group cursor-pointer"
-                                            >
-                                                <div className="relative aspect-square rounded-2xl overflow-hidden mb-3">
-                                                    <img
-                                                        src={categoryImages[index]}
-                                                        alt={cat.name}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                    />
-                                                </div>
-                                                <h3 className="text-navy font-semibold text-sm md:text-base text-center group-hover:text-gold transition-colors">
-                                                    {cat.name}
-                                                </h3>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                            <AccordionCategories navigate={navigate} categories={rootCategories.slice(0, 4)} />
                         </div>
                     </section>
 
@@ -1827,6 +1937,9 @@
             );
         };
 
+        // ============================================
+        // CATEGORY LANDING PAGE - Premium Collections Design
+        // ============================================
         // ============================================
         // CATEGORY LANDING PAGE - Premium Collections Design
         // ============================================

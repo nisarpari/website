@@ -25,9 +25,9 @@ app.use(express.json());
 
 // Odoo Configuration from environment variables
 const ODOO_CONFIG = {
-    baseUrl: process.env.ODOO_URL || 'https://your-odoo-instance.com',
-    database: process.env.ODOO_DATABASE || 'your_database',
-    apiKey: process.env.ODOO_API_KEY || 'your_api_key',
+    baseUrl: process.env.ODOO_URL || 'https://erp.bellastore.in',
+    database: process.env.ODOO_DATABASE || 'bellagcc-staging-26633232',
+    apiKey: process.env.ODOO_API_KEY || '089eebbe4204376a0976e434c76090db04deda9a',
 };
 
 // Cache for products (simple in-memory cache)
