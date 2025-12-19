@@ -832,12 +832,23 @@
             }
         };
 
-        // Country configurations
+        // Country configurations with price multipliers
+        // Base price is in OMR (Oman Rial), multipliers convert to local currency
         const countryConfigs = {
-            OM: { name: 'Oman', flag: '🇴🇲', currency: 'OMR', currencySymbol: 'ر.ع' },
-            IN: { name: 'India', flag: '🇮🇳', currency: 'INR', currencySymbol: '₹' },
-            AE: { name: 'UAE', flag: '🇦🇪', currency: 'AED', currencySymbol: 'د.إ' },
-            QA: { name: 'Qatar', flag: '🇶🇦', currency: 'QAR', currencySymbol: 'ر.ق' }
+            OM: { name: 'Oman', flag: '🇴🇲', currency: 'OMR', currencySymbol: 'ر.ع', priceMultiplier: 1, freeDeliveryThreshold: 50 },
+            AE: { name: 'UAE', flag: '🇦🇪', currency: 'AED', currencySymbol: 'د.إ', priceMultiplier: 10, freeDeliveryThreshold: 500 },
+            QA: { name: 'Qatar', flag: '🇶🇦', currency: 'QAR', currencySymbol: 'ر.ق', priceMultiplier: 12, freeDeliveryThreshold: 600 },
+            IN: { name: 'India', flag: '🇮🇳', currency: 'INR', currencySymbol: '₹', priceMultiplier: 250, freeDeliveryThreshold: 12500 }
+        };
+
+        // Helper function to format price based on country
+        const formatPrice = (basePrice, countryConfig) => {
+            const convertedPrice = basePrice * countryConfig.priceMultiplier;
+            // Round to 2 decimal places for OMR, whole numbers for others
+            if (countryConfig.currency === 'OMR') {
+                return convertedPrice.toFixed(3);
+            }
+            return Math.round(convertedPrice).toLocaleString();
         };
 
         const LocaleProvider = ({ children }) => {
@@ -862,8 +873,11 @@
             const t = (key) => translations[language]?.[key] || translations.en[key] || key;
             const countryConfig = countryConfigs[country];
 
+            // Price formatter bound to current country
+            const fp = (basePrice) => formatPrice(basePrice, countryConfig);
+
             return (
-                <LocaleContext.Provider value={{ language, setLanguage, country, setCountry, t, countryConfig, countryConfigs }}>
+                <LocaleContext.Provider value={{ language, setLanguage, country, setCountry, t, countryConfig, countryConfigs, formatPrice: fp }}>
                     {children}
                 </LocaleContext.Provider>
             );
@@ -1054,7 +1068,7 @@
             const { cartCount } = useCart();
             const { wishlistCount } = useWishlist();
             const { isDark, toggleTheme } = useTheme();
-            const { language, setLanguage, country, setCountry, t, countryConfig, countryConfigs } = useLocale();
+            const { language, setLanguage, country, setCountry, t, countryConfig, countryConfigs, formatPrice } = useLocale();
 
             useEffect(() => {
                 const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -1134,7 +1148,7 @@
                     {/* Top Bar */}
                     <div className="text-sm py-2" style={{ backgroundColor: '#0d1318', color: '#ffffff' }}>
                         <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center">
-                            <span className="hidden sm:block" style={{ color: '#e8e4dd' }}>{t('freeDelivery')} {countryConfig.currencySymbol} 50</span>
+                            <span className="hidden sm:block" style={{ color: '#e8e4dd' }}>{t('freeDelivery')} {countryConfig.currencySymbol} {countryConfig.freeDeliveryThreshold.toLocaleString()}</span>
                             <div className="flex items-center gap-2 md:gap-4">
                                 {/* Theme Toggle */}
                                 <button
@@ -1333,7 +1347,7 @@
                                                                 <img src={product.thumbnail} alt={product.name} className="w-12 h-12 object-cover rounded-lg" />
                                                                 <div className="flex-1 min-w-0">
                                                                     <p className="text-sm font-medium text-navy truncate">{product.name}</p>
-                                                                    <p className="text-xs text-gold">{countryConfig.currencySymbol} {product.price.toLocaleString()}</p>
+                                                                    <p className="text-xs text-gold">{countryConfig.currencySymbol} {formatPrice(product.price)}</p>
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -2337,6 +2351,7 @@
         const ProductCard = ({ product, onClick }) => {
             const { addToCart } = useCart();
             const { toggleWishlist, isInWishlist } = useWishlist();
+            const { countryConfig, formatPrice } = useLocale();
             const inWishlist = isInWishlist(product.id);
 
             const handleAddToCart = (e) => {
@@ -2388,7 +2403,7 @@
                         <p className="text-bella-500 text-xs uppercase tracking-wide">{product.category}</p>
                         <h3 className="font-display text-lg font-semibold text-navy mt-1 line-clamp-2">{product.name}</h3>
                         <div className="flex items-center justify-between mt-3">
-                            <p className="text-xl font-bold text-navy">OMR {product.price}</p>
+                            <p className="text-xl font-bold text-navy">{countryConfig.currencySymbol} {formatPrice(product.price)}</p>
                             <button
                                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${product.inStock !== false ? 'bg-gold hover:bg-gold-dark text-white' : 'bg-bella-200 text-bella-500 cursor-not-allowed'}`}
                                 onClick={handleAddToCart}
@@ -2546,7 +2561,7 @@
         };
 
         const ShopPage = ({ navigate, categories, selectedCategoryId, initialSearch = '' }) => {
-            const { t, countryConfig } = useLocale();
+            const { t, countryConfig, formatPrice } = useLocale();
             const [products, setProducts] = useState([]);
             const [loading, setLoading] = useState(true);
             const [priceRange, setPriceRange] = useState([0, 10000]);
@@ -3051,7 +3066,7 @@
             const [quantity, setQuantity] = useState(1);
             const { addToCart } = useCart();
             const { toggleWishlist, isInWishlist } = useWishlist();
-            const { t, countryConfig } = useLocale();
+            const { t, countryConfig, formatPrice } = useLocale();
 
             useEffect(() => {
                 const loadProduct = async () => {
@@ -3181,7 +3196,7 @@
 
                                 {/* Price and Stock - inline */}
                                 <div className="mt-3 flex items-center gap-4">
-                                    <p className="text-xl md:text-2xl font-bold text-navy">{countryConfig.currencySymbol} {product.price}</p>
+                                    <p className="text-xl md:text-2xl font-bold text-navy">{countryConfig.currencySymbol} {formatPrice(product.price)}</p>
                                     <p className={`text-sm ${product.inStock ? 'text-green-600' : 'text-red-600'}`}>
                                         {product.inStock ? `✓ ${t('inStock')}` : `✗ ${t('outOfStock')}`}
                                     </p>
@@ -3437,6 +3452,7 @@
         const CartPage = ({ navigate }) => {
             const { cart, removeFromCart, updateQuantity, clearCart, cartTotal } = useCart();
             const { addToWishlist, isInWishlist } = useWishlist();
+            const { countryConfig, formatPrice } = useLocale();
 
             const moveToWishlist = (item) => {
                 addToWishlist(item);
@@ -3487,7 +3503,7 @@
                                                 <div className="flex-1">
                                                     <h3 className="font-semibold text-navy cursor-pointer hover:text-gold" onClick={() => navigate('product', { slug: item.slug })}>{item.name}</h3>
                                                     <p className="text-bella-500 text-sm">{item.category}</p>
-                                                    <p className="text-lg font-bold text-navy mt-1">OMR {item.price}</p>
+                                                    <p className="text-lg font-bold text-navy mt-1">{countryConfig.currencySymbol} {formatPrice(item.price)}</p>
 
                                                     <div className="flex items-center gap-4 mt-3">
                                                         <div className="flex items-center border border-bella-200 rounded-lg">
@@ -3510,7 +3526,7 @@
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="font-bold text-navy">OMR {(item.price * item.quantity).toFixed(2)}</p>
+                                                    <p className="font-bold text-navy">{countryConfig.currencySymbol} {formatPrice(item.price * item.quantity)}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -3528,7 +3544,7 @@
                                             <div className="space-y-3 border-b border-bella-100 pb-4 mb-4">
                                                 <div className="flex justify-between text-bella-600">
                                                     <span>Subtotal</span>
-                                                    <span>OMR {cartTotal.toFixed(2)}</span>
+                                                    <span>{countryConfig.currencySymbol} {formatPrice(cartTotal)}</span>
                                                 </div>
                                                 <div className="flex justify-between text-bella-600">
                                                     <span>Shipping</span>
@@ -3538,7 +3554,7 @@
 
                                             <div className="flex justify-between text-lg font-bold text-navy mb-6">
                                                 <span>Total</span>
-                                                <span>OMR {cartTotal.toFixed(2)}</span>
+                                                <span>{countryConfig.currencySymbol} {formatPrice(cartTotal)}</span>
                                             </div>
 
                                             <button className="w-full bg-gold hover:bg-gold-dark text-white py-4 rounded-xl font-semibold transition-colors mb-3">
@@ -3579,6 +3595,7 @@
         const WishlistPage = ({ navigate }) => {
             const { wishlist, removeFromWishlist } = useWishlist();
             const { addToCart } = useCart();
+            const { countryConfig, formatPrice } = useLocale();
 
             const moveToCart = (item) => {
                 addToCart(item, 1);
@@ -3637,7 +3654,7 @@
                                             <div className="p-4">
                                                 <p className="text-bella-500 text-xs uppercase tracking-wide">{item.category}</p>
                                                 <h3 className="font-display text-lg font-semibold text-navy mt-1 line-clamp-2 cursor-pointer hover:text-gold" onClick={() => navigate('product', { slug: item.slug })}>{item.name}</h3>
-                                                <p className="text-xl font-bold text-navy mt-2">OMR {item.price}</p>
+                                                <p className="text-xl font-bold text-navy mt-2">{countryConfig.currencySymbol} {formatPrice(item.price)}</p>
                                                 <div className="flex gap-2 mt-3">
                                                     <button
                                                         onClick={() => moveToCart(item)}
