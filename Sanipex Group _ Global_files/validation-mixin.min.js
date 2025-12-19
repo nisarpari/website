@@ -1,0 +1,3 @@
+define(['jquery'],function($){'use strict';return function(widget){$.widget('mage.validation',widget,{listenFormValidateHandler:function(event,validation){var firstActive=$(validation.errorList[0].element||[]),lastActive=$(validation.findLastActive()||validation.errorList.length&&validation.errorList[0].element||[]),windowHeight=$(window).height(),parent,successList;if(lastActive.is(':hidden')){parent=lastActive.parent();$('html, body').animate({scrollTop:parent.offset().top-windowHeight / 2});}
+successList=validation.successList;if(successList.length){$.each(successList,function(){$(this).removeAttr('aria-describedby').removeAttr('aria-invalid');});}
+if(firstActive.length){firstActive.trigger('focus');}}});return $.mage.validation;}});

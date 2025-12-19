@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="56px" height="40px" viewBox="0 0 56 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Atoms/Flags/Asia/flag_Qatar_QA</title>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="56" height="40"></rect>
+    </defs>
+    <g id="Atoms/Flags/Asia/flag_Qatar_QA" stroke="none" stroke-width="1" fill="#ffffff" fill-rule="evenodd">
+        <g id="QA">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <rect stroke="#F5F5F5" x="0.5" y="0.5" width="55" height="39"></rect>
+            <path d="M56,0 L56,40 L20,40 L16,37.3333333 L20,34.6666667 L16,32 L20,29.3333333 L16,26.6666667 L20,24 L16,21.3333333 L20,18.6666667 L16,16 L20,13.3333333 L16,10.6666667 L20,8 L16,5.33333333 L20,2.66666667 L16,0 L56,0 Z" id="Combined-Shape" fill="#A6264C" mask="url(#mask-2)"></path>
+        </g>
+    </g>
+</svg>

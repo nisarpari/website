@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="56" height="40" viewBox="0 0 56 40" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <path id="prefix__a" d="M0 0H33V24H0z"/>
+    </defs>
+    <g fill="#ffffff" fill-rule="evenodd" transform="matrix(1.69697, 0, 0, 1.666667, 0, 0)">
+        <mask id="prefix__b" fill="#fff">
+            <path d="M0 0H33V24H0z" transform="matrix(1, 0, 0, 1, 0, 0)"/>
+        </mask>
+        <path stroke="#F5F5F5" d="M0.5 0.5H32.5V23.5H0.5z"/>
+        <path fill="#12833B" d="M9.429 0H33V8H9.429z" mask="url(#prefix__b)"/>
+        <path fill="#262626" d="M9.429 16H33V24H9.429z" mask="url(#prefix__b)"/>
+        <path fill="#FF323E" d="M0 0H9.429V24H0z" mask="url(#prefix__b)"/>
+    </g>
+</svg>

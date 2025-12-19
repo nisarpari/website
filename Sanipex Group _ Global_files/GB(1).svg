@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="56px" height="40px" viewBox="0 0 56 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Atoms/Flags/Europe/flag_United_Kingdom_UK</title>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="56" height="40"></rect>
+    </defs>
+    <g id="Atoms/Flags/Europe/flag_United_Kingdom_UK" stroke="none" stroke-width="1" fill="#ffffff" fill-rule="evenodd">
+        <g id="GB">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Mask" fill="#FFFFFF" xlink:href="#path-1"></use>
+            <rect id="Mask-Copy" fill="#0A17A7" mask="url(#mask-2)" x="0" y="0" width="56" height="40"></rect>
+            <path d="M58.5649384,-3.83289246 L61.5473005,0.588641259 L42.6516995,13.3331075 L56,13.3333333 L56,26.6666667 L42.6516995,26.6661075 L61.5473005,39.4113587 L58.5649384,43.8328925 L34.6656995,27.7121075 L34.6666667,42.6666667 L21.3333333,42.6666667 L21.3326995,27.7131075 L-2.5649384,43.8328925 L-5.54730055,39.4113587 L13.3476995,26.6661075 L8.8817842e-16,26.6666667 L8.8817842e-16,13.3333333 L13.3476995,13.3331075 L-5.54730055,0.588641259 L-2.5649384,-3.83289246 L21.3326995,12.2861075 L21.3333333,-2.66666667 L34.6666667,-2.66666667 L34.6656995,12.2871075 L58.5649384,-3.83289246 Z" id="Rectangle-2" fill="#FFFFFF" mask="url(#mask-2)"></path>
+            <line x1="37.3359375" y1="12.664388" x2="62.6666667" y2="-4" id="Line" stroke="#DB1F35" stroke-width="1.33333333" stroke-linecap="round" mask="url(#mask-2)"></line>
+            <line x1="40.0255534" y1="42.7006836" x2="62.7332357" y2="27.3950195" id="Line-Copy-2" stroke="#DB1F35" stroke-width="1.33333333" stroke-linecap="round" mask="url(#mask-2)" transform="translate(51.379395, 35.047852) scale(1, -1) translate(-51.379395, -35.047852) "></line>
+            <line x1="16.0110677" y1="12.620931" x2="-7.67496745" y2="-3.34195964" id="Line-Copy" stroke="#DB1F35" stroke-width="1.33333333" stroke-linecap="round" mask="url(#mask-2)"></line>
+            <line x1="18.5800781" y1="44.620931" x2="-7.67496745" y2="27.2097982" id="Line-Copy-3" stroke="#DB1F35" stroke-width="1.33333333" stroke-linecap="round" mask="url(#mask-2)" transform="translate(5.452555, 35.915365) scale(1, -1) translate(-5.452555, -35.915365) "></line>
+            <polygon id="Rectangle-2-Copy-3" fill="#E6273E" mask="url(#mask-2)" points="0 24 24 24 24 40 32 40 32 24 56 24 56 16 32 16 32 0 24 0 24 16 0 16"></polygon>
+        </g>
+    </g>
+</svg>
