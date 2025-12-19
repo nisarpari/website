@@ -1,0 +1,47 @@
+{
+  "lastUpdated": "2025-12-19T00:00:00.000Z",
+  "categoryImages": {
+    "bathroom": "/images/categories/bathroom.jpg",
+    "kitchen": "/images/categories/kitchen.jpg",
+    "wellness": "/images/categories/wellness.jpg",
+    "washroom": "/images/categories/washroom.jpg",
+    "default": "/images/categories/default.jpg"
+  },
+  "banners": {
+    "hero": {
+      "image": "/images/banners/hero-bg.jpg",
+      "mobileImage": "/images/banners/hero-bg-mobile.jpg",
+      "title": "Luxury Bathroom Solutions",
+      "subtitle": "Premium Italian-designed sanitaryware"
+    },
+    "promo": {
+      "enabled": false,
+      "image": "/images/banners/promo.jpg",
+      "link": "/shop",
+      "text": "Special Offer - 20% Off"
+    }
+  },
+  "companyInfo": {
+    "phone": "+968 1234 5678",
+    "email": "info@bellabathwares.com",
+    "address": "Muscat, Oman",
+    "socialLinks": {
+      "facebook": "https://facebook.com/bellabathwares",
+      "instagram": "https://instagram.com/bellabathwares",
+      "twitter": "",
+      "linkedin": ""
+    }
+  },
+  "seo": {
+    "title": "Bella Bathwares - Luxury Sanitaryware",
+    "description": "Premium Italian-designed sanitaryware for your home. Jacuzzis, faucets, basins and more.",
+    "keywords": "bathroom, sanitaryware, faucets, jacuzzi, basins, luxury bathroom"
+  },
+  "featuredCategories": [],
+  "customTexts": {
+    "whyBellaTitle": "",
+    "whyBellaSubtitle": "",
+    "ctaTitle": "",
+    "ctaSubtitle": ""
+  }
+}
