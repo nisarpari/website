@@ -10,6 +10,14 @@
       "use": "@vercel/static"
     },
     {
+      "src": "*.png",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.ico",
+      "use": "@vercel/static"
+    },
+    {
       "src": "images/**",
       "use": "@vercel/static"
     },
@@ -22,6 +30,14 @@
     {
       "src": "/api/(.*)",
       "dest": "/odoo-proxy-server.js"
+    },
+    {
+      "src": "/(.*\\.png)",
+      "dest": "/$1"
+    },
+    {
+      "src": "/(.*\\.ico)",
+      "dest": "/$1"
     },
     {
       "src": "/images/(.*)",
