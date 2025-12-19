@@ -25,9 +25,9 @@ app.use(express.json());
 
 // Odoo Configuration from environment variables
 const ODOO_CONFIG = {
-    baseUrl: process.env.ODOO_URL || 'https://erp.bellastore.in',
-    database: process.env.ODOO_DATABASE || 'bellagcc-staging-26633232',
-    apiKey: process.env.ODOO_API_KEY || '089eebbe4204376a0976e434c76090db04deda9a',
+    baseUrl: process.env.ODOO_URL || 'https://www.bellabathwares.com',
+    database: process.env.ODOO_DATABASE || 'bellagcc-production-13616817',
+    apiKey: process.env.ODOO_API_KEY || 'de6b7193044f410d428e101981088632cbbfb587',
 };
 
 // Cache for products (simple in-memory cache)
