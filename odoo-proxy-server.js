@@ -302,8 +302,8 @@ app.get('/api/product/by-slug/:slug', async (req, res) => {
                     'show_availability',
                     'available_threshold',
                     'website_description',
-                    'product_template_image_ids',
-                    'product_document_ids'
+                    'product_template_image_ids'
+                    // Note: product_document_ids removed - not available in Odoo 16
                 ]
             }
         );
