@@ -169,8 +169,12 @@ app.get('/api/products', async (req, res) => {
         if (productCache.data && Date.now() - productCache.timestamp < productCache.ttl) {
             return res.json(productCache.data);
         }
-        
+
         // Fetch from Odoo - only published products with eCommerce fields
+        // Reduced limit to avoid Vercel timeout, fetch in batches if needed
+        const limit = parseInt(req.query.limit) || 500;
+        const offset = parseInt(req.query.offset) || 0;
+
         const products = await odooApiCall(
             'product.template',
             'search_read',
@@ -187,21 +191,28 @@ app.get('/api/products', async (req, res) => {
                     'available_threshold',
                     'product_template_image_ids'
                 ],
-                limit: 1000,
+                limit: limit,
+                offset: offset,
                 order: 'name asc'
             }
         );
-        
+
         const transformedProducts = products.map(transformProduct);
-        
-        // Update cache
-        productCache.data = transformedProducts;
-        productCache.timestamp = Date.now();
-        
+
+        // Only cache if fetching all products (no offset)
+        if (offset === 0 && limit >= 500) {
+            productCache.data = transformedProducts;
+            productCache.timestamp = Date.now();
+        }
+
         res.json(transformedProducts);
     } catch (error) {
-        console.error('Error fetching products:', error);
-        res.status(500).json({ error: 'Failed to fetch products' });
+        console.error('Error fetching products:', error.message, error.stack);
+        res.status(500).json({
+            error: 'Failed to fetch products',
+            details: error.message,
+            odooUrl: ODOO_CONFIG.baseUrl
+        });
     }
 });
 
