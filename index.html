@@ -306,9 +306,12 @@
         // ODOO CONFIGURATION - Using Proxy Server
         // ============================================
         const ODOO_CONFIG = {
-            // Use production API for localhost testing, relative URL for Vercel
+            // Use localhost API for local testing, relative URL for Vercel
             baseUrl: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-                ? 'https://web.bellastore.in'
+                ? 'http://localhost:3001'
+                : '',
+            proxyUrl: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                ? 'http://localhost:3001'
                 : '',
             useOdoo: true
         };
