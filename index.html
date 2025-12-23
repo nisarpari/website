@@ -1428,6 +1428,14 @@
         const AccordionCategories = ({ navigate, categories }) => {
             const [activeIndex, setActiveIndex] = useState(0);
 
+            // Auto-expand categories every 10 seconds (works for touch devices)
+            useEffect(() => {
+                const accordionInterval = setInterval(() => {
+                    setActiveIndex(prev => (prev + 1) % Math.min(categories.length, 4));
+                }, 10000);
+                return () => clearInterval(accordionInterval);
+            }, [categories.length]);
+
             const categoryImages = [
                 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&q=80',
                 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80',
@@ -1516,6 +1524,14 @@
             const rootCategories = categories.filter(c => c.parentId === null).slice(0, 6);
             const [activeHeroIndex, setActiveHeroIndex] = useState(0);
             const [reviewIndex, setReviewIndex] = useState(0);
+
+            // Auto-shuffle hero images every 10 seconds
+            useEffect(() => {
+                const heroInterval = setInterval(() => {
+                    setActiveHeroIndex(prev => (prev + 1) % 5);
+                }, 10000);
+                return () => clearInterval(heroInterval);
+            }, []);
 
             // Hero slides data with high-quality bathroom images
             const heroSlides = [
@@ -1634,15 +1650,15 @@
                                         </div>
 
                                         {/* Thumbnail Selector - Right Side */}
-                                        <div className="hidden md:flex flex-col gap-3 mr-4 lg:mr-8">
+                                        <div className="hidden md:flex flex-col gap-3 mr-4 lg:mr-8 p-2 rounded-2xl bg-black/30 backdrop-blur-sm">
                                             {heroSlides.map((slide, index) => (
                                                 <button
                                                     key={index}
                                                     onClick={() => setActiveHeroIndex(index)}
                                                     className={`flex-shrink-0 w-16 h-16 lg:w-20 lg:h-20 rounded-xl overflow-hidden transition-all duration-300 ${
                                                         activeHeroIndex === index
-                                                            ? 'ring-2 ring-gold ring-offset-2 scale-105'
-                                                            : 'opacity-70 hover:opacity-100'
+                                                            ? 'ring-2 ring-white shadow-lg scale-105'
+                                                            : 'ring-1 ring-white/40 opacity-70 hover:opacity-100 hover:ring-white/70'
                                                     }`}
                                                 >
                                                     <img
@@ -1659,15 +1675,15 @@
 
                             {/* Mobile Thumbnail Selector - Bottom */}
                             <div className="absolute bottom-4 left-0 right-0 md:hidden">
-                                <div className="flex justify-center gap-2 px-4">
+                                <div className="flex justify-center gap-2 px-4 py-2 mx-4 rounded-xl bg-black/30 backdrop-blur-sm">
                                     {heroSlides.map((slide, index) => (
                                         <button
                                             key={index}
                                             onClick={() => setActiveHeroIndex(index)}
                                             className={`flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden transition-all duration-300 ${
                                                 activeHeroIndex === index
-                                                    ? 'ring-2 ring-gold ring-offset-1 scale-105'
-                                                    : 'opacity-70 hover:opacity-100'
+                                                    ? 'ring-2 ring-white shadow-lg scale-105'
+                                                    : 'ring-1 ring-white/40 opacity-70'
                                             }`}
                                         >
                                             <img
