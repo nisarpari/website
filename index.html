@@ -3302,19 +3302,53 @@
                             </div>
                         </div>
 
-                        {/* Accessory Products */}
+                        {/* Accessory Products - Horizontal Carousel */}
                         {product.accessoryProducts?.length > 0 && (
-                            <div className="mt-16">
-                                <h2 className="font-display text-2xl font-bold text-navy mb-6">Accessories</h2>
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5">
-                                    {product.accessoryProducts.map(acc => (
-                                        <div key={acc.id} className="product-card bg-white rounded-xl overflow-hidden cursor-pointer" onClick={() => navigate('product', { slug: acc.slug })}>
-                                            <div className="h-36 bg-bella-100">
+                            <div className="mt-12 md:mt-16">
+                                <div className="flex items-center justify-between mb-4 md:mb-6">
+                                    <h2 className="font-display text-xl md:text-2xl font-bold text-navy">Accessories</h2>
+                                    <div className="hidden md:flex gap-2">
+                                        <button
+                                            onClick={() => {
+                                                const container = document.getElementById('accessories-carousel');
+                                                if (container) container.scrollBy({ left: -280, behavior: 'smooth' });
+                                            }}
+                                            className="w-10 h-10 rounded-full border border-bella-200 flex items-center justify-center hover:bg-bella-100 transition-colors"
+                                        >
+                                            <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                const container = document.getElementById('accessories-carousel');
+                                                if (container) container.scrollBy({ left: 280, behavior: 'smooth' });
+                                            }}
+                                            className="w-10 h-10 rounded-full border border-bella-200 flex items-center justify-center hover:bg-bella-100 transition-colors"
+                                        >
+                                            <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div
+                                    id="accessories-carousel"
+                                    className="flex gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
+                                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                >
+                                    {product.accessoryProducts.slice(0, 8).map(acc => (
+                                        <div
+                                            key={acc.id}
+                                            className="flex-shrink-0 w-[45%] md:w-[220px] snap-start product-card bg-white rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                                            onClick={() => navigate('product', { slug: acc.slug })}
+                                        >
+                                            <div className="aspect-square bg-bella-100">
                                                 <img src={acc.thumbnail} alt={acc.name} className="w-full h-full object-cover" />
                                             </div>
                                             <div className="p-3">
-                                                <h3 className="font-medium text-navy text-sm line-clamp-2">{acc.name}</h3>
-                                                <p className="text-gold font-semibold mt-1">OMR {acc.price}</p>
+                                                <h3 className="font-medium text-navy text-sm line-clamp-2 leading-tight">{acc.name}</h3>
+                                                <p className="text-gold font-semibold mt-1 text-sm">{countryConfig.currencySymbol} {formatPrice(acc.price)}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -3322,23 +3356,58 @@
                             </div>
                         )}
 
-                        {/* Alternative Products */}
+                        {/* Alternative Products - Horizontal Carousel */}
                         {product.alternativeProducts?.length > 0 && (
-                            <div className="mt-16">
-                                <h2 className="font-display text-2xl font-bold text-navy mb-6">You May Also Like</h2>
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5">
-                                    {product.alternativeProducts.map(alt => (
-                                        <div key={alt.id} className="product-card bg-white rounded-xl overflow-hidden cursor-pointer" onClick={() => navigate('product', { slug: alt.slug })}>
-                                            <div className="h-36 bg-bella-100">
+                            <div className="mt-12 md:mt-16">
+                                <div className="flex items-center justify-between mb-4 md:mb-6">
+                                    <h2 className="font-display text-xl md:text-2xl font-bold text-navy">You May Also Like</h2>
+                                    <div className="hidden md:flex gap-2">
+                                        <button
+                                            onClick={() => {
+                                                const container = document.getElementById('related-products-carousel');
+                                                if (container) container.scrollBy({ left: -280, behavior: 'smooth' });
+                                            }}
+                                            className="w-10 h-10 rounded-full border border-bella-200 flex items-center justify-center hover:bg-bella-100 transition-colors"
+                                        >
+                                            <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                const container = document.getElementById('related-products-carousel');
+                                                if (container) container.scrollBy({ left: 280, behavior: 'smooth' });
+                                            }}
+                                            className="w-10 h-10 rounded-full border border-bella-200 flex items-center justify-center hover:bg-bella-100 transition-colors"
+                                        >
+                                            <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div
+                                    id="related-products-carousel"
+                                    className="flex gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
+                                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                >
+                                    {product.alternativeProducts.slice(0, 8).map(alt => (
+                                        <div
+                                            key={alt.id}
+                                            className="flex-shrink-0 w-[45%] md:w-[220px] snap-start product-card bg-white rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                                            onClick={() => navigate('product', { slug: alt.slug })}
+                                        >
+                                            <div className="aspect-square bg-bella-100">
                                                 <img src={alt.thumbnail} alt={alt.name} className="w-full h-full object-cover" />
                                             </div>
                                             <div className="p-3">
-                                                <h3 className="font-medium text-navy text-sm line-clamp-2">{alt.name}</h3>
-                                                <p className="text-gold font-semibold mt-1">OMR {alt.price}</p>
+                                                <h3 className="font-medium text-navy text-sm line-clamp-2 leading-tight">{alt.name}</h3>
+                                                <p className="text-gold font-semibold mt-1 text-sm">{countryConfig.currencySymbol} {formatPrice(alt.price)}</p>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
+                                <p className="text-bella-400 text-xs mt-2 md:hidden text-center">Swipe to see more →</p>
                             </div>
                         )}
                     </div>
