@@ -3410,6 +3410,179 @@
                                 <p className="text-bella-400 text-xs mt-2 md:hidden text-center">Swipe to see more →</p>
                             </div>
                         )}
+
+                        {/* Design Your Bathroom / Site Visit CTA Block */}
+                        <div className="mt-12 md:mt-16">
+                            <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+                                {/* Design Your Bathroom */}
+                                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-navy to-navy-dark p-6 md:p-8">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-gold/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-gold/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+                                    <div className="relative z-10">
+                                        <div className="w-12 h-12 bg-gold/20 rounded-xl flex items-center justify-center mb-4">
+                                            <svg className="w-6 h-6 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="font-display text-xl md:text-2xl font-bold text-white mb-2">Design Your Bathroom Free</h3>
+                                        <p className="text-bella-300 text-sm mb-4">Use our AI-powered 3D bathroom planner to visualize your dream space with Bella products.</p>
+                                        <a
+                                            href="https://planner5d.com/use/bathroom-planner-tool"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-2 bg-gold hover:bg-gold-dark text-navy px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors"
+                                        >
+                                            Start Designing
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                {/* Request Site Visit */}
+                                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-bella-100 to-white border border-bella-200 p-6 md:p-8">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-gold/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                                    <div className="relative z-10">
+                                        <div className="w-12 h-12 bg-navy/10 rounded-xl flex items-center justify-center mb-4">
+                                            <svg className="w-6 h-6 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="font-display text-xl md:text-2xl font-bold text-navy mb-2">Request Site Visit</h3>
+                                        <p className="text-bella-600 text-sm mb-4">Get a free consultation from our trained professionals at your location.</p>
+                                        <button
+                                            onClick={() => navigate('contact')}
+                                            className="inline-flex items-center gap-2 bg-navy hover:bg-navy-light text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors"
+                                        >
+                                            Book Appointment
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Customer Reviews Section */}
+                        <div className="mt-12 md:mt-16">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="font-display text-xl md:text-2xl font-bold text-navy">Customer Reviews</h2>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex">
+                                        {[1,2,3,4,5].map(star => (
+                                            <svg key={star} className="w-5 h-5 text-gold" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                            </svg>
+                                        ))}
+                                    </div>
+                                    <span className="text-navy font-semibold">4.8</span>
+                                    <span className="text-bella-500 text-sm">(127 reviews)</span>
+                                </div>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {[
+                                    { name: 'Ahmed Al-Rashid', rating: 5, date: '2 weeks ago', comment: 'Excellent quality! The finish is premium and installation was straightforward. Highly recommend Bella products.', verified: true },
+                                    { name: 'Sarah M.', rating: 5, date: '1 month ago', comment: 'Beautiful design that matches perfectly with my bathroom renovation. Customer service was very helpful.', verified: true },
+                                    { name: 'Mohammed K.', rating: 4, date: '1 month ago', comment: 'Good product, fast delivery. Would have given 5 stars but packaging could be better.', verified: true },
+                                    { name: 'Fatima Al-Balushi', rating: 5, date: '2 months ago', comment: 'This is my third purchase from Bella. Always consistent quality and elegant designs.', verified: true }
+                                ].map((review, idx) => (
+                                    <div key={idx} className="bg-white rounded-xl p-4 border border-bella-100">
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-semibold text-navy">{review.name}</span>
+                                                    {review.verified && (
+                                                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Verified</span>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <div className="flex">
+                                                        {[1,2,3,4,5].map(star => (
+                                                            <svg key={star} className={`w-3.5 h-3.5 ${star <= review.rating ? 'text-gold' : 'text-bella-200'}`} fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                            </svg>
+                                                        ))}
+                                                    </div>
+                                                    <span className="text-bella-400 text-xs">{review.date}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p className="text-bella-700 text-sm leading-relaxed">{review.comment}</p>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <button className="mt-4 text-gold hover:text-gold-dark font-medium text-sm flex items-center gap-1 mx-auto">
+                                View all 127 reviews
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Q&A Section */}
+                        <div className="mt-12 md:mt-16">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="font-display text-xl md:text-2xl font-bold text-navy">Questions & Answers</h2>
+                                <button className="text-gold hover:text-gold-dark font-medium text-sm flex items-center gap-1">
+                                    Ask a Question
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                {[
+                                    { q: 'Is installation service available?', a: 'Yes, we offer professional installation services across Oman. Contact our team to schedule an appointment.', askedBy: 'Customer', answeredBy: 'Bella Team' },
+                                    { q: 'What is the warranty period?', a: 'All Bella products come with a 2-year manufacturer warranty covering defects in materials and workmanship.', askedBy: 'Customer', answeredBy: 'Bella Team' },
+                                    { q: 'Can I see this product in your showroom?', a: 'Yes, this product is available at our Muscat showroom. Visit us or call ahead to ensure availability.', askedBy: 'Customer', answeredBy: 'Bella Team' }
+                                ].map((qa, idx) => (
+                                    <div key={idx} className="bg-white rounded-xl border border-bella-100 overflow-hidden">
+                                        <div className="p-4 bg-bella-50">
+                                            <div className="flex items-start gap-3">
+                                                <span className="flex-shrink-0 w-6 h-6 bg-navy text-white rounded-full flex items-center justify-center text-xs font-bold">Q</span>
+                                                <div>
+                                                    <p className="font-medium text-navy">{qa.q}</p>
+                                                    <span className="text-bella-400 text-xs">Asked by {qa.askedBy}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="p-4">
+                                            <div className="flex items-start gap-3">
+                                                <span className="flex-shrink-0 w-6 h-6 bg-gold text-navy rounded-full flex items-center justify-center text-xs font-bold">A</span>
+                                                <div>
+                                                    <p className="text-bella-700 text-sm">{qa.a}</p>
+                                                    <span className="text-bella-400 text-xs">{qa.answeredBy}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Trust Badges */}
+                        <div className="mt-12 md:mt-16 pb-8">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {[
+                                    { icon: '🚚', title: 'Free Delivery', desc: 'On orders over OMR 50' },
+                                    { icon: '🔄', title: 'Easy Returns', desc: '30-day return policy' },
+                                    { icon: '🛡️', title: '2 Year Warranty', desc: 'Manufacturer guarantee' },
+                                    { icon: '💬', title: '24/7 Support', desc: 'Chat or call us anytime' }
+                                ].map((badge, idx) => (
+                                    <div key={idx} className="text-center p-4 bg-bella-50 rounded-xl">
+                                        <div className="text-2xl mb-2">{badge.icon}</div>
+                                        <h4 className="font-semibold text-navy text-sm">{badge.title}</h4>
+                                        <p className="text-bella-500 text-xs mt-1">{badge.desc}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
             );
