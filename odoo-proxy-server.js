@@ -851,10 +851,321 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 // Serve static HTML files (admin.html, etc.)
 app.use(express.static(__dirname));
 
+// ============================================
+// THAWANI PAYMENT GATEWAY CONFIGURATION
+// ============================================
+const THAWANI_CONFIG = {
+    secretKey: process.env.THAWANI_SECRET_KEY || 'rRQ26GcsZzoEhbrP2HZvLYDbn9C9et', // Test key
+    publishableKey: process.env.THAWANI_PUBLISHABLE_KEY || 'HGvTMLDssJghr9tlN9gr4DVYt0qyBy', // Test key
+    baseUrl: process.env.THAWANI_ENV === 'production'
+        ? 'https://checkout.thawani.om/api/v1'
+        : 'https://uatcheckout.thawani.om/api/v1',
+    checkoutUrl: process.env.THAWANI_ENV === 'production'
+        ? 'https://checkout.thawani.om/pay/'
+        : 'https://uatcheckout.thawani.om/pay/'
+};
+
+// ============================================
+// CHECKOUT & ORDER ENDPOINTS
+// ============================================
+
+// Create or find customer in Odoo
+async function findOrCreateCustomer(customerData) {
+    const { name, phone, email } = customerData;
+
+    // Search for existing customer by phone or email
+    let domain = [];
+    if (phone) {
+        domain = [['phone', '=', phone]];
+    } else if (email) {
+        domain = [['email', '=', email]];
+    }
+
+    if (domain.length > 0) {
+        const existingCustomers = await odooApiCall('res.partner', 'search_read', [domain], {
+            fields: ['id', 'name', 'phone', 'email'],
+            limit: 1
+        });
+
+        if (existingCustomers && existingCustomers.length > 0) {
+            // Update existing customer if needed
+            const customerId = existingCustomers[0].id;
+            await odooApiCall('res.partner', 'write', [[customerId], {
+                name: name || existingCustomers[0].name,
+                phone: phone || existingCustomers[0].phone,
+                email: email || existingCustomers[0].email
+            }]);
+            return customerId;
+        }
+    }
+
+    // Create new customer
+    const partnerId = await odooApiCall('res.partner', 'create', [{
+        name: name,
+        phone: phone || false,
+        email: email || false,
+        customer_rank: 1
+    }]);
+
+    return partnerId;
+}
+
+// Create sale order in Odoo
+async function createSaleOrder(customerId, cartItems, orderRef = null) {
+    // Prepare order lines
+    const orderLines = cartItems.map(item => [0, 0, {
+        product_id: item.id,
+        product_uom_qty: item.quantity,
+        price_unit: item.price
+    }]);
+
+    // Create the sale order
+    const orderData = {
+        partner_id: customerId,
+        order_line: orderLines,
+        state: 'draft'
+    };
+
+    if (orderRef) {
+        orderData.client_order_ref = orderRef;
+    }
+
+    const orderId = await odooApiCall('sale.order', 'create', [orderData]);
+
+    // Get order details including name
+    const orderDetails = await odooApiCall('sale.order', 'read', [[orderId]], {
+        fields: ['name', 'amount_total', 'state']
+    });
+
+    return orderDetails[0];
+}
+
+// Confirm sale order in Odoo
+async function confirmSaleOrder(orderId) {
+    await odooApiCall('sale.order', 'action_confirm', [[orderId]]);
+    return true;
+}
+
+// Create checkout session - validates cart and creates Thawani session
+app.post('/api/checkout/create-session', async (req, res) => {
+    try {
+        const { customer, cart, successUrl, cancelUrl } = req.body;
+
+        // Validate required fields
+        if (!customer || !customer.name || !customer.phone) {
+            return res.status(400).json({
+                error: 'Customer name and phone are required'
+            });
+        }
+
+        if (!cart || cart.length === 0) {
+            return res.status(400).json({
+                error: 'Cart cannot be empty'
+            });
+        }
+
+        // Create/find customer in Odoo
+        const customerId = await findOrCreateCustomer(customer);
+
+        // Generate unique order reference
+        const orderRef = `WEB-${Date.now()}`;
+
+        // Create draft order in Odoo
+        const odooOrder = await createSaleOrder(customerId, cart, orderRef);
+
+        // Calculate total in baisas (Thawani requires integer, 1 OMR = 1000 baisas)
+        const totalBaisas = Math.round(cart.reduce((sum, item) =>
+            sum + (item.price * item.quantity * 1000), 0
+        ));
+
+        // Prepare Thawani products
+        const thawaniProducts = cart.map(item => ({
+            name: item.name.substring(0, 40), // Max 40 chars
+            unit_amount: Math.round(item.price * 1000), // Convert to baisas
+            quantity: item.quantity
+        }));
+
+        // Create Thawani checkout session
+        const thawaniResponse = await axios.post(
+            `${THAWANI_CONFIG.baseUrl}/checkout/session`,
+            {
+                client_reference_id: orderRef,
+                mode: 'payment',
+                products: thawaniProducts,
+                success_url: successUrl || `${req.headers.origin || 'http://localhost:3001'}/checkout-success?order=${orderRef}`,
+                cancel_url: cancelUrl || `${req.headers.origin || 'http://localhost:3001'}/checkout-cancel?order=${orderRef}`,
+                metadata: {
+                    odoo_order_id: odooOrder.id,
+                    odoo_order_name: odooOrder.name,
+                    customer_name: customer.name,
+                    customer_phone: customer.phone
+                }
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'thawani-api-key': THAWANI_CONFIG.secretKey
+                }
+            }
+        );
+
+        if (thawaniResponse.data.success) {
+            const sessionId = thawaniResponse.data.data.session_id;
+            res.json({
+                success: true,
+                sessionId: sessionId,
+                checkoutUrl: `${THAWANI_CONFIG.checkoutUrl}${sessionId}?key=${THAWANI_CONFIG.publishableKey}`,
+                orderRef: orderRef,
+                odooOrderName: odooOrder.name
+            });
+        } else {
+            throw new Error('Failed to create Thawani session');
+        }
+
+    } catch (error) {
+        console.error('Checkout session error:', error.response?.data || error.message);
+        res.status(500).json({
+            error: 'Failed to create checkout session',
+            details: error.response?.data?.message || error.message
+        });
+    }
+});
+
+// Verify payment and confirm order
+app.post('/api/checkout/verify-payment', async (req, res) => {
+    try {
+        const { sessionId, orderRef } = req.body;
+
+        if (!sessionId) {
+            return res.status(400).json({ error: 'Session ID is required' });
+        }
+
+        // Get session details from Thawani
+        const thawaniResponse = await axios.get(
+            `${THAWANI_CONFIG.baseUrl}/checkout/session/${sessionId}`,
+            {
+                headers: {
+                    'thawani-api-key': THAWANI_CONFIG.secretKey
+                }
+            }
+        );
+
+        const session = thawaniResponse.data.data;
+
+        if (session.payment_status === 'paid') {
+            // Find the Odoo order by client reference
+            const orders = await odooApiCall('sale.order', 'search_read', [
+                [['client_order_ref', '=', session.client_reference_id]]
+            ], {
+                fields: ['id', 'name', 'state'],
+                limit: 1
+            });
+
+            if (orders && orders.length > 0) {
+                const order = orders[0];
+
+                // Confirm the order if still in draft
+                if (order.state === 'draft') {
+                    await confirmSaleOrder(order.id);
+                }
+
+                res.json({
+                    success: true,
+                    paymentStatus: 'paid',
+                    orderName: order.name,
+                    message: 'Payment successful! Your order has been confirmed.'
+                });
+            } else {
+                res.json({
+                    success: true,
+                    paymentStatus: 'paid',
+                    message: 'Payment successful!'
+                });
+            }
+        } else {
+            res.json({
+                success: false,
+                paymentStatus: session.payment_status,
+                message: `Payment status: ${session.payment_status}`
+            });
+        }
+
+    } catch (error) {
+        console.error('Payment verification error:', error.response?.data || error.message);
+        res.status(500).json({
+            error: 'Failed to verify payment',
+            details: error.message
+        });
+    }
+});
+
+// Thawani webhook for payment notifications
+app.post('/api/checkout/webhook', async (req, res) => {
+    try {
+        const event = req.body;
+        console.log('Thawani webhook received:', JSON.stringify(event, null, 2));
+
+        // Verify this is a valid webhook (in production, verify signature)
+        if (event.data && event.data.client_reference_id) {
+            const orderRef = event.data.client_reference_id;
+            const paymentStatus = event.data.payment_status;
+
+            if (paymentStatus === 'paid') {
+                // Find and confirm the order
+                const orders = await odooApiCall('sale.order', 'search_read', [
+                    [['client_order_ref', '=', orderRef]]
+                ], {
+                    fields: ['id', 'name', 'state'],
+                    limit: 1
+                });
+
+                if (orders && orders.length > 0 && orders[0].state === 'draft') {
+                    await confirmSaleOrder(orders[0].id);
+                    console.log(`Order ${orders[0].name} confirmed via webhook`);
+                }
+            }
+        }
+
+        res.json({ received: true });
+
+    } catch (error) {
+        console.error('Webhook error:', error.message);
+        res.status(500).json({ error: 'Webhook processing failed' });
+    }
+});
+
+// Get order status
+app.get('/api/checkout/order-status/:orderRef', async (req, res) => {
+    try {
+        const { orderRef } = req.params;
+
+        const orders = await odooApiCall('sale.order', 'search_read', [
+            [['client_order_ref', '=', orderRef]]
+        ], {
+            fields: ['id', 'name', 'state', 'amount_total', 'date_order'],
+            limit: 1
+        });
+
+        if (orders && orders.length > 0) {
+            res.json({
+                success: true,
+                order: orders[0]
+            });
+        } else {
+            res.status(404).json({ error: 'Order not found' });
+        }
+
+    } catch (error) {
+        console.error('Order status error:', error.message);
+        res.status(500).json({ error: 'Failed to get order status' });
+    }
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`🚀 AquaLux API Server running on port ${PORT}`);
     console.log(`📦 Connected to Odoo: ${ODOO_CONFIG.baseUrl}`);
+    console.log(`💳 Thawani: ${THAWANI_CONFIG.baseUrl.includes('uat') ? 'TEST MODE' : 'PRODUCTION'}`);
 });
 
 module.exports = app;

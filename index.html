@@ -3573,7 +3573,10 @@
                                                 <span>{countryConfig.currencySymbol} {formatPrice(cartTotal)}</span>
                                             </div>
 
-                                            <button className="w-full bg-gold hover:bg-gold-dark text-white py-4 rounded-xl font-semibold transition-colors mb-3">
+                                            <button
+                                                onClick={() => navigate('checkout')}
+                                                className="w-full bg-gold hover:bg-gold-dark text-white py-4 rounded-xl font-semibold transition-colors mb-3"
+                                            >
                                                 Proceed to Checkout
                                             </button>
 
@@ -3599,6 +3602,511 @@
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </section>
+                </div>
+            );
+        };
+
+        // ============================================
+        // CHECKOUT PAGE
+        // ============================================
+        const CheckoutPage = ({ navigate }) => {
+            const { cart, clearCart, cartTotal } = useCart();
+            const { countryConfig, formatPrice, country } = useLocale();
+            const [step, setStep] = useState('form'); // 'form', 'processing', 'success', 'error'
+            const [customerData, setCustomerData] = useState({
+                name: '',
+                phone: '',
+                email: ''
+            });
+            const [errors, setErrors] = useState({});
+            const [orderInfo, setOrderInfo] = useState(null);
+            const [errorMessage, setErrorMessage] = useState('');
+
+            // Redirect to cart if empty
+            useEffect(() => {
+                if (cart.length === 0 && step === 'form') {
+                    navigate('cart');
+                }
+            }, [cart, step, navigate]);
+
+            const validateForm = () => {
+                const newErrors = {};
+                if (!customerData.name.trim()) {
+                    newErrors.name = 'Name is required';
+                }
+                if (!customerData.phone.trim()) {
+                    newErrors.phone = 'Phone number is required';
+                } else if (!/^[\d\s+()-]{8,}$/.test(customerData.phone)) {
+                    newErrors.phone = 'Please enter a valid phone number';
+                }
+                if (customerData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerData.email)) {
+                    newErrors.email = 'Please enter a valid email address';
+                }
+                setErrors(newErrors);
+                return Object.keys(newErrors).length === 0;
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!validateForm()) return;
+
+                setStep('processing');
+
+                try {
+                    // For Oman, use Thawani payment
+                    if (country === 'OM') {
+                        const response = await fetch(`${ODOO_CONFIG.proxyUrl}/api/checkout/create-session`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                customer: customerData,
+                                cart: cart.map(item => ({
+                                    id: item.id,
+                                    name: item.name,
+                                    price: item.price,
+                                    quantity: item.quantity
+                                })),
+                                successUrl: `${window.location.origin}/#checkout-success`,
+                                cancelUrl: `${window.location.origin}/#checkout-cancel`
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success && data.checkoutUrl) {
+                            // Store order info for success page
+                            localStorage.setItem('pendingOrder', JSON.stringify({
+                                orderRef: data.orderRef,
+                                sessionId: data.sessionId,
+                                odooOrderName: data.odooOrderName
+                            }));
+                            // Redirect to Thawani payment page
+                            window.location.href = data.checkoutUrl;
+                        } else {
+                            throw new Error(data.error || 'Failed to create checkout session');
+                        }
+                    } else {
+                        // For other countries, create order without payment (COD or quote request)
+                        const response = await fetch(`${ODOO_CONFIG.proxyUrl}/api/checkout/create-session`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                customer: customerData,
+                                cart: cart.map(item => ({
+                                    id: item.id,
+                                    name: item.name,
+                                    price: item.price,
+                                    quantity: item.quantity
+                                })),
+                                skipPayment: true
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success || data.odooOrderName) {
+                            setOrderInfo({
+                                orderName: data.odooOrderName,
+                                orderRef: data.orderRef
+                            });
+                            clearCart();
+                            setStep('success');
+                        } else {
+                            throw new Error(data.error || 'Failed to create order');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Checkout error:', error);
+                    setErrorMessage(error.message || 'Something went wrong. Please try again.');
+                    setStep('error');
+                }
+            };
+
+            // Success state
+            if (step === 'success') {
+                return (
+                    <div className="page active">
+                        <section className="py-20">
+                            <div className="max-w-lg mx-auto px-6 text-center">
+                                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <h1 className="font-display text-3xl font-bold text-navy mb-4">Order Submitted!</h1>
+                                <p className="text-bella-600 mb-2">Thank you for your order.</p>
+                                {orderInfo?.orderName && (
+                                    <p className="text-lg font-semibold text-navy mb-6">
+                                        Order Number: {orderInfo.orderName}
+                                    </p>
+                                )}
+                                <p className="text-bella-500 mb-8">
+                                    Our team will contact you shortly to confirm your order and arrange delivery.
+                                </p>
+                                <button
+                                    onClick={() => navigate('home')}
+                                    className="bg-gold hover:bg-gold-dark text-white px-8 py-3 rounded-xl font-semibold transition-colors"
+                                >
+                                    Continue Shopping
+                                </button>
+                            </div>
+                        </section>
+                    </div>
+                );
+            }
+
+            // Error state
+            if (step === 'error') {
+                return (
+                    <div className="page active">
+                        <section className="py-20">
+                            <div className="max-w-lg mx-auto px-6 text-center">
+                                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </div>
+                                <h1 className="font-display text-3xl font-bold text-navy mb-4">Checkout Failed</h1>
+                                <p className="text-bella-600 mb-6">{errorMessage}</p>
+                                <div className="flex gap-4 justify-center">
+                                    <button
+                                        onClick={() => setStep('form')}
+                                        className="bg-gold hover:bg-gold-dark text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+                                    >
+                                        Try Again
+                                    </button>
+                                    <button
+                                        onClick={() => navigate('cart')}
+                                        className="border border-bella-200 text-navy px-6 py-3 rounded-xl font-medium hover:bg-bella-50 transition-colors"
+                                    >
+                                        Back to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                );
+            }
+
+            // Processing state
+            if (step === 'processing') {
+                return (
+                    <div className="page active">
+                        <section className="py-20">
+                            <div className="max-w-lg mx-auto px-6 text-center">
+                                <div className="w-20 h-20 bg-bella-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+                                    <svg className="w-10 h-10 text-gold animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                                <h1 className="font-display text-2xl font-bold text-navy mb-4">Processing your order...</h1>
+                                <p className="text-bella-600">Please wait while we prepare your checkout.</p>
+                            </div>
+                        </section>
+                    </div>
+                );
+            }
+
+            // Form state
+            return (
+                <div className="page active">
+                    <section className="bg-gradient-to-r from-bella-50 via-white to-bella-50 py-12 border-b border-bella-100">
+                        <div className="max-w-7xl mx-auto px-6">
+                            <div className="flex items-center text-sm text-bella-500 mb-4">
+                                <span className="cursor-pointer hover:text-navy" onClick={() => navigate('home')}>Home</span>
+                                <span className="mx-2">/</span>
+                                <span className="cursor-pointer hover:text-navy" onClick={() => navigate('cart')}>Cart</span>
+                                <span className="mx-2">/</span>
+                                <span className="text-navy font-medium">Checkout</span>
+                            </div>
+                            <h1 className="font-display text-3xl md:text-4xl font-bold text-navy">Checkout</h1>
+                        </div>
+                    </section>
+
+                    <section className="py-12">
+                        <div className="max-w-7xl mx-auto px-6">
+                            <div className="grid lg:grid-cols-3 gap-8">
+                                {/* Customer Information Form */}
+                                <div className="lg:col-span-2">
+                                    <div className="bg-white rounded-2xl p-6 shadow-sm">
+                                        <h2 className="font-display text-xl font-bold text-navy mb-6">Contact Information</h2>
+
+                                        <form onSubmit={handleSubmit} className="space-y-5">
+                                            {/* Name */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-navy mb-2">
+                                                    Full Name <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={customerData.name}
+                                                    onChange={(e) => setCustomerData({...customerData, name: e.target.value})}
+                                                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gold/50 ${
+                                                        errors.name ? 'border-red-500' : 'border-bella-200'
+                                                    }`}
+                                                    placeholder="Enter your full name"
+                                                />
+                                                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                                            </div>
+
+                                            {/* Phone */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-navy mb-2">
+                                                    Phone Number <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    type="tel"
+                                                    value={customerData.phone}
+                                                    onChange={(e) => setCustomerData({...customerData, phone: e.target.value})}
+                                                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gold/50 ${
+                                                        errors.phone ? 'border-red-500' : 'border-bella-200'
+                                                    }`}
+                                                    placeholder="+968 9XXX XXXX"
+                                                />
+                                                {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+                                            </div>
+
+                                            {/* Email */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-navy mb-2">
+                                                    Email Address <span className="text-bella-400">(Optional)</span>
+                                                </label>
+                                                <input
+                                                    type="email"
+                                                    value={customerData.email}
+                                                    onChange={(e) => setCustomerData({...customerData, email: e.target.value})}
+                                                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-gold/50 ${
+                                                        errors.email ? 'border-red-500' : 'border-bella-200'
+                                                    }`}
+                                                    placeholder="your@email.com"
+                                                />
+                                                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                                                <p className="text-bella-500 text-xs mt-1">We'll send order confirmation to this email</p>
+                                            </div>
+
+                                            {/* Payment Method Info */}
+                                            <div className="pt-4 border-t border-bella-100">
+                                                <h3 className="font-semibold text-navy mb-3">Payment Method</h3>
+                                                {country === 'OM' ? (
+                                                    <div className="flex items-center gap-3 p-4 bg-bella-50 rounded-xl">
+                                                        <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                                                            <svg className="w-8 h-8 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-navy">Secure Online Payment</p>
+                                                            <p className="text-sm text-bella-500">Pay securely with Thawani (Cards, OmanNet)</p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-3 p-4 bg-bella-50 rounded-xl">
+                                                        <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                                                            <svg className="w-8 h-8 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                            </svg>
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-navy">Request Quote</p>
+                                                            <p className="text-sm text-bella-500">Our team will contact you with pricing and payment options</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <button
+                                                type="submit"
+                                                className="w-full bg-gold hover:bg-gold-dark text-white py-4 rounded-xl font-semibold transition-colors mt-6"
+                                            >
+                                                {country === 'OM' ? 'Proceed to Payment' : 'Submit Order'}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                {/* Order Summary */}
+                                <div className="lg:col-span-1">
+                                    <div className="bg-white rounded-2xl p-6 shadow-sm sticky top-28">
+                                        <h3 className="font-display text-xl font-bold text-navy mb-4">Order Summary</h3>
+
+                                        {/* Cart Items */}
+                                        <div className="space-y-3 max-h-64 overflow-y-auto mb-4">
+                                            {cart.map(item => (
+                                                <div key={item.id} className="flex gap-3">
+                                                    <img
+                                                        src={item.thumbnail || item.image}
+                                                        alt={item.name}
+                                                        className="w-16 h-16 object-cover rounded-lg"
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium text-navy truncate">{item.name}</p>
+                                                        <p className="text-xs text-bella-500">Qty: {item.quantity}</p>
+                                                        <p className="text-sm font-semibold text-navy">
+                                                            {countryConfig.currencySymbol} {formatPrice(item.price * item.quantity)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="border-t border-bella-100 pt-4 space-y-2">
+                                            <div className="flex justify-between text-bella-600">
+                                                <span>Subtotal</span>
+                                                <span>{countryConfig.currencySymbol} {formatPrice(cartTotal)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-bella-600">
+                                                <span>Shipping</span>
+                                                <span className="text-green-600">Free</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-between text-lg font-bold text-navy mt-4 pt-4 border-t border-bella-100">
+                                            <span>Total</span>
+                                            <span>{countryConfig.currencySymbol} {formatPrice(cartTotal)}</span>
+                                        </div>
+
+                                        <button
+                                            onClick={() => navigate('cart')}
+                                            className="w-full text-center text-sm text-bella-500 hover:text-navy mt-4"
+                                        >
+                                            Edit Cart
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            );
+        };
+
+        // ============================================
+        // CHECKOUT SUCCESS PAGE (for return from Thawani)
+        // ============================================
+        const CheckoutSuccessPage = ({ navigate }) => {
+            const { clearCart } = useCart();
+            const [orderInfo, setOrderInfo] = useState(null);
+            const [verifying, setVerifying] = useState(true);
+
+            useEffect(() => {
+                const verifyPayment = async () => {
+                    try {
+                        const pendingOrder = JSON.parse(localStorage.getItem('pendingOrder') || '{}');
+
+                        if (pendingOrder.sessionId) {
+                            const response = await fetch(`${ODOO_CONFIG.proxyUrl}/api/checkout/verify-payment`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    sessionId: pendingOrder.sessionId,
+                                    orderRef: pendingOrder.orderRef
+                                })
+                            });
+
+                            const data = await response.json();
+
+                            if (data.success && data.paymentStatus === 'paid') {
+                                setOrderInfo({
+                                    orderName: data.orderName || pendingOrder.odooOrderName,
+                                    message: data.message
+                                });
+                                clearCart();
+                                localStorage.removeItem('pendingOrder');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Payment verification error:', error);
+                    }
+                    setVerifying(false);
+                };
+
+                verifyPayment();
+            }, [clearCart]);
+
+            if (verifying) {
+                return (
+                    <div className="page active">
+                        <section className="py-20">
+                            <div className="max-w-lg mx-auto px-6 text-center">
+                                <div className="w-20 h-20 bg-bella-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <svg className="w-10 h-10 text-gold animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                                <h1 className="font-display text-2xl font-bold text-navy mb-4">Verifying Payment...</h1>
+                                <p className="text-bella-600">Please wait while we confirm your payment.</p>
+                            </div>
+                        </section>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="page active">
+                    <section className="py-20">
+                        <div className="max-w-lg mx-auto px-6 text-center">
+                            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <h1 className="font-display text-3xl font-bold text-navy mb-4">Payment Successful!</h1>
+                            <p className="text-bella-600 mb-2">Thank you for your purchase.</p>
+                            {orderInfo?.orderName && (
+                                <p className="text-lg font-semibold text-navy mb-6">
+                                    Order Number: {orderInfo.orderName}
+                                </p>
+                            )}
+                            <p className="text-bella-500 mb-8">
+                                You will receive an order confirmation shortly. Our team will contact you for delivery arrangements.
+                            </p>
+                            <button
+                                onClick={() => navigate('home')}
+                                className="bg-gold hover:bg-gold-dark text-white px-8 py-3 rounded-xl font-semibold transition-colors"
+                            >
+                                Continue Shopping
+                            </button>
+                        </div>
+                    </section>
+                </div>
+            );
+        };
+
+        // ============================================
+        // CHECKOUT CANCEL PAGE (for return from Thawani)
+        // ============================================
+        const CheckoutCancelPage = ({ navigate }) => {
+            return (
+                <div className="page active">
+                    <section className="py-20">
+                        <div className="max-w-lg mx-auto px-6 text-center">
+                            <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <svg className="w-10 h-10 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <h1 className="font-display text-3xl font-bold text-navy mb-4">Payment Cancelled</h1>
+                            <p className="text-bella-600 mb-8">
+                                Your payment was cancelled. Your cart items are still saved.
+                            </p>
+                            <div className="flex gap-4 justify-center">
+                                <button
+                                    onClick={() => navigate('checkout')}
+                                    className="bg-gold hover:bg-gold-dark text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+                                >
+                                    Try Again
+                                </button>
+                                <button
+                                    onClick={() => navigate('cart')}
+                                    className="border border-bella-200 text-navy px-6 py-3 rounded-xl font-medium hover:bg-bella-50 transition-colors"
+                                >
+                                    Back to Cart
+                                </button>
+                            </div>
                         </div>
                     </section>
                 </div>
@@ -3823,6 +4331,9 @@
                     )}
 
                     {route.page === 'cart' && <CartPage navigate={navigate} />}
+                    {route.page === 'checkout' && <CheckoutPage navigate={navigate} />}
+                    {route.page === 'checkout-success' && <CheckoutSuccessPage navigate={navigate} />}
+                    {route.page === 'checkout-cancel' && <CheckoutCancelPage navigate={navigate} />}
                     {route.page === 'wishlist' && <WishlistPage navigate={navigate} />}
 
                     {route.page === 'about' && <AboutPage navigate={navigate} />}
