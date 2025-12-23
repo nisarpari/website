@@ -2163,7 +2163,7 @@
             return (
                 <div className="page active">
                     {/* Hero Banner - Cinematic Style */}
-                    <section className="relative h-[400px] md:h-[500px] overflow-hidden">
+                    <section className="relative h-[250px] md:h-[400px] lg:h-[500px] overflow-hidden">
                         <img
                             src={getHeroImage()}
                             alt={category.name}
@@ -2195,24 +2195,24 @@
                                 </div>
 
                                 {/* Title & Description */}
-                                <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 leading-tight">
+                                <h1 className="font-display text-3xl md:text-5xl lg:text-7xl font-bold text-white mb-2 md:mb-4 leading-tight">
                                     {category.name}
                                 </h1>
-                                <div className="w-20 h-1 bg-gradient-to-r from-gold to-gold-light mb-6"></div>
-                                <p className="text-bella-200 text-lg md:text-xl max-w-2xl leading-relaxed mb-8">
+                                <div className="w-12 md:w-20 h-1 bg-gradient-to-r from-gold to-gold-light mb-3 md:mb-6"></div>
+                                <p className="text-bella-200 text-sm md:text-lg lg:text-xl max-w-2xl leading-relaxed mb-4 md:mb-8 hidden md:block">
                                     {getTagline(category.name)}
                                 </p>
 
-                                {/* Stats */}
-                                <div className="flex items-center gap-8">
+                                {/* Stats - Smaller on mobile */}
+                                <div className="flex items-center gap-4 md:gap-8">
                                     <div>
-                                        <div className="text-3xl font-display font-bold text-white">{childCategories.length}</div>
-                                        <div className="text-white/60 text-sm">Collections</div>
+                                        <div className="text-xl md:text-3xl font-display font-bold text-white">{childCategories.length}</div>
+                                        <div className="text-white/60 text-xs md:text-sm">Collections</div>
                                     </div>
-                                    <div className="w-px h-12 bg-white/20"></div>
+                                    <div className="w-px h-8 md:h-12 bg-white/20"></div>
                                     <div>
-                                        <div className="text-3xl font-display font-bold text-white">{category.totalCount || category.count || 0}</div>
-                                        <div className="text-white/60 text-sm">Products</div>
+                                        <div className="text-xl md:text-3xl font-display font-bold text-white">{category.totalCount || category.count || 0}</div>
+                                        <div className="text-white/60 text-xs md:text-sm">Products</div>
                                     </div>
                                 </div>
                             </div>
@@ -2223,37 +2223,37 @@
                     </section>
 
                     {/* Collections Grid */}
-                    <section className="py-16 md:py-24 bg-bella-50">
-                        <div className="max-w-7xl mx-auto px-6">
+                    <section className="py-8 md:py-16 lg:py-24 bg-bella-50">
+                        <div className="max-w-7xl mx-auto px-3 md:px-6">
                             {/* Section Header */}
-                            <div className="text-center mb-16">
-                                <span className="text-gold text-sm font-semibold tracking-widest uppercase">Explore</span>
-                                <h2 className="font-display text-3xl md:text-4xl font-bold text-navy mt-2">
+                            <div className="text-center mb-6 md:mb-16">
+                                <span className="text-gold text-xs md:text-sm font-semibold tracking-widest uppercase">Explore</span>
+                                <h2 className="font-display text-xl md:text-3xl lg:text-4xl font-bold text-navy mt-1 md:mt-2">
                                     Our {category.name} Collections
                                 </h2>
-                                <p className="text-bella-600 mt-4 max-w-2xl mx-auto">
+                                <p className="text-bella-600 text-sm md:text-base mt-2 md:mt-4 max-w-2xl mx-auto hidden md:block">
                                     Discover our curated selection of premium {category.name.toLowerCase()} products, each designed to bring elegance and functionality to your space.
                                 </p>
                             </div>
 
                             {childCategories.length > 0 ? (
                                 <>
-                                    {/* Premium Grid - 3 columns for larger tiles */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    {/* Premium Grid - 2 cols mobile, 3 cols desktop */}
+                                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8">
                                         {childCategories.map((subCat, index) => (
                                             <div
                                                 key={subCat.id}
                                                 onClick={() => handleSubcategoryClick(subCat)}
                                                 className={`collection-tile cursor-pointer group ${isVisible ? 'visible' : ''}`}
                                                 style={{
-                                                    animationDelay: `${index * 0.1}s`,
+                                                    animationDelay: `${index * 0.05}s`,
                                                     opacity: isVisible ? 1 : 0,
-                                                    transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-                                                    transition: `all 0.6s ease ${index * 0.1}s`
+                                                    transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+                                                    transition: `all 0.5s ease ${index * 0.05}s`
                                                 }}
                                             >
                                                 {/* Image Container */}
-                                                <div className="aspect-[4/3] overflow-hidden">
+                                                <div className="aspect-square md:aspect-[4/3] overflow-hidden">
                                                     <img
                                                         src={getSubcategoryImage(subCat, index)}
                                                         alt={subCat.name}
@@ -2263,17 +2263,17 @@
                                                 </div>
 
                                                 {/* Static Content (visible by default) */}
-                                                <div className="collection-tile-static">
-                                                    <h3 className="font-display text-xl font-bold text-white mb-1">
+                                                <div className="collection-tile-static p-2 md:p-4">
+                                                    <h3 className="font-display text-sm md:text-xl font-bold text-white mb-0 md:mb-1 line-clamp-1">
                                                         {subCat.name}
                                                     </h3>
                                                     {subCat.totalCount > 0 && (
-                                                        <span className="text-white/70 text-sm">{subCat.totalCount} {t('productsCount')}</span>
+                                                        <span className="text-white/70 text-xs md:text-sm">{subCat.totalCount} Products</span>
                                                     )}
                                                 </div>
 
-                                                {/* Hover Content */}
-                                                <div className="collection-tile-content">
+                                                {/* Hover Content - Hidden on mobile */}
+                                                <div className="collection-tile-content hidden md:block">
                                                     <span className="inline-block px-3 py-1 bg-gold/20 text-gold text-xs font-semibold rounded-full mb-3">
                                                         {subCat.childIds?.length > 0 ? 'VIEW COLLECTION' : 'BROWSE PRODUCTS'}
                                                     </span>
@@ -2296,9 +2296,9 @@
                                                     </div>
                                                 </div>
 
-                                                {/* Corner Accent */}
-                                                <div className="absolute top-0 right-0 w-24 h-24 overflow-hidden">
-                                                    <div className="absolute -top-12 -right-12 w-24 h-24 bg-gold/10 rotate-45 transform group-hover:bg-gold/20 transition-colors"></div>
+                                                {/* Corner Accent - smaller on mobile */}
+                                                <div className="absolute top-0 right-0 w-12 h-12 md:w-24 md:h-24 overflow-hidden">
+                                                    <div className="absolute -top-6 -right-6 md:-top-12 md:-right-12 w-12 h-12 md:w-24 md:h-24 bg-gold/10 rotate-45 transform group-hover:bg-gold/20 transition-colors"></div>
                                                 </div>
                                             </div>
                                         ))}
