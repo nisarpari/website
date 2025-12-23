@@ -341,6 +341,12 @@
                 return { page: 'category', params: { categoryId, ...params } };
             } else if (path === '/cart') {
                 return { page: 'cart', params };
+            } else if (path === '/checkout') {
+                return { page: 'checkout', params };
+            } else if (path === '/checkout-success') {
+                return { page: 'checkout-success', params };
+            } else if (path === '/checkout-cancel') {
+                return { page: 'checkout-cancel', params };
             } else if (path === '/wishlist') {
                 return { page: 'wishlist', params };
             } else if (path === '/') {
@@ -377,6 +383,12 @@
                     hash = `/category/${params.categoryId}`;
                 } else if (page === 'cart') {
                     hash = '/cart';
+                } else if (page === 'checkout') {
+                    hash = '/checkout';
+                } else if (page === 'checkout-success') {
+                    hash = '/checkout-success';
+                } else if (page === 'checkout-cancel') {
+                    hash = '/checkout-cancel';
                 } else if (page === 'wishlist') {
                     hash = '/wishlist';
                 } else if (page === 'home') {
