@@ -137,6 +137,8 @@ function transformProduct(product, includeRelated = false) {
         // SEO-friendly URL from Odoo
         url: product.website_url || `/shop/${product.name.toLowerCase().replace(/\s+/g, '-')}-${product.id}`,
         slug: product.website_url ? product.website_url.replace('/shop/', '') : `${product.name.toLowerCase().replace(/\s+/g, '-')}-${product.id}`,
+        // Product variant IDs for order creation
+        variantIds: product.product_variant_ids || [],
     };
 
     return transformed;
@@ -189,7 +191,9 @@ app.get('/api/products', async (req, res) => {
                     'allow_out_of_stock_order',
                     'show_availability',
                     'available_threshold',
-                    'product_template_image_ids'
+                    'product_template_image_ids',
+                    // Include product variant IDs for order creation
+                    'product_variant_ids'
                 ],
                 limit: limit,
                 offset: offset,
@@ -852,28 +856,25 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use(express.static(__dirname));
 
 // ============================================
-// THAWANI PAYMENT GATEWAY CONFIGURATION
+// QUOTATION & ORDER ENDPOINTS
 // ============================================
-const THAWANI_CONFIG = {
-    secretKey: process.env.THAWANI_SECRET_KEY || 'rRQ26GcsZzoEhbrP2HZvLYDbn9C9et', // Test key
-    publishableKey: process.env.THAWANI_PUBLISHABLE_KEY || 'HGvTMLDssJghr9tlN9gr4DVYt0qyBy', // Test key
-    baseUrl: process.env.THAWANI_ENV === 'production'
-        ? 'https://checkout.thawani.om/api/v1'
-        : 'https://uatcheckout.thawani.om/api/v1',
-    checkoutUrl: process.env.THAWANI_ENV === 'production'
-        ? 'https://checkout.thawani.om/pay/'
-        : 'https://uatcheckout.thawani.om/pay/'
-};
 
-// ============================================
-// CHECKOUT & ORDER ENDPOINTS
-// ============================================
+// Country code to name mapping
+const COUNTRY_NAMES = {
+    'OM': 'Oman',
+    'AE': 'United Arab Emirates',
+    'QA': 'Qatar',
+    'IN': 'India',
+    'SA': 'Saudi Arabia',
+    'KW': 'Kuwait',
+    'BH': 'Bahrain'
+};
 
 // Create or find customer in Odoo
 async function findOrCreateCustomer(customerData) {
-    const { name, phone, email } = customerData;
+    const { name, phone, email, country } = customerData;
 
-    // Search for existing customer by phone or email
+    // Search for existing customer by phone
     let domain = [];
     if (phone) {
         domain = [['phone', '=', phone]];
@@ -883,47 +884,116 @@ async function findOrCreateCustomer(customerData) {
 
     if (domain.length > 0) {
         const existingCustomers = await odooApiCall('res.partner', 'search_read', [domain], {
-            fields: ['id', 'name', 'phone', 'email'],
+            fields: ['id', 'name', 'phone', 'email', 'comment'],
             limit: 1
         });
 
         if (existingCustomers && existingCustomers.length > 0) {
             // Update existing customer if needed
             const customerId = existingCustomers[0].id;
+            const countryName = COUNTRY_NAMES[country] || country;
             await odooApiCall('res.partner', 'write', [[customerId], {
                 name: name || existingCustomers[0].name,
                 phone: phone || existingCustomers[0].phone,
-                email: email || existingCustomers[0].email
+                email: email || existingCustomers[0].email,
+                comment: `Country: ${countryName}`
             }]);
             return customerId;
         }
     }
 
     // Create new customer
+    const countryName = COUNTRY_NAMES[country] || country;
     const partnerId = await odooApiCall('res.partner', 'create', [{
         name: name,
         phone: phone || false,
         email: email || false,
+        comment: `Country: ${countryName}`,
         customer_rank: 1
     }]);
 
     return partnerId;
 }
 
-// Create sale order in Odoo
-async function createSaleOrder(customerId, cartItems, orderRef = null) {
-    // Prepare order lines
-    const orderLines = cartItems.map(item => [0, 0, {
-        product_id: item.id,
-        product_uom_qty: item.quantity,
-        price_unit: item.price
-    }]);
+// Create quotation (draft sale order) in Odoo
+async function createQuotation(customerId, cartItems, country, orderRef = null) {
+    // Prepare order lines - use product.product variant ID
+    const orderLines = [];
+    const failedProducts = [];
 
-    // Create the sale order
+    for (const item of cartItems) {
+        let productVariantId = null;
+
+        // First try to use variantId if provided
+        if (item.variantId) {
+            productVariantId = item.variantId;
+        } else if (item.variantIds && item.variantIds.length > 0) {
+            // Use first variant from the list
+            productVariantId = item.variantIds[0];
+        } else {
+            // Fallback: Find the product.product variant for this template
+            try {
+                const variants = await odooApiCall('product.product', 'search_read',
+                    [[['product_tmpl_id', '=', item.id]]],
+                    { fields: ['id'], limit: 1 }
+                );
+                if (variants && variants.length > 0) {
+                    productVariantId = variants[0].id;
+                }
+            } catch (err) {
+                console.error(`Failed to find variant for product ${item.id}:`, err.message);
+            }
+        }
+
+        if (productVariantId) {
+            orderLines.push([0, 0, {
+                product_id: productVariantId,
+                product_uom_qty: item.quantity,
+                price_unit: item.price // Original OMR price
+            }]);
+        } else {
+            failedProducts.push(item.name || item.id);
+        }
+    }
+
+    if (orderLines.length === 0) {
+        throw new Error(`No valid products found in cart. Failed products: ${failedProducts.join(', ')}`);
+    }
+
+    // Log if some products failed but we still have valid ones
+    if (failedProducts.length > 0) {
+        console.warn(`Some products failed to resolve: ${failedProducts.join(', ')}`);
+    }
+
+    // Create the quotation (draft sale order)
+    const countryName = COUNTRY_NAMES[country] || country;
+
+    // Get default warehouse
+    let warehouseId = null;
+    try {
+        const warehouses = await odooApiCall('stock.warehouse', 'search_read',
+            [[]],  // Get all warehouses
+            { fields: ['id', 'name'], limit: 1 }
+        );
+        console.log('Warehouses found:', warehouses);
+        if (warehouses && warehouses.length > 0) {
+            warehouseId = warehouses[0].id;
+        }
+    } catch (err) {
+        console.warn('Could not fetch warehouse:', err.message);
+    }
+
+    if (!warehouseId) {
+        console.warn('No warehouse found, trying hardcoded value 1');
+        warehouseId = 1;
+    }
+
     const orderData = {
         partner_id: customerId,
         order_line: orderLines,
-        state: 'draft'
+        warehouse_id: warehouseId,
+        state: 'draft', // Quotation state
+        note: `Website Quotation Request\nCountry: ${countryName}`
     };
 
     if (orderRef) {
@@ -932,24 +1002,18 @@ async function createSaleOrder(customerId, cartItems, orderRef = null) {
 
     const orderId = await odooApiCall('sale.order', 'create', [orderData]);
 
-    // Get order details including name
+    // Get order details including name (quotation number)
     const orderDetails = await odooApiCall('sale.order', 'read', [[orderId]], {
         fields: ['name', 'amount_total', 'state']
     });
 
-    return orderDetails[0];
+    return { id: orderId, ...orderDetails[0] };
 }
 
-// Confirm sale order in Odoo
-async function confirmSaleOrder(orderId) {
-    await odooApiCall('sale.order', 'action_confirm', [[orderId]]);
-    return true;
-}
-
-// Create checkout session - validates cart and creates Thawani session
-app.post('/api/checkout/create-session', async (req, res) => {
+// Submit order - creates quotation in Odoo (no payment processing)
+app.post('/api/quotation/submit', async (req, res) => {
     try {
-        const { customer, cart, successUrl, cancelUrl } = req.body;
+        const { customer, cart, country } = req.body;
 
         // Validate required fields
         if (!customer || !customer.name || !customer.phone) {
@@ -964,178 +1028,45 @@ app.post('/api/checkout/create-session', async (req, res) => {
             });
         }
 
+        if (!country) {
+            return res.status(400).json({
+                error: 'Country is required'
+            });
+        }
+
+        // Add country to customer data
+        const customerWithCountry = { ...customer, country };
+
         // Create/find customer in Odoo
-        const customerId = await findOrCreateCustomer(customer);
+        const customerId = await findOrCreateCustomer(customerWithCountry);
 
         // Generate unique order reference
         const orderRef = `WEB-${Date.now()}`;
 
-        // Create draft order in Odoo
-        const odooOrder = await createSaleOrder(customerId, cart, orderRef);
+        // Create quotation (draft order) in Odoo
+        const quotation = await createQuotation(customerId, cart, country, orderRef);
 
-        // Calculate total in baisas (Thawani requires integer, 1 OMR = 1000 baisas)
-        const totalBaisas = Math.round(cart.reduce((sum, item) =>
-            sum + (item.price * item.quantity * 1000), 0
-        ));
+        console.log(`Quotation created: ${quotation.name} for ${customer.name} (${country})`);
 
-        // Prepare Thawani products
-        const thawaniProducts = cart.map(item => ({
-            name: item.name.substring(0, 40), // Max 40 chars
-            unit_amount: Math.round(item.price * 1000), // Convert to baisas
-            quantity: item.quantity
-        }));
-
-        // Create Thawani checkout session
-        const thawaniResponse = await axios.post(
-            `${THAWANI_CONFIG.baseUrl}/checkout/session`,
-            {
-                client_reference_id: orderRef,
-                mode: 'payment',
-                products: thawaniProducts,
-                success_url: successUrl || `${req.headers.origin || 'http://localhost:3001'}/checkout-success?order=${orderRef}`,
-                cancel_url: cancelUrl || `${req.headers.origin || 'http://localhost:3001'}/checkout-cancel?order=${orderRef}`,
-                metadata: {
-                    odoo_order_id: odooOrder.id,
-                    odoo_order_name: odooOrder.name,
-                    customer_name: customer.name,
-                    customer_phone: customer.phone
-                }
-            },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'thawani-api-key': THAWANI_CONFIG.secretKey
-                }
-            }
-        );
-
-        if (thawaniResponse.data.success) {
-            const sessionId = thawaniResponse.data.data.session_id;
-            res.json({
-                success: true,
-                sessionId: sessionId,
-                checkoutUrl: `${THAWANI_CONFIG.checkoutUrl}${sessionId}?key=${THAWANI_CONFIG.publishableKey}`,
-                orderRef: orderRef,
-                odooOrderName: odooOrder.name
-            });
-        } else {
-            throw new Error('Failed to create Thawani session');
-        }
-
-    } catch (error) {
-        console.error('Checkout session error:', error.response?.data || error.message);
-        res.status(500).json({
-            error: 'Failed to create checkout session',
-            details: error.response?.data?.message || error.message
+        res.json({
+            success: true,
+            quotationId: quotation.id,
+            quotationName: quotation.name,
+            orderRef: orderRef,
+            message: 'Your quotation request has been submitted successfully!'
         });
-    }
-});
-
-// Verify payment and confirm order
-app.post('/api/checkout/verify-payment', async (req, res) => {
-    try {
-        const { sessionId, orderRef } = req.body;
-
-        if (!sessionId) {
-            return res.status(400).json({ error: 'Session ID is required' });
-        }
-
-        // Get session details from Thawani
-        const thawaniResponse = await axios.get(
-            `${THAWANI_CONFIG.baseUrl}/checkout/session/${sessionId}`,
-            {
-                headers: {
-                    'thawani-api-key': THAWANI_CONFIG.secretKey
-                }
-            }
-        );
-
-        const session = thawaniResponse.data.data;
-
-        if (session.payment_status === 'paid') {
-            // Find the Odoo order by client reference
-            const orders = await odooApiCall('sale.order', 'search_read', [
-                [['client_order_ref', '=', session.client_reference_id]]
-            ], {
-                fields: ['id', 'name', 'state'],
-                limit: 1
-            });
-
-            if (orders && orders.length > 0) {
-                const order = orders[0];
-
-                // Confirm the order if still in draft
-                if (order.state === 'draft') {
-                    await confirmSaleOrder(order.id);
-                }
-
-                res.json({
-                    success: true,
-                    paymentStatus: 'paid',
-                    orderName: order.name,
-                    message: 'Payment successful! Your order has been confirmed.'
-                });
-            } else {
-                res.json({
-                    success: true,
-                    paymentStatus: 'paid',
-                    message: 'Payment successful!'
-                });
-            }
-        } else {
-            res.json({
-                success: false,
-                paymentStatus: session.payment_status,
-                message: `Payment status: ${session.payment_status}`
-            });
-        }
 
     } catch (error) {
-        console.error('Payment verification error:', error.response?.data || error.message);
+        console.error('Quotation submission error:', error.message);
         res.status(500).json({
-            error: 'Failed to verify payment',
+            error: 'Failed to submit quotation',
             details: error.message
         });
     }
 });
 
-// Thawani webhook for payment notifications
-app.post('/api/checkout/webhook', async (req, res) => {
-    try {
-        const event = req.body;
-        console.log('Thawani webhook received:', JSON.stringify(event, null, 2));
-
-        // Verify this is a valid webhook (in production, verify signature)
-        if (event.data && event.data.client_reference_id) {
-            const orderRef = event.data.client_reference_id;
-            const paymentStatus = event.data.payment_status;
-
-            if (paymentStatus === 'paid') {
-                // Find and confirm the order
-                const orders = await odooApiCall('sale.order', 'search_read', [
-                    [['client_order_ref', '=', orderRef]]
-                ], {
-                    fields: ['id', 'name', 'state'],
-                    limit: 1
-                });
-
-                if (orders && orders.length > 0 && orders[0].state === 'draft') {
-                    await confirmSaleOrder(orders[0].id);
-                    console.log(`Order ${orders[0].name} confirmed via webhook`);
-                }
-            }
-        }
-
-        res.json({ received: true });
-
-    } catch (error) {
-        console.error('Webhook error:', error.message);
-        res.status(500).json({ error: 'Webhook processing failed' });
-    }
-});
-
-// Get order status
-app.get('/api/checkout/order-status/:orderRef', async (req, res) => {
+// Get quotation status
+app.get('/api/quotation/status/:orderRef', async (req, res) => {
     try {
         const { orderRef } = req.params;
 
@@ -1149,23 +1080,614 @@ app.get('/api/checkout/order-status/:orderRef', async (req, res) => {
         if (orders && orders.length > 0) {
             res.json({
                 success: true,
-                order: orders[0]
+                quotation: orders[0]
             });
         } else {
-            res.status(404).json({ error: 'Order not found' });
+            res.status(404).json({ error: 'Quotation not found' });
         }
 
     } catch (error) {
-        console.error('Order status error:', error.message);
-        res.status(500).json({ error: 'Failed to get order status' });
+        console.error('Quotation status error:', error.message);
+        res.status(500).json({ error: 'Failed to get quotation status' });
+    }
+});
+
+// ============================================
+// TRACK ORDER / CUSTOMER LOOKUP
+// ============================================
+
+// Search for customer records by phone or reference number
+app.get('/api/track/search', async (req, res) => {
+    try {
+        const { query } = req.query;
+
+        if (!query || query.trim().length < 3) {
+            return res.status(400).json({
+                error: 'Please provide at least 3 characters to search'
+            });
+        }
+
+        const searchQuery = query.trim();
+        const results = {
+            orders: [],
+            deliveries: [],
+            helpdesk: [],
+            repairs: [],
+            customer: null
+        };
+
+        // Determine if searching by phone or reference
+        const isPhoneSearch = /^\+?\d{6,}$/.test(searchQuery.replace(/\s/g, ''));
+
+        let partnerId = null;
+
+        if (isPhoneSearch) {
+            // Search by phone number - find the customer first
+            // Clean phone: remove spaces, dashes, and handle various formats
+            let phoneClean = searchQuery.replace(/[\s\-\(\)]/g, '');
+
+            // Extract last 8 digits for matching (handles country code variations)
+            const lastDigits = phoneClean.replace(/^\+/, '').slice(-8);
+
+            // Also try with/without country code
+            const phoneWithoutPlus = phoneClean.replace(/^\+/, '');
+            const phoneWithoutCode = phoneClean.replace(/^\+?968/, '');
+
+            console.log('Phone search variants:', { phoneClean, lastDigits, phoneWithoutPlus, phoneWithoutCode });
+
+            // Search in phone, mobile, AND name fields (some customers have phone in name)
+            const partners = await odooApiCall('res.partner', 'search_read', [
+                ['|', '|', '|', '|', '|', '|', '|', '|', '|',
+                    ['phone', 'ilike', phoneClean],
+                    ['mobile', 'ilike', phoneClean],
+                    ['phone', 'ilike', phoneWithoutPlus],
+                    ['mobile', 'ilike', phoneWithoutPlus],
+                    ['phone', 'ilike', lastDigits],
+                    ['mobile', 'ilike', lastDigits],
+                    ['phone', 'ilike', phoneWithoutCode],
+                    ['mobile', 'ilike', phoneWithoutCode],
+                    // Also search in name field (some customers have phone embedded in name)
+                    ['name', 'ilike', lastDigits],
+                    ['name', 'ilike', phoneWithoutCode]
+                ]
+            ], {
+                fields: ['id', 'name', 'phone', 'mobile', 'email'],
+                limit: 5
+            });
+
+            console.log('Partners found:', partners?.length || 0);
+
+            if (partners && partners.length > 0) {
+                partnerId = partners[0].id;
+                results.customer = {
+                    name: partners[0].name,
+                    phone: partners[0].phone || partners[0].mobile,
+                    email: partners[0].email
+                };
+            }
+        }
+
+        // Search Sale Orders
+        let orderDomain = [];
+        if (partnerId) {
+            orderDomain = [['partner_id', '=', partnerId]];
+        } else {
+            // Search by order reference
+            orderDomain = ['|', '|',
+                ['name', 'ilike', searchQuery],
+                ['client_order_ref', 'ilike', searchQuery],
+                ['origin', 'ilike', searchQuery]
+            ];
+        }
+
+        const orders = await odooApiCall('sale.order', 'search_read', [orderDomain], {
+            fields: ['id', 'name', 'state', 'date_order', 'amount_total', 'client_order_ref', 'partner_id', 'order_line'],
+            order: 'date_order desc',
+            limit: 20
+        });
+
+        // Map order states to readable format
+        const orderStateMap = {
+            'draft': 'Quotation',
+            'sent': 'Quotation Sent',
+            'sale': 'Sales Order',
+            'done': 'Completed',
+            'cancel': 'Cancelled'
+        };
+
+        results.orders = (orders || []).map(order => ({
+            id: order.id,
+            reference: order.name,
+            clientRef: order.client_order_ref,
+            status: orderStateMap[order.state] || order.state,
+            statusKey: order.state,
+            date: order.date_order,
+            total: order.amount_total,
+            customerName: order.partner_id ? order.partner_id[1] : 'Unknown',
+            itemCount: order.order_line ? order.order_line.length : 0
+        }));
+
+        // Search Delivery Orders (stock.picking)
+        try {
+            let deliveryDomain = [];
+            if (partnerId) {
+                deliveryDomain = [['partner_id', '=', partnerId], ['picking_type_code', '=', 'outgoing']];
+            } else {
+                deliveryDomain = ['&', ['picking_type_code', '=', 'outgoing'], '|',
+                    ['name', 'ilike', searchQuery],
+                    ['origin', 'ilike', searchQuery]
+                ];
+            }
+
+            const deliveries = await odooApiCall('stock.picking', 'search_read', [deliveryDomain], {
+                fields: ['id', 'name', 'state', 'scheduled_date', 'date_done', 'partner_id', 'origin', 'move_ids_without_package'],
+                order: 'scheduled_date desc',
+                limit: 20
+            });
+
+            const deliveryStateMap = {
+                'draft': 'Draft',
+                'waiting': 'Waiting',
+                'confirmed': 'Waiting',
+                'assigned': 'Ready',
+                'done': 'Delivered',
+                'cancel': 'Cancelled'
+            };
+
+            results.deliveries = (deliveries || []).map(delivery => ({
+                id: delivery.id,
+                reference: delivery.name,
+                origin: delivery.origin,
+                status: deliveryStateMap[delivery.state] || delivery.state,
+                statusKey: delivery.state,
+                scheduledDate: delivery.scheduled_date,
+                doneDate: delivery.date_done,
+                customerName: delivery.partner_id ? delivery.partner_id[1] : 'Unknown',
+                itemCount: delivery.move_ids_without_package ? delivery.move_ids_without_package.length : 0
+            }));
+        } catch (err) {
+            console.log('Delivery search error:', err.message);
+        }
+
+        // Search Helpdesk Tickets (if module exists)
+        try {
+            let ticketDomain = [];
+            if (partnerId) {
+                ticketDomain = [['partner_id', '=', partnerId]];
+            } else {
+                ticketDomain = ['|',
+                    ['name', 'ilike', searchQuery],
+                    ['ticket_ref', 'ilike', searchQuery]
+                ];
+            }
+
+            const tickets = await odooApiCall('helpdesk.ticket', 'search_read', [ticketDomain], {
+                fields: ['id', 'name', 'ticket_ref', 'stage_id', 'create_date', 'partner_id', 'description', 'priority'],
+                order: 'create_date desc',
+                limit: 20
+            });
+
+            results.helpdesk = (tickets || []).map(ticket => ({
+                id: ticket.id,
+                reference: ticket.ticket_ref || `#${ticket.id}`,
+                subject: ticket.name,
+                status: ticket.stage_id ? ticket.stage_id[1] : 'Unknown',
+                date: ticket.create_date,
+                customerName: ticket.partner_id ? ticket.partner_id[1] : 'Unknown',
+                priority: ticket.priority || '0'
+            }));
+        } catch (err) {
+            console.log('Helpdesk module not available or error:', err.message);
+        }
+
+        // Search Repair Orders (if module exists)
+        try {
+            let repairDomain = [];
+            if (partnerId) {
+                repairDomain = [['partner_id', '=', partnerId]];
+            } else {
+                repairDomain = [['name', 'ilike', searchQuery]];
+            }
+
+            const repairs = await odooApiCall('repair.order', 'search_read', [repairDomain], {
+                fields: ['id', 'name', 'state', 'create_date', 'partner_id', 'product_id', 'amount_total'],
+                order: 'create_date desc',
+                limit: 20
+            });
+
+            const repairStateMap = {
+                'draft': 'Draft',
+                'confirmed': 'Confirmed',
+                'under_repair': 'Under Repair',
+                'ready': 'Ready',
+                '2binvoiced': 'To be Invoiced',
+                'invoice_except': 'Invoice Exception',
+                'done': 'Completed',
+                'cancel': 'Cancelled'
+            };
+
+            results.repairs = (repairs || []).map(repair => ({
+                id: repair.id,
+                reference: repair.name,
+                status: repairStateMap[repair.state] || repair.state,
+                statusKey: repair.state,
+                date: repair.create_date,
+                customerName: repair.partner_id ? repair.partner_id[1] : 'Unknown',
+                product: repair.product_id ? repair.product_id[1] : 'Unknown',
+                total: repair.amount_total
+            }));
+        } catch (err) {
+            console.log('Repair module not available or error:', err.message);
+        }
+
+        // Set customer info from first order if not already set
+        if (!results.customer && results.orders.length > 0) {
+            results.customer = {
+                name: results.orders[0].customerName
+            };
+        }
+
+        const totalResults = results.orders.length + results.deliveries.length + results.helpdesk.length + results.repairs.length;
+
+        res.json({
+            success: true,
+            query: searchQuery,
+            searchType: isPhoneSearch ? 'phone' : 'reference',
+            totalResults,
+            ...results
+        });
+
+    } catch (error) {
+        console.error('Track search error:', error.message);
+        res.status(500).json({
+            error: 'Failed to search records',
+            details: error.message
+        });
+    }
+});
+
+// Get detailed order info with line items
+app.get('/api/track/order/:orderId', async (req, res) => {
+    try {
+        const orderId = parseInt(req.params.orderId);
+
+        const orders = await odooApiCall('sale.order', 'read', [[orderId]], {
+            fields: ['id', 'name', 'state', 'date_order', 'amount_total', 'amount_untaxed', 'amount_tax',
+                'client_order_ref', 'partner_id', 'order_line', 'note', 'commitment_date']
+        });
+
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        const order = orders[0];
+
+        // Fetch order lines
+        let lines = [];
+        if (order.order_line && order.order_line.length > 0) {
+            lines = await odooApiCall('sale.order.line', 'read', [order.order_line], {
+                fields: ['product_id', 'name', 'product_uom_qty', 'price_unit', 'price_subtotal']
+            });
+        }
+
+        const orderStateMap = {
+            'draft': 'Quotation',
+            'sent': 'Quotation Sent',
+            'sale': 'Sales Order',
+            'done': 'Completed',
+            'cancel': 'Cancelled'
+        };
+
+        res.json({
+            success: true,
+            order: {
+                id: order.id,
+                reference: order.name,
+                clientRef: order.client_order_ref,
+                status: orderStateMap[order.state] || order.state,
+                statusKey: order.state,
+                date: order.date_order,
+                expectedDate: order.commitment_date,
+                subtotal: order.amount_untaxed,
+                tax: order.amount_tax,
+                total: order.amount_total,
+                customerName: order.partner_id ? order.partner_id[1] : 'Unknown',
+                note: order.note,
+                lines: lines.map(line => ({
+                    productName: line.product_id ? line.product_id[1] : line.name,
+                    quantity: line.product_uom_qty,
+                    unitPrice: line.price_unit,
+                    subtotal: line.price_subtotal
+                }))
+            }
+        });
+
+    } catch (error) {
+        console.error('Order detail error:', error.message);
+        res.status(500).json({ error: 'Failed to fetch order details' });
+    }
+});
+
+// Get detailed delivery info with line items
+app.get('/api/track/delivery/:deliveryId', async (req, res) => {
+    try {
+        const deliveryId = parseInt(req.params.deliveryId);
+
+        const deliveries = await odooApiCall('stock.picking', 'read', [[deliveryId]], {
+            fields: ['id', 'name', 'state', 'scheduled_date', 'date_done', 'partner_id', 'origin', 'move_ids_without_package']
+        });
+
+        if (!deliveries || deliveries.length === 0) {
+            return res.status(404).json({ error: 'Delivery not found' });
+        }
+
+        const delivery = deliveries[0];
+
+        // Fetch move lines (items)
+        let lines = [];
+        if (delivery.move_ids_without_package && delivery.move_ids_without_package.length > 0) {
+            lines = await odooApiCall('stock.move', 'read', [delivery.move_ids_without_package], {
+                fields: ['product_id', 'name', 'product_uom_qty', 'quantity_done', 'product_uom']
+            });
+        }
+
+        const deliveryStateMap = {
+            'draft': 'Draft',
+            'waiting': 'Waiting',
+            'confirmed': 'Waiting',
+            'assigned': 'Ready',
+            'done': 'Delivered',
+            'cancel': 'Cancelled'
+        };
+
+        res.json({
+            success: true,
+            delivery: {
+                id: delivery.id,
+                reference: delivery.name,
+                origin: delivery.origin,
+                status: deliveryStateMap[delivery.state] || delivery.state,
+                statusKey: delivery.state,
+                scheduledDate: delivery.scheduled_date,
+                doneDate: delivery.date_done,
+                customerName: delivery.partner_id ? delivery.partner_id[1] : 'Unknown',
+                lines: lines.map(line => ({
+                    productName: line.product_id ? line.product_id[1] : line.name,
+                    quantity: line.product_uom_qty,
+                    quantityDone: line.quantity_done,
+                    uom: line.product_uom ? line.product_uom[1] : 'Units'
+                }))
+            }
+        });
+
+    } catch (error) {
+        console.error('Delivery detail error:', error.message);
+        res.status(500).json({ error: 'Failed to fetch delivery details' });
+    }
+});
+
+// ============================================
+// USER VERIFICATION (OTP) ENDPOINTS
+// ============================================
+
+// GCC Countries only for verification
+const GCC_COUNTRIES = {
+    'OM': { name: 'Oman', code: '+968', flag: '🇴🇲' },
+    'AE': { name: 'UAE', code: '+971', flag: '🇦🇪' },
+    'SA': { name: 'Saudi Arabia', code: '+966', flag: '🇸🇦' },
+    'QA': { name: 'Qatar', code: '+974', flag: '🇶🇦' },
+    'KW': { name: 'Kuwait', code: '+965', flag: '🇰🇼' },
+    'BH': { name: 'Bahrain', code: '+973', flag: '🇧🇭' }
+};
+
+// In-memory OTP store (in production, use Redis or database)
+const otpStore = new Map();
+
+// Generate 6-digit OTP
+function generateOTP() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Get list of GCC countries for frontend
+app.get('/api/verify/countries', (req, res) => {
+    res.json({
+        success: true,
+        countries: Object.entries(GCC_COUNTRIES).map(([code, data]) => ({
+            code,
+            ...data
+        }))
+    });
+});
+
+// Send OTP to phone number
+app.post('/api/verify/send-otp', async (req, res) => {
+    try {
+        const { phone, countryCode } = req.body;
+
+        // Validate country is GCC
+        if (!GCC_COUNTRIES[countryCode]) {
+            return res.status(400).json({
+                error: 'Verification is only available for GCC countries'
+            });
+        }
+
+        if (!phone || phone.length < 8) {
+            return res.status(400).json({
+                error: 'Please enter a valid phone number'
+            });
+        }
+
+        // Format full phone number
+        const countryDialCode = GCC_COUNTRIES[countryCode].code;
+        const cleanPhone = phone.replace(/\D/g, ''); // Remove non-digits
+        const fullPhone = `${countryDialCode}${cleanPhone}`;
+
+        // Generate OTP
+        const otp = generateOTP();
+        const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes expiry
+
+        // Store OTP
+        otpStore.set(fullPhone, {
+            otp,
+            expiresAt,
+            countryCode,
+            attempts: 0
+        });
+
+        // TODO: Integrate with WhatsApp Business API
+        // For now, we'll log the OTP (in production, send via WhatsApp)
+        console.log(`📱 OTP for ${fullPhone}: ${otp}`);
+
+        // In development/testing, include OTP in response
+        // Remove this in production!
+        const isDev = process.env.NODE_ENV !== 'production';
+
+        res.json({
+            success: true,
+            message: `OTP sent to ${GCC_COUNTRIES[countryCode].code} ${phone}`,
+            phone: fullPhone,
+            // Only include in dev mode for testing
+            ...(isDev && { devOtp: otp })
+        });
+
+    } catch (error) {
+        console.error('Send OTP error:', error.message);
+        res.status(500).json({ error: 'Failed to send OTP' });
+    }
+});
+
+// Verify OTP
+app.post('/api/verify/check-otp', async (req, res) => {
+    try {
+        const { phone, otp } = req.body;
+
+        if (!phone || !otp) {
+            return res.status(400).json({ error: 'Phone and OTP are required' });
+        }
+
+        const stored = otpStore.get(phone);
+
+        if (!stored) {
+            return res.status(400).json({ error: 'OTP expired or not found. Please request a new one.' });
+        }
+
+        // Check expiry
+        if (Date.now() > stored.expiresAt) {
+            otpStore.delete(phone);
+            return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
+        }
+
+        // Check attempts (max 3)
+        if (stored.attempts >= 3) {
+            otpStore.delete(phone);
+            return res.status(400).json({ error: 'Too many attempts. Please request a new OTP.' });
+        }
+
+        // Verify OTP
+        if (stored.otp !== otp) {
+            stored.attempts++;
+            return res.status(400).json({
+                error: 'Invalid OTP. Please try again.',
+                attemptsRemaining: 3 - stored.attempts
+            });
+        }
+
+        // OTP is valid - mark user as verified in Odoo
+        const countryCode = stored.countryCode;
+        otpStore.delete(phone);
+
+        // Find or create customer and mark as verified
+        try {
+            const existingCustomers = await odooApiCall('res.partner', 'search_read',
+                [[['phone', '=', phone]]],
+                { fields: ['id', 'name', 'comment'], limit: 1 }
+            );
+
+            if (existingCustomers && existingCustomers.length > 0) {
+                // Update existing customer - add verified flag
+                const customerId = existingCustomers[0].id;
+                const existingComment = existingCustomers[0].comment || '';
+                const newComment = existingComment.includes('VERIFIED')
+                    ? existingComment
+                    : `${existingComment}\n[VERIFIED] Phone verified on ${new Date().toISOString()}`;
+
+                await odooApiCall('res.partner', 'write', [[customerId], {
+                    comment: newComment.trim()
+                }]);
+            } else {
+                // Create new verified customer
+                await odooApiCall('res.partner', 'create', [{
+                    name: `Verified User (${phone})`,
+                    phone: phone,
+                    comment: `Country: ${GCC_COUNTRIES[countryCode].name}\n[VERIFIED] Phone verified on ${new Date().toISOString()}`,
+                    customer_rank: 1
+                }]);
+            }
+        } catch (odooError) {
+            console.error('Odoo verification update error:', odooError.message);
+            // Continue even if Odoo update fails - user is still verified locally
+        }
+
+        // Generate verification token (simple hash for now)
+        const verificationToken = Buffer.from(`${phone}:${Date.now()}:verified`).toString('base64');
+
+        res.json({
+            success: true,
+            verified: true,
+            message: 'Phone number verified successfully!',
+            phone: phone,
+            countryCode: countryCode,
+            token: verificationToken
+        });
+
+    } catch (error) {
+        console.error('Verify OTP error:', error.message);
+        res.status(500).json({ error: 'Failed to verify OTP' });
+    }
+});
+
+// Check if a phone is verified
+app.get('/api/verify/status', async (req, res) => {
+    try {
+        const { phone } = req.query;
+
+        if (!phone) {
+            return res.status(400).json({ error: 'Phone number is required' });
+        }
+
+        // Check in Odoo
+        const customers = await odooApiCall('res.partner', 'search_read',
+            [[['phone', '=', phone]]],
+            { fields: ['id', 'name', 'comment'], limit: 1 }
+        );
+
+        if (customers && customers.length > 0) {
+            const comment = customers[0].comment || '';
+            const isVerified = comment.includes('[VERIFIED]');
+
+            res.json({
+                success: true,
+                verified: isVerified,
+                phone: phone
+            });
+        } else {
+            res.json({
+                success: true,
+                verified: false,
+                phone: phone
+            });
+        }
+
+    } catch (error) {
+        console.error('Check verification status error:', error.message);
+        res.status(500).json({ error: 'Failed to check verification status' });
     }
 });
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`🚀 AquaLux API Server running on port ${PORT}`);
+    console.log(`🚀 Bella Bathwares API Server running on port ${PORT}`);
     console.log(`📦 Connected to Odoo: ${ODOO_CONFIG.baseUrl}`);
-    console.log(`💳 Thawani: ${THAWANI_CONFIG.baseUrl.includes('uat') ? 'TEST MODE' : 'PRODUCTION'}`);
 });
 
 module.exports = app;
