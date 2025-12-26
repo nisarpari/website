@@ -2079,8 +2079,8 @@
                     </section>
 
                     {/* FEATURED CATEGORIES - Interactive Accordion Style */}
-                    <section className="py-10 md:py-16 bg-gray-100">
-                        <div className="px-5 md:px-8 lg:px-16 max-w-7xl mx-auto">
+                    <section className="py-10 md:py-16 lg:py-20 bg-bella-50">
+                        <div className="px-5 md:px-8 lg:px-16 xl:px-24 2xl:px-32 max-w-[1920px] mx-auto">
                             <AccordionCategories navigate={navigate} categories={rootCategories.slice(0, 4)} />
                         </div>
                     </section>
@@ -3629,6 +3629,7 @@
         // ============================================
         const ProductDetailPage = ({ productSlug, navigate, categories }) => {
             const [product, setProduct] = useState(null);
+            const [relatedProducts, setRelatedProducts] = useState([]);
             const [loading, setLoading] = useState(true);
             const [selectedImageIndex, setSelectedImageIndex] = useState(0);
             const [quantity, setQuantity] = useState(1);
@@ -3644,6 +3645,30 @@
                     setProduct(data);
                     setSelectedImageIndex(0);
                     setLoading(false);
+
+                    // Fetch related products from same category if no alternatives from Odoo
+                    if (data && (!data.alternativeProducts || data.alternativeProducts.length === 0)) {
+                        const categoryId = data.publicCategoryIds?.[0] || data.categoryId;
+                        if (categoryId) {
+                            try {
+                                const categoryProducts = await OdooAPI.fetchProductsByPublicCategory(categoryId);
+                                // Filter out current product and limit to 8
+                                const related = categoryProducts
+                                    .filter(p => p.id !== data.id)
+                                    .slice(0, 8)
+                                    .map(p => ({
+                                        id: p.id,
+                                        name: p.name,
+                                        price: p.price,
+                                        thumbnail: p.image,
+                                        slug: p.slug
+                                    }));
+                                setRelatedProducts(related);
+                            } catch (e) {
+                                console.error('Failed to fetch related products:', e);
+                            }
+                        }
+                    }
                 };
                 loadProduct();
             }, [productSlug]);
@@ -3898,60 +3923,68 @@
                             </div>
                         )}
 
-                        {/* Alternative Products - Horizontal Carousel */}
-                        {product.alternativeProducts?.length > 0 && (
-                            <div className="mt-12 md:mt-16">
-                                <div className="flex items-center justify-between mb-4 md:mb-6">
-                                    <h2 className="font-display text-xl md:text-2xl font-bold text-navy">You May Also Like</h2>
-                                    <div className="hidden md:flex gap-2">
-                                        <button
-                                            onClick={() => {
-                                                const container = document.getElementById('related-products-carousel');
-                                                if (container) container.scrollBy({ left: -280, behavior: 'smooth' });
-                                            }}
-                                            className="w-10 h-10 rounded-full border border-bella-200 flex items-center justify-center hover:bg-bella-100 transition-colors"
-                                        >
-                                            <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                            </svg>
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                const container = document.getElementById('related-products-carousel');
-                                                if (container) container.scrollBy({ left: 280, behavior: 'smooth' });
-                                            }}
-                                            className="w-10 h-10 rounded-full border border-bella-200 flex items-center justify-center hover:bg-bella-100 transition-colors"
-                                        >
-                                            <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div
-                                    id="related-products-carousel"
-                                    className="flex gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
-                                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                                >
-                                    {product.alternativeProducts.slice(0, 8).map(alt => (
-                                        <div
-                                            key={alt.id}
-                                            className="flex-shrink-0 w-[45%] md:w-[220px] snap-start product-card bg-white rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow"
-                                            onClick={() => navigate('product', { slug: alt.slug })}
-                                        >
-                                            <div className="aspect-square bg-bella-100">
-                                                <img src={alt.thumbnail} alt={alt.name} className="w-full h-full object-cover" />
-                                            </div>
-                                            <div className="p-3">
-                                                <h3 className="font-medium text-navy text-sm line-clamp-2 leading-tight">{alt.name}</h3>
-                                                <p className="text-gold font-semibold mt-1 text-sm">{countryConfig.currencySymbol} {formatPrice(alt.price)}</p>
-                                            </div>
+                        {/* You May Also Like - Alternative Products or Related Products from Same Category */}
+                        {(() => {
+                            const displayProducts = product.alternativeProducts?.length > 0
+                                ? product.alternativeProducts
+                                : relatedProducts;
+
+                            if (displayProducts.length === 0) return null;
+
+                            return (
+                                <div className="mt-12 md:mt-16">
+                                    <div className="flex items-center justify-between mb-4 md:mb-6">
+                                        <h2 className="font-display text-xl md:text-2xl font-bold text-navy">You May Also Like</h2>
+                                        <div className="hidden md:flex gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    const container = document.getElementById('related-products-carousel');
+                                                    if (container) container.scrollBy({ left: -280, behavior: 'smooth' });
+                                                }}
+                                                className="w-10 h-10 rounded-full border border-bella-200 flex items-center justify-center hover:bg-bella-100 transition-colors"
+                                            >
+                                                <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    const container = document.getElementById('related-products-carousel');
+                                                    if (container) container.scrollBy({ left: 280, behavior: 'smooth' });
+                                                }}
+                                                className="w-10 h-10 rounded-full border border-bella-200 flex items-center justify-center hover:bg-bella-100 transition-colors"
+                                            >
+                                                <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </button>
                                         </div>
-                                    ))}
+                                    </div>
+                                    <div
+                                        id="related-products-carousel"
+                                        className="flex gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
+                                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                    >
+                                        {displayProducts.slice(0, 8).map(alt => (
+                                            <div
+                                                key={alt.id}
+                                                className="flex-shrink-0 w-[45%] md:w-[220px] snap-start product-card bg-white rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                                                onClick={() => navigate('product', { slug: alt.slug })}
+                                            >
+                                                <div className="aspect-square bg-bella-100">
+                                                    <img src={alt.thumbnail} alt={alt.name} className="w-full h-full object-cover" />
+                                                </div>
+                                                <div className="p-3">
+                                                    <h3 className="font-medium text-navy text-sm line-clamp-2 leading-tight">{alt.name}</h3>
+                                                    <p className="text-gold font-semibold mt-1 text-sm">{countryConfig.currencySymbol} {formatPrice(alt.price)}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p className="text-bella-400 text-xs mt-2 md:hidden text-center">Swipe to see more →</p>
                                 </div>
-                                <p className="text-bella-400 text-xs mt-2 md:hidden text-center">Swipe to see more →</p>
-                            </div>
-                        )}
+                            );
+                        })()}
 
                         {/* Expanding Service Tiles */}
                         <ExpandingServiceTiles navigate={navigate} productId={product?.id} />

@@ -1,11 +1,11 @@
 {
-  "name": "aqualux-odoo-proxy",
+  "name": "bella-bathwares-server",
   "version": "1.0.0",
-  "description": "AquaLux Sanitaryware Website - Odoo API Proxy Server",
-  "main": "odoo-proxy-server.js",
+  "description": "Bella Bathwares Website - Odoo API Proxy Server",
+  "main": "server/index.js",
   "scripts": {
-    "start": "node odoo-proxy-server.js",
-    "dev": "nodemon odoo-proxy-server.js"
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js"
   },
   "dependencies": {
     "axios": "^1.6.0",
