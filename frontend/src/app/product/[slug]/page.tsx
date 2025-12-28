@@ -1,0 +1,716 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useLocale, useCart, useWishlist, useVerification } from '@/context';
+import { OdooAPI, type Product, type Category, type RelatedProduct } from '@/lib/api/odoo';
+
+// Related Product Card Component
+function RelatedProductCard({ product, currencySymbol, formatPrice, isVerified }: {
+  product: RelatedProduct;
+  currencySymbol: string;
+  formatPrice: (price: number) => string;
+  isVerified: boolean;
+}) {
+  return (
+    <Link
+      href={`/product/${product.slug}`}
+      className="flex-shrink-0 w-40 md:w-48 bg-white rounded-lg overflow-hidden shadow-sm border border-bella-100 hover:shadow-md transition-shadow"
+    >
+      <div className="relative aspect-square bg-white">
+        <Image
+          src={product.thumbnail || '/placeholder.jpg'}
+          alt={product.name}
+          fill
+          sizes="(max-width: 768px) 160px, 192px"
+          className="object-contain p-2"
+        />
+      </div>
+      <div className="p-3">
+        <h4 className="text-sm font-medium text-navy line-clamp-2 mb-1">{product.name}</h4>
+        {isVerified ? (
+          <span className="text-sm font-semibold text-navy">{currencySymbol} {formatPrice(product.price)}</span>
+        ) : (
+          <span className="text-xs text-gold">Login to see price</span>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+// Horizontal Scroll Container with Arrows
+function HorizontalScrollSection({ title, children }: { title: string; children: React.ReactNode }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
+
+  const checkScrollButtons = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setShowLeftArrow(scrollLeft > 10);
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = 300;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  useEffect(() => {
+    checkScrollButtons();
+    const el = scrollRef.current;
+    if (el) {
+      el.addEventListener('scroll', checkScrollButtons);
+      return () => el.removeEventListener('scroll', checkScrollButtons);
+    }
+  }, []);
+
+  return (
+    <div className="bg-white py-6 md:py-8">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg md:text-xl font-semibold text-navy">{title}</h3>
+          <div className="hidden md:flex gap-2">
+            <button
+              onClick={() => scroll('left')}
+              className={`p-2 rounded-full border border-bella-200 transition-colors ${showLeftArrow ? 'hover:bg-bella-50 text-navy' : 'opacity-30 cursor-default'}`}
+              disabled={!showLeftArrow}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              className={`p-2 rounded-full border border-bella-200 transition-colors ${showRightArrow ? 'hover:bg-bella-50 text-navy' : 'opacity-30 cursor-default'}`}
+              disabled={!showRightArrow}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
+          style={{ scrollSnapType: 'x mandatory' }}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ProductDetailPage() {
+  const params = useParams();
+  const slug = params.slug as string;
+
+  const { countryConfig, formatPrice, t } = useLocale();
+  const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const { isVerified, requestVerification } = useVerification();
+
+  const [product, setProduct] = useState<Product | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [quantity, setQuantity] = useState(1);
+  const [addedToCart, setAddedToCart] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [fallbackProducts, setFallbackProducts] = useState<RelatedProduct[]>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      setSelectedImage(0);
+      const [prod, cats] = await Promise.all([
+        OdooAPI.fetchProductBySlug(slug),
+        OdooAPI.fetchPublicCategories()
+      ]);
+      setProduct(prod);
+      setCategories(cats);
+
+      // If no alternative products, fetch random from same category
+      if (prod && (!prod.alternativeProducts || prod.alternativeProducts.length === 0)) {
+        const categoryId = prod.publicCategoryIds?.[0] || prod.categoryId;
+        if (categoryId) {
+          const randoms = await OdooAPI.fetchRandomFromCategory(categoryId, prod.id, 8);
+          setFallbackProducts(randoms as RelatedProduct[]);
+        }
+      }
+
+      setLoading(false);
+    };
+    loadData();
+  }, [slug]);
+
+  const handleAddToCart = () => {
+    if (!product || product.inStock === false) return;
+    if (!isVerified) {
+      requestVerification();
+      return;
+    }
+    addToCart(product, quantity);
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 2000);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Image src="/bella-loading.gif" alt="Loading..." width={80} height={80} unoptimized />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-navy mb-4">Product not found</h1>
+          <Link href="/shop" className="text-gold hover:text-gold-dark">
+            {t('backToHome')}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const inWishlist = isInWishlist(product.id);
+
+  // Build image gallery: main image + additional images from Odoo
+  const buildImageGallery = (): string[] => {
+    const gallery: string[] = [];
+
+    // Add main image
+    if (product.image) {
+      gallery.push(product.image);
+    } else if (product.thumbnail) {
+      gallery.push(product.thumbnail);
+    }
+
+    // Add additional images from Odoo
+    if (product.additionalImages && product.additionalImages.length > 0) {
+      product.additionalImages.forEach(img => {
+        if (img.url && !gallery.includes(img.url)) {
+          gallery.push(img.url);
+        }
+      });
+    }
+
+    // Fallback to images array if available
+    if (gallery.length === 0 && product.images && product.images.length > 0) {
+      return product.images;
+    }
+
+    return gallery.length > 0 ? gallery : ['/placeholder.jpg'];
+  };
+
+  const images = buildImageGallery();
+
+  // Get alternative products (or fallback)
+  const alternativeProducts = (product.alternativeProducts && product.alternativeProducts.length > 0)
+    ? product.alternativeProducts
+    : fallbackProducts;
+
+  // Build category breadcrumb path by walking up the parent chain
+  const renderCategoryBreadcrumb = () => {
+    const buildCategoryPath = (cat: Category): Category[] => {
+      const path: Category[] = [];
+      let current: Category | undefined = cat;
+
+      while (current) {
+        path.unshift(current);
+        if (current.parentId) {
+          current = categories.find(c => c.id === current!.parentId);
+        } else {
+          break;
+        }
+      }
+      return path;
+    };
+
+    const publicCatId = product.publicCategoryIds?.[0];
+    let productCategory = publicCatId
+      ? categories.find(c => c.id === publicCatId)
+      : null;
+
+    if (!productCategory && product.categoryId) {
+      productCategory = categories.find(c => c.id === product.categoryId);
+    }
+
+    if (productCategory) {
+      const categoryPath = buildCategoryPath(productCategory);
+
+      return (
+        <>
+          {categoryPath.map((cat, idx) => {
+            const isLast = idx === categoryPath.length - 1;
+            return (
+              <span key={cat.id} className="flex items-center">
+                {idx > 0 && <span className="mx-2">/</span>}
+                <Link
+                  href={`/shop?category=${cat.id}`}
+                  className={isLast ? "text-navy dark:text-white hover:text-gold" : "hover:text-navy dark:hover:text-white"}
+                >
+                  {cat.name}
+                </Link>
+              </span>
+            );
+          })}
+        </>
+      );
+    }
+
+    if (!product.category) {
+      return <span className="text-navy dark:text-white">Product</span>;
+    }
+
+    const categoryParts = product.category.split(' / ').map(s => s.trim()).filter(Boolean);
+
+    if (categoryParts.length === 0) {
+      return <span className="text-navy dark:text-white">{product.category}</span>;
+    }
+
+    return (
+      <>
+        {categoryParts.map((part, idx) => {
+          let matchingCat = categories.find(c => c.name === part);
+          if (!matchingCat) {
+            matchingCat = categories.find(c => c.name.toLowerCase() === part.toLowerCase());
+          }
+
+          const isLast = idx === categoryParts.length - 1;
+
+          return (
+            <span key={idx} className="flex items-center">
+              {idx > 0 && <span className="mx-2">/</span>}
+              {matchingCat ? (
+                <Link
+                  href={`/shop?category=${matchingCat.id}`}
+                  className={isLast ? "text-navy dark:text-white hover:text-gold" : "hover:text-navy dark:hover:text-white"}
+                >
+                  {part}
+                </Link>
+              ) : (
+                <span className={isLast ? "text-navy dark:text-white" : ""}>{part}</span>
+              )}
+            </span>
+          );
+        })}
+      </>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-bella-50 pb-20 md:pb-0">
+      {/* Mobile Layout */}
+      <div className="md:hidden">
+        {/* Compact Header with Back Button */}
+        <div className="bg-white sticky top-0 z-10 px-4 py-3 flex items-center gap-3 border-b border-bella-100">
+          <Link href="/shop" className="p-1">
+            <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </Link>
+          <span className="text-xs text-bella-500 truncate">{product.category || 'Product'}</span>
+        </div>
+
+        {/* Image Gallery */}
+        <div className="relative aspect-[4/3] bg-white">
+          <Image
+            src={images[selectedImage] || '/placeholder.jpg'}
+            alt={product.name}
+            fill
+            sizes="100vw"
+            className="object-contain p-4"
+          />
+          {/* Wishlist Button on Image */}
+          <button
+            onClick={() => toggleWishlist(product)}
+            className={`absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-colors ${inWishlist ? 'bg-red-50' : 'bg-white'}`}
+          >
+            <svg className={`w-5 h-5 ${inWishlist ? 'text-red-500' : 'text-bella-400'}`} fill={inWishlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
+          {/* Image Indicators */}
+          {images.length > 1 && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+              {images.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelectedImage(i)}
+                  className={`w-2 h-2 rounded-full transition-colors ${selectedImage === i ? 'bg-gold' : 'bg-bella-300'}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Image Thumbnails (Mobile) */}
+        {images.length > 1 && (
+          <div className="bg-white px-4 py-2 flex gap-2 overflow-x-auto">
+            {images.map((img, i) => (
+              <button
+                key={i}
+                onClick={() => setSelectedImage(i)}
+                className={`relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === i ? 'border-gold' : 'border-bella-200'}`}
+              >
+                <Image src={img || ''} alt="" fill className="object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Product Info - Compact */}
+        <div className="px-4 py-4 bg-white">
+          <h1 className="font-semibold text-lg text-navy leading-tight mb-2">{product.name}</h1>
+
+          <div className="flex items-center justify-between mb-3">
+            {/* Price */}
+            {isVerified ? (
+              <span className="text-xl font-bold text-navy">{countryConfig.currencySymbol} {formatPrice(product.price)}</span>
+            ) : (
+              <button onClick={requestVerification} className="text-gold text-sm font-medium">
+                Verify to see price
+              </button>
+            )}
+            {/* Stock */}
+            {product.inStock !== false ? (
+              <span className="inline-flex items-center gap-1.5 text-green-600 text-sm">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                {t('inStock')}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-red-600 text-sm">
+                <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                {t('outOfStock')}
+              </span>
+            )}
+          </div>
+
+          {/* Quantity Selector - Inline */}
+          {product.inStock !== false && isVerified && (
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-sm text-bella-600">{t('quantity')}:</span>
+              <div className="flex items-center border border-bella-200 rounded-lg">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="px-3 py-1.5 text-bella-600 hover:bg-bella-50"
+                >
+                  -
+                </button>
+                <span className="px-3 py-1.5 border-x border-bella-200 min-w-[40px] text-center text-sm">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="px-3 py-1.5 text-bella-600 hover:bg-bella-50"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Description - Collapsible */}
+          {product.description && (
+            <details className="border-t border-bella-100 pt-3">
+              <summary className="font-medium text-navy text-sm cursor-pointer">{t('description')}</summary>
+              <p className="text-bella-600 text-sm leading-relaxed mt-2">{product.description}</p>
+            </details>
+          )}
+
+          {/* Documents Section (Mobile) */}
+          {product.documents && product.documents.length > 0 && (
+            <details className="border-t border-bella-100 pt-3 mt-3">
+              <summary className="font-medium text-navy text-sm cursor-pointer flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Documents ({product.documents.length})
+              </summary>
+              <div className="mt-3 space-y-2">
+                {product.documents.map(doc => (
+                  doc.url && (
+                    <a
+                      key={doc.id}
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-bella-600 hover:text-navy py-2 px-3 bg-bella-50 rounded-lg"
+                    >
+                      <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
+                      </svg>
+                      <span className="truncate">{doc.name}</span>
+                      <svg className="w-4 h-4 ml-auto flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                    </a>
+                  )
+                ))}
+              </div>
+            </details>
+          )}
+        </div>
+
+        {/* Accessory Products (Mobile) */}
+        {product.accessoryProducts && product.accessoryProducts.length > 0 && (
+          <HorizontalScrollSection title="Accessories">
+            {product.accessoryProducts.map(p => (
+              <RelatedProductCard
+                key={p.id}
+                product={p}
+                currencySymbol={countryConfig.currencySymbol}
+                formatPrice={formatPrice}
+                isVerified={isVerified}
+              />
+            ))}
+          </HorizontalScrollSection>
+        )}
+
+        {/* Alternative/Related Products (Mobile) */}
+        {alternativeProducts.length > 0 && (
+          <HorizontalScrollSection title={product.alternativeProducts?.length ? "Alternative Products" : "You May Also Like"}>
+            {alternativeProducts.map(p => (
+              <RelatedProductCard
+                key={p.id}
+                product={p}
+                currencySymbol={countryConfig.currencySymbol}
+                formatPrice={formatPrice}
+                isVerified={isVerified}
+              />
+            ))}
+          </HorizontalScrollSection>
+        )}
+
+        {/* Fixed Bottom Action Bar */}
+        {product.inStock !== false && (
+          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-navy border-t border-bella-100 dark:border-bella-700 px-4 py-3 z-20">
+            <button
+              onClick={handleAddToCart}
+              className="w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 text-white shadow-md"
+              style={{ backgroundColor: addedToCart ? '#22c55e' : '#1a8a9c' }}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              {addedToCart ? t('addedToCart') : t('addToCart')}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden md:block">
+        {/* Breadcrumb */}
+        <div className="bg-white dark:bg-navy border-b border-bella-100 dark:border-bella-700">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center text-sm text-bella-500 dark:text-bella-300">
+              <Link href="/" className="hover:text-navy dark:hover:text-white">Home</Link>
+              <span className="mx-2">/</span>
+              <Link href="/shop" className="hover:text-navy dark:hover:text-white">Shop</Link>
+              <span className="mx-2">/</span>
+              {renderCategoryBreadcrumb()}
+            </div>
+          </div>
+        </div>
+
+        {/* Product Details */}
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="grid md:grid-cols-2 gap-12">
+            {/* Images */}
+            <div>
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-white dark:bg-bella-800 mb-4">
+                <Image
+                  src={images[selectedImage] || '/placeholder.jpg'}
+                  alt={product.name}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-contain p-6"
+                />
+                {/* Wishlist Button */}
+                <button
+                  onClick={() => toggleWishlist(product)}
+                  className={`absolute top-4 right-4 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-colors ${inWishlist ? 'bg-red-50 hover:bg-red-100 dark:bg-red-900/50' : 'bg-white hover:bg-bella-50 dark:bg-bella-700 dark:hover:bg-bella-600'}`}
+                >
+                  <svg className={`w-6 h-6 ${inWishlist ? 'text-red-500' : 'text-bella-600 dark:text-bella-300'}`} fill={inWishlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Thumbnails */}
+              {images.length > 1 && (
+                <div className="flex gap-3 overflow-x-auto pb-2">
+                  {images.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedImage(i)}
+                      className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === i ? 'border-gold' : 'border-transparent hover:border-bella-300'}`}
+                    >
+                      <Image src={img || ''} alt="" fill className="object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Info */}
+            <div>
+              <p className="text-bella-500 dark:text-bella-400 text-sm uppercase tracking-wide mb-2">{product.category}</p>
+              <h1 className="font-display text-3xl md:text-4xl font-bold text-navy dark:text-white mb-4">{product.name}</h1>
+
+              {/* Price */}
+              <div className="mb-6">
+                {isVerified ? (
+                  <span className="text-3xl font-bold text-navy dark:text-white">{countryConfig.currencySymbol} {formatPrice(product.price)}</span>
+                ) : (
+                  <button
+                    onClick={requestVerification}
+                    className="text-gold hover:text-gold-dark font-medium"
+                  >
+                    Verify to see price
+                  </button>
+                )}
+              </div>
+
+              {/* Stock */}
+              <div className="mb-6">
+                {product.inStock !== false ? (
+                  <span className="inline-flex items-center gap-2 text-green-600">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    {t('inStock')}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2 text-red-600">
+                    <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                    {t('outOfStock')}
+                  </span>
+                )}
+              </div>
+
+              {/* Description */}
+              {product.description && (
+                <div className="mb-8">
+                  <h3 className="font-semibold text-navy dark:text-white mb-2">{t('description')}</h3>
+                  <p className="text-bella-600 dark:text-bella-300 leading-relaxed">{product.description}</p>
+                </div>
+              )}
+
+              {/* Documents Section (Desktop) */}
+              {product.documents && product.documents.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="font-semibold text-navy dark:text-white mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Product Documents
+                  </h3>
+                  <div className="grid gap-2">
+                    {product.documents.map(doc => (
+                      doc.url && (
+                        <a
+                          key={doc.id}
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 text-bella-600 hover:text-navy dark:text-bella-300 dark:hover:text-white py-3 px-4 bg-bella-50 dark:bg-bella-800 rounded-lg transition-colors group"
+                        >
+                          <svg className="w-6 h-6 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
+                          </svg>
+                          <span className="flex-1">{doc.name}</span>
+                          <span className="text-xs text-bella-400 group-hover:text-bella-500">Download</span>
+                          <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                        </a>
+                      )
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Quantity & Add to Cart */}
+              {product.inStock !== false && (
+                <div className="space-y-4">
+                  {isVerified && (
+                    <div className="flex items-center gap-4">
+                      <span className="text-navy dark:text-white font-medium">{t('quantity')}:</span>
+                      <div className="flex items-center border border-bella-200 dark:border-bella-600 rounded-lg">
+                        <button
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          className="px-4 py-2 hover:bg-bella-50 dark:hover:bg-bella-700 dark:text-white transition-colors"
+                        >
+                          -
+                        </button>
+                        <span className="px-4 py-2 border-x border-bella-200 dark:border-bella-600 dark:text-white min-w-[60px] text-center">{quantity}</span>
+                        <button
+                          onClick={() => setQuantity(quantity + 1)}
+                          className="px-4 py-2 hover:bg-bella-50 dark:hover:bg-bella-700 dark:text-white transition-colors"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleAddToCart}
+                    className="py-4 px-12 rounded-full font-semibold text-lg transition-all flex items-center justify-center gap-2 shadow-md text-white hover:shadow-lg"
+                    style={{ backgroundColor: addedToCart ? '#22c55e' : '#1a8a9c' }}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    {addedToCart ? t('addedToCart') : t('addToCart')}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Accessory Products Section (Desktop) */}
+        {product.accessoryProducts && product.accessoryProducts.length > 0 && (
+          <HorizontalScrollSection title="Accessories">
+            {product.accessoryProducts.map(p => (
+              <RelatedProductCard
+                key={p.id}
+                product={p}
+                currencySymbol={countryConfig.currencySymbol}
+                formatPrice={formatPrice}
+                isVerified={isVerified}
+              />
+            ))}
+          </HorizontalScrollSection>
+        )}
+
+        {/* Alternative/Related Products Section (Desktop) */}
+        {alternativeProducts.length > 0 && (
+          <HorizontalScrollSection title={product.alternativeProducts?.length ? "Alternative Products" : "You May Also Like"}>
+            {alternativeProducts.map(p => (
+              <RelatedProductCard
+                key={p.id}
+                product={p}
+                currencySymbol={countryConfig.currencySymbol}
+                formatPrice={formatPrice}
+                isVerified={isVerified}
+              />
+            ))}
+          </HorizontalScrollSection>
+        )}
+      </div>
+    </div>
+  );
+}

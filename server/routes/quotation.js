@@ -7,16 +7,54 @@ const { COUNTRY_NAMES } = require('../config');
 async function findOrCreateCustomer(customerData) {
     const { name, phone, email, country } = customerData;
 
-    // Search for existing customer by phone
-    let domain = [];
+    // Search for existing customer by phone (flexible matching like track search)
     if (phone) {
-        domain = [['phone', '=', phone]];
-    } else if (email) {
-        domain = [['email', '=', email]];
-    }
+        const phoneClean = phone.replace(/[\s\-\(\)]/g, '');
+        const lastDigits = phoneClean.replace(/^\+/, '').slice(-8);
+        const phoneWithoutPlus = phoneClean.replace(/^\+/, '');
+        const phoneWithoutCode = phoneClean.replace(/^\+?968/, '');
 
-    if (domain.length > 0) {
-        const existingCustomers = await odooApiCall('res.partner', 'search_read', [domain], {
+        const existingCustomers = await odooApiCall('res.partner', 'search_read', [
+            ['|', '|', '|', '|', '|', '|', '|',
+                ['phone', 'ilike', phoneClean],
+                ['mobile', 'ilike', phoneClean],
+                ['phone', 'ilike', phoneWithoutPlus],
+                ['mobile', 'ilike', phoneWithoutPlus],
+                ['phone', 'ilike', lastDigits],
+                ['mobile', 'ilike', lastDigits],
+                ['phone', 'ilike', phoneWithoutCode],
+                ['mobile', 'ilike', phoneWithoutCode]
+            ]
+        ], {
+            fields: ['id', 'name', 'phone', 'mobile', 'email', 'comment'],
+            limit: 5
+        });
+
+        if (existingCustomers && existingCustomers.length > 0) {
+            // Find best match (prefer exact match)
+            let bestMatch = existingCustomers.find(c =>
+                c.phone === phoneClean || c.mobile === phoneClean ||
+                c.phone === phoneWithoutPlus || c.mobile === phoneWithoutPlus ||
+                c.phone === `+${phoneWithoutPlus}` || c.mobile === `+${phoneWithoutPlus}`
+            ) || existingCustomers[0];
+
+            const customerId = bestMatch.id;
+            const countryName = COUNTRY_NAMES[country] || country;
+
+            // Update customer info
+            await odooApiCall('res.partner', 'write', [[customerId], {
+                name: name || bestMatch.name,
+                email: email || bestMatch.email,
+                comment: `Country: ${countryName}`
+            }]);
+
+            console.log(`Found existing customer: ${bestMatch.name} (ID: ${customerId})`);
+            return customerId;
+        }
+    } else if (email) {
+        const existingCustomers = await odooApiCall('res.partner', 'search_read', [
+            [['email', '=', email]]
+        ], {
             fields: ['id', 'name', 'phone', 'email', 'comment'],
             limit: 1
         });
@@ -44,6 +82,7 @@ async function findOrCreateCustomer(customerData) {
         customer_rank: 1
     }]);
 
+    console.log(`Created new customer: ${name} (ID: ${partnerId})`);
     return partnerId;
 }
 

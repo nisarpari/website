@@ -47,9 +47,6 @@ app.use('/api', miscRoutes);  // For /api/health, /api/ribbons, /api/contact, /a
 // Serve static images
 app.use('/images', express.static(path.join(__dirname, '..', 'images')));
 
-// Serve static HTML files (admin.html, index.html, etc.)
-app.use(express.static(path.join(__dirname, '..')));
-
 // Start server
 app.listen(PORT, () => {
     console.log(`Bella Bathwares API Server running on port ${PORT}`);

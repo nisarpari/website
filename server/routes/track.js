@@ -33,8 +33,9 @@ router.get('/search', async (req, res) => {
 
             console.log('Phone search variants:', { phoneClean, lastDigits, phoneWithoutPlus, phoneWithoutCode });
 
+            // Search only in phone/mobile fields, not name (to avoid false matches)
             const partners = await odooApiCall('res.partner', 'search_read', [
-                ['|', '|', '|', '|', '|', '|', '|', '|', '|',
+                ['|', '|', '|', '|', '|', '|', '|',
                     ['phone', 'ilike', phoneClean],
                     ['mobile', 'ilike', phoneClean],
                     ['phone', 'ilike', phoneWithoutPlus],
@@ -42,30 +43,46 @@ router.get('/search', async (req, res) => {
                     ['phone', 'ilike', lastDigits],
                     ['mobile', 'ilike', lastDigits],
                     ['phone', 'ilike', phoneWithoutCode],
-                    ['mobile', 'ilike', phoneWithoutCode],
-                    ['name', 'ilike', lastDigits],
-                    ['name', 'ilike', phoneWithoutCode]
+                    ['mobile', 'ilike', phoneWithoutCode]
                 ]
             ], {
                 fields: ['id', 'name', 'phone', 'mobile', 'email'],
-                limit: 5
+                limit: 10
             });
 
             console.log('Partners found:', partners?.length || 0);
-
             if (partners && partners.length > 0) {
-                partnerId = partners[0].id;
+                console.log('Partner details:', partners.map(p => ({ id: p.id, name: p.name, phone: p.phone, mobile: p.mobile })));
+            }
+
+            // Collect ALL matching partner IDs to search orders across all of them
+            if (partners && partners.length > 0) {
+                // Get all partner IDs that match this phone number
+                const partnerIds = partners.map(p => p.id);
+                partnerId = partnerIds; // Store as array
+
+                // Use first partner for customer info display
+                const primaryPartner = partners.find(p =>
+                    p.phone === phoneClean || p.mobile === phoneClean ||
+                    p.phone === phoneWithoutPlus || p.mobile === phoneWithoutPlus ||
+                    p.phone === `+${phoneWithoutPlus}` || p.mobile === `+${phoneWithoutPlus}`
+                ) || partners[0];
+
                 results.customer = {
-                    name: partners[0].name,
-                    phone: partners[0].phone || partners[0].mobile,
-                    email: partners[0].email
+                    name: primaryPartner.name,
+                    phone: primaryPartner.phone || primaryPartner.mobile,
+                    email: primaryPartner.email
                 };
+                console.log('Selected partners:', partnerIds.map(id => partners.find(p => p.id === id)?.name));
             }
         }
 
         // Search Sale Orders
         let orderDomain = [];
-        if (partnerId) {
+        if (partnerId && Array.isArray(partnerId)) {
+            // Search across all matching partner IDs
+            orderDomain = [['partner_id', 'in', partnerId]];
+        } else if (partnerId) {
             orderDomain = [['partner_id', '=', partnerId]];
         } else {
             orderDomain = ['|', '|',
@@ -75,11 +92,13 @@ router.get('/search', async (req, res) => {
             ];
         }
 
+        console.log('Order search domain:', JSON.stringify(orderDomain));
         const orders = await odooApiCall('sale.order', 'search_read', [orderDomain], {
             fields: ['id', 'name', 'state', 'date_order', 'amount_total', 'client_order_ref', 'partner_id', 'order_line'],
             order: 'date_order desc',
             limit: 20
         });
+        console.log('Orders found:', orders?.length || 0);
 
         const orderStateMap = {
             'draft': 'Quotation',
@@ -104,7 +123,9 @@ router.get('/search', async (req, res) => {
         // Search Delivery Orders
         try {
             let deliveryDomain = [];
-            if (partnerId) {
+            if (partnerId && Array.isArray(partnerId)) {
+                deliveryDomain = [['partner_id', 'in', partnerId], ['picking_type_code', '=', 'outgoing']];
+            } else if (partnerId) {
                 deliveryDomain = [['partner_id', '=', partnerId], ['picking_type_code', '=', 'outgoing']];
             } else {
                 deliveryDomain = ['&', ['picking_type_code', '=', 'outgoing'], '|',
@@ -146,7 +167,9 @@ router.get('/search', async (req, res) => {
         // Search Helpdesk Tickets
         try {
             let ticketDomain = [];
-            if (partnerId) {
+            if (partnerId && Array.isArray(partnerId)) {
+                ticketDomain = [['partner_id', 'in', partnerId]];
+            } else if (partnerId) {
                 ticketDomain = [['partner_id', '=', partnerId]];
             } else {
                 ticketDomain = ['|',
@@ -177,7 +200,9 @@ router.get('/search', async (req, res) => {
         // Search Repair Orders
         try {
             let repairDomain = [];
-            if (partnerId) {
+            if (partnerId && Array.isArray(partnerId)) {
+                repairDomain = [['partner_id', 'in', partnerId]];
+            } else if (partnerId) {
                 repairDomain = [['partner_id', '=', partnerId]];
             } else {
                 repairDomain = [['name', 'ilike', searchQuery]];

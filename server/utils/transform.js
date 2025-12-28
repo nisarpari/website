@@ -43,8 +43,10 @@ function transformProduct(product, includeRelated = false) {
         // Related products (IDs only - fetch details separately)
         accessoryProductIds: product.accessory_product_ids || [],
         alternativeProductIds: product.alternative_product_ids || [],
-        // Documents
-        documentIds: product.product_document_ids || [],
+        // Documents (field may not exist in all Odoo versions)
+        documentIds: [],
+        // Barcode (unique identifier for document matching)
+        barcode: product.barcode || '',
         // SEO-friendly URL from Odoo
         url: product.website_url || `/shop/${product.name.toLowerCase().replace(/\s+/g, '-')}-${product.id}`,
         slug: product.website_url ? product.website_url.replace('/shop/', '') : `${product.name.toLowerCase().replace(/\s+/g, '-')}-${product.id}`,

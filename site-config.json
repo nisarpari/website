@@ -1,22 +1,66 @@
 {
-  "lastUpdated": "2025-12-19T00:00:00.000Z",
+  "lastUpdated": "2025-12-28T18:15:21.799Z",
   "categoryImages": {
-    "bathroom": "/images/categories/bathroom.jpg",
-    "kitchen": "/images/categories/kitchen.jpg",
-    "wellness": "/images/categories/wellness.jpg",
-    "washroom": "/images/categories/washroom.jpg",
-    "default": "/images/categories/default.jpg"
+    "11": "http://localhost:3001/images/categories/1766923163182-WechatIMG945.jpeg",
+    "38": "http://localhost:3001/images/categories/1766922688446-WCL6002-NÌCÌÄ±aÌCÌ§Â³gÌCÌ.jpg",
+    "52": "http://localhost:3001/images/categories/1766922160194-A3102.jpeg",
+    "53": "http://localhost:3001/images/categories/1766922701329-WechatIMG928.jpeg",
+    "54": "http://localhost:3001/images/categories/1766922707962-WechatIMG926.jpeg",
+    "58": "http://localhost:3001/images/categories/1766923702365-1766923702339-Img1313.jpg",
+    "87": "http://localhost:3001/images/categories/1766922170810-4101-2.jpeg",
+    "138": "http://localhost:3001/images/categories/1766923877927-1766923877922-SU-620-Sauna--Shower-2.jpg",
+    "141": "http://localhost:3001/images/categories/1766922166108-BU102A.jpeg",
+    "205": "http://localhost:3001/images/categories/1766945721775-1766945721773-lp.jpg",
+    "253": "http://localhost:3001/images/categories/1766923169617-WechatIMG937.jpeg",
+    "254": "http://localhost:3001/images/categories/1766945712579-1766945712578-zs.jpg",
+    "255": "http://localhost:3001/images/categories/1766945717791-1766945717789-ga.jpg",
+    "256": "http://localhost:3001/images/categories/1766945641740-1766945641739-image_512-3.jpg",
+    "257": "http://localhost:3001/images/categories/1766945465233-1766945465232-image_1920.jpg",
+    "258": "http://localhost:3001/images/categories/1766923696794-1766923696791-11650.png",
+    "260": "http://localhost:3001/images/categories/1766922858251-WechatIMG942.jpeg",
+    "269": "http://localhost:3001/images/categories/1766945494173-1766945494172-image_512.jpg",
+    "270": "http://localhost:3001/images/categories/1766945527905-1766945527904-image_512-1.jpg",
+    "271": "http://localhost:3001/images/categories/1766945617110-1766945617108-image_512-2.jpg"
   },
+  "heroImages": [
+    {
+      "url": "http://localhost:3001/images/hero/1766927839102-1766927839096-SU-620-Sauna--Shower-2.jpg",
+      "alt": "Hero Image 1",
+      "variants": {
+        "mobile": "http://localhost:3001/images/hero/1766927839102-1766927839096-SU-620-Sauna--Shower-2-mobile.jpg",
+        "tablet": "http://localhost:3001/images/hero/1766927839102-1766927839096-SU-620-Sauna--Shower-2-tablet.jpg",
+        "desktop": "http://localhost:3001/images/hero/1766927839102-1766927839096-SU-620-Sauna--Shower-2.jpg"
+      }
+    },
+    {
+      "url": "http://localhost:3001/images/hero/1766927857273-1766927857255-WechatIMG942.jpg",
+      "alt": "Hero Image 2",
+      "variants": {
+        "mobile": "http://localhost:3001/images/hero/1766927857273-1766927857255-WechatIMG942-mobile.jpg",
+        "tablet": "http://localhost:3001/images/hero/1766927857273-1766927857255-WechatIMG942-tablet.jpg",
+        "desktop": "http://localhost:3001/images/hero/1766927857273-1766927857255-WechatIMG942.jpg"
+      }
+    },
+    {
+      "url": "http://localhost:3001/images/hero/1766923794804-1766923794795-4104-2.jpg",
+      "alt": "Hero Image 3",
+      "variants": {
+        "mobile": "http://localhost:3001/images/hero/1766923794804-1766923794795-4104-2-mobile.jpg",
+        "tablet": "http://localhost:3001/images/hero/1766923794804-1766923794795-4104-2-tablet.jpg",
+        "desktop": "http://localhost:3001/images/hero/1766923794804-1766923794795-4104-2.jpg"
+      }
+    }
+  ],
   "banners": {
     "hero": {
-      "image": "/images/banners/hero-bg.jpg",
-      "mobileImage": "/images/banners/hero-bg-mobile.jpg",
+      "image": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1200&q=80",
+      "mobileImage": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80",
       "title": "Luxury Bathroom Solutions",
       "subtitle": "Premium Italian-designed sanitaryware"
     },
     "promo": {
       "enabled": false,
-      "image": "/images/banners/promo.jpg",
+      "image": "",
       "link": "/shop",
       "text": "Special Offer - 20% Off"
     }
@@ -43,5 +87,54 @@
     "whyBellaSubtitle": "",
     "ctaTitle": "",
     "ctaSubtitle": ""
-  }
+  },
+  "categoryImageVariants": {
+    "58": {
+      "mobile": "http://localhost:3001/images/categories/1766923702365-1766923702339-Img1313-mobile.jpg",
+      "tablet": "http://localhost:3001/images/categories/1766923702365-1766923702339-Img1313-tablet.jpg",
+      "desktop": "http://localhost:3001/images/categories/1766923702365-1766923702339-Img1313.jpg"
+    },
+    "138": {
+      "mobile": "http://localhost:3001/images/categories/1766923877927-1766923877922-SU-620-Sauna--Shower-2-mobile.jpg",
+      "tablet": "http://localhost:3001/images/categories/1766923877927-1766923877922-SU-620-Sauna--Shower-2-tablet.jpg",
+      "desktop": "http://localhost:3001/images/categories/1766923877927-1766923877922-SU-620-Sauna--Shower-2.jpg"
+    },
+    "205": {
+      "desktop": "http://localhost:3001/images/categories/1766945721775-1766945721773-lp.jpg"
+    },
+    "254": {
+      "desktop": "http://localhost:3001/images/categories/1766945712579-1766945712578-zs.jpg"
+    },
+    "255": {
+      "desktop": "http://localhost:3001/images/categories/1766945717791-1766945717789-ga.jpg"
+    },
+    "256": {
+      "desktop": "http://localhost:3001/images/categories/1766945641740-1766945641739-image_512-3.jpg"
+    },
+    "257": {
+      "mobile": "http://localhost:3001/images/categories/1766945465233-1766945465232-image_1920-mobile.jpg",
+      "desktop": "http://localhost:3001/images/categories/1766945465233-1766945465232-image_1920.jpg"
+    },
+    "258": {
+      "mobile": "http://localhost:3001/images/categories/1766923696794-1766923696791-11650-mobile.png",
+      "tablet": "http://localhost:3001/images/categories/1766923696794-1766923696791-11650-tablet.png",
+      "desktop": "http://localhost:3001/images/categories/1766923696794-1766923696791-11650.png"
+    },
+    "269": {
+      "desktop": "http://localhost:3001/images/categories/1766945494173-1766945494172-image_512.jpg"
+    },
+    "270": {
+      "desktop": "http://localhost:3001/images/categories/1766945527905-1766945527904-image_512-1.jpg"
+    },
+    "271": {
+      "desktop": "http://localhost:3001/images/categories/1766945617110-1766945617108-image_512-2.jpg"
+    }
+  },
+  "hiddenCategories": [
+    "11",
+    "102",
+    "208",
+    "263",
+    "253"
+  ]
 }

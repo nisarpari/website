@@ -15,7 +15,14 @@ const checkAdminAuth = (req, res, next) => {
 // Multer storage configuration for image uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadPath = path.join(__dirname, '..', 'images', req.body.folder || 'uploads');
+        // Determine folder based on URL path
+        let folder = req.body.folder || 'uploads';
+        if (req.path && req.path.includes('/category-images/')) {
+            folder = 'categories';
+        } else if (req.path && req.path.includes('/hero-images/')) {
+            folder = 'hero';
+        }
+        const uploadPath = path.join(__dirname, '..', 'images', folder);
         if (!fs.existsSync(uploadPath)) {
             fs.mkdirSync(uploadPath, { recursive: true });
         }
@@ -29,7 +36,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
     fileFilter: (req, file, cb) => {
         if (file.mimetype.startsWith('image/')) {
             cb(null, true);
