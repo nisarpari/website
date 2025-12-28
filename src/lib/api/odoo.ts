@@ -123,7 +123,7 @@ export const OdooAPI = {
       return MOCK_PRODUCTS.find(p => p.id === id) || null;
     }
     try {
-      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/product/by-slug/${slug}`);
+      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/products/by-slug/${slug}`);
       const product = await response.json();
       if (product.error) throw new Error(product.error);
       return product;
