@@ -365,9 +365,10 @@ export const LocaleProvider = ({ children }: LocaleProviderProps) => {
   // Price formatter bound to current country
   const formatPrice = (basePrice: number): string => formatPriceWithConfig(basePrice, countryConfig);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const value = useMemo(() => ({
     language, setLanguage, country, setCountry, t, countryConfig, countryConfigs, formatPrice
-  }), [language, country]);
+  }), [language, country]); // t, countryConfig, formatPrice are stable based on language/country
 
   return (
     <LocaleContext.Provider value={value}>

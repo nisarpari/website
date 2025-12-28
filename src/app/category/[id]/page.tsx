@@ -229,7 +229,8 @@ export default function CategoryLandingPage() {
   const router = useRouter();
   const categoryId = parseInt(params.id as string);
   const { t } = useLocale();
-  const { isAdmin, editMode } = useAdmin();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { isAdmin, editMode } = useAdmin(); // Used by child components via context
 
   const [category, setCategory] = useState<Category | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
