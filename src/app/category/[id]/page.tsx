@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { useLocale, useAdmin } from '@/context';
 import { EditableImage } from '@/components/admin';
 import { OdooAPI, type Category, type Product } from '@/lib/api/odoo';
+import { getApiUrl } from '@/lib/api/config';
 
 // Component for 2x2 product grid with edit functionality
 function CategoryGridWithEditor({
@@ -27,7 +28,7 @@ function CategoryGridWithEditor({
   const [uploading, setUploading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const API_BASE = getApiUrl();
 
   useEffect(() => {
     setMounted(true);
@@ -333,7 +334,7 @@ export default function CategoryLandingPage() {
 
   // Handle category image update - saves to server and updates local state
   const handleCategoryImageUpdate = async (catId: string, newUrl: string) => {
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const API_BASE = getApiUrl();
     const token = sessionStorage.getItem('bella_admin_token');
 
     if (token && newUrl) {

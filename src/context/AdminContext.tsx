@@ -1,8 +1,9 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { getApiUrl } from '@/lib/api/config';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE = getApiUrl();
 
 interface SiteConfig {
   categoryImages: Record<string, string>;

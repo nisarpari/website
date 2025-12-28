@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { useAdmin } from '@/context';
+import { getApiUrl } from '@/lib/api/config';
 
 interface EditableImageProps {
   src: string;
@@ -35,7 +36,7 @@ export function EditableImage({
   const [uploading, setUploading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const API_BASE = getApiUrl();
 
   // Track mount state for portal
   useEffect(() => {

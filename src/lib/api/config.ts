@@ -3,7 +3,7 @@ const isLocalhost = typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 // Get API URL - uses Next.js API routes in production, proxy server in development
-const getApiUrl = () => {
+export const getApiUrl = () => {
   // Environment variable takes priority (for external API server)
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;

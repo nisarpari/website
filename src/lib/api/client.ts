@@ -7,8 +7,9 @@ import type {
   QuotationResponse,
   TrackSearchResult,
 } from "./types";
+import { getApiUrl } from "./config";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_BASE_URL = getApiUrl();
 
 async function fetchApi<T>(
   endpoint: string,

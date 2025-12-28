@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useAdmin } from '@/context';
+import { getApiUrl } from '@/lib/api/config';
 
 interface EditableTextProps {
   value: string;
@@ -26,7 +27,7 @@ export function EditableText({
   const [inputValue, setInputValue] = useState(value);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const API_BASE = getApiUrl();
 
   useEffect(() => {
     setText(value);
