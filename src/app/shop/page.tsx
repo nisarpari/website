@@ -210,7 +210,7 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
       if (selectedCat?.parentId) {
         // Find all ancestors and expand them
         const ancestors: number[] = [];
-        let current = selectedCat;
+        let current: Category | undefined = selectedCat;
         while (current?.parentId) {
           ancestors.push(current.parentId);
           current = categories.find(c => c.id === current?.parentId);
