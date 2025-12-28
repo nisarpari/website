@@ -5,3 +5,14 @@ __pycache__/
 *.pyc
 .vscode/
 .idea/
+
+# Next.js
+.next/
+out/
+build/
+
+# Vercel
+.vercel/
+
+# Old project folders
+bella-nextjs/
