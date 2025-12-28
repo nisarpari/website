@@ -1,13 +1,27 @@
+// Check if we're on localhost
+const isLocalhost = typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+// Get API URL from environment or use localhost for development
+const getApiUrl = () => {
+  // Environment variable takes priority (set in Vercel dashboard)
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  // Only use localhost in development
+  if (isLocalhost) {
+    return 'http://localhost:3001';
+  }
+  // In production without env var, return empty (will use mock data)
+  return '';
+};
+
 // ODOO Configuration - Using Proxy Server
 export const ODOO_CONFIG = {
-  // Use localhost API for local testing, relative URL for Vercel
-  baseUrl: typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:3001'
-    : '',
-  proxyUrl: typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:3001'
-    : '',
-  useOdoo: true
+  baseUrl: getApiUrl(),
+  proxyUrl: getApiUrl(),
+  // Only use Odoo when we have an API URL configured (localhost or env var)
+  useOdoo: isLocalhost || !!process.env.NEXT_PUBLIC_API_URL
 };
 
 // Mock Categories
