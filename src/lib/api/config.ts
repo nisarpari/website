@@ -1,27 +1,27 @@
-// Check if we're on localhost
+// Check if we're on localhost (only in browser context)
 const isLocalhost = typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-// Get API URL from environment or use localhost for development
+// Get API URL - uses Next.js API routes in production, proxy server in development
 const getApiUrl = () => {
-  // Environment variable takes priority (set in Vercel dashboard)
+  // Environment variable takes priority (for external API server)
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
   }
-  // Only use localhost in development
+  // In development with localhost, use the Express proxy server
   if (isLocalhost) {
     return 'http://localhost:3001';
   }
-  // In production without env var, return empty (will use mock data)
+  // In production, use relative URLs (Next.js API routes)
   return '';
 };
 
-// ODOO Configuration - Using Proxy Server
+// ODOO Configuration - Using Next.js API routes in production, proxy server in development
 export const ODOO_CONFIG = {
   baseUrl: getApiUrl(),
   proxyUrl: getApiUrl(),
-  // Only use Odoo when we have an API URL configured (localhost or env var)
-  useOdoo: isLocalhost || !!process.env.NEXT_PUBLIC_API_URL
+  // Always use Odoo - in production via Next.js API routes, in development via proxy
+  useOdoo: true
 };
 
 // Mock Categories
