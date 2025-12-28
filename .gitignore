@@ -13,6 +13,3 @@ build/
 
 # Vercel
 .vercel/
-
-# Old project folders
-bella-nextjs/
