@@ -4,7 +4,7 @@ import path from 'path';
 
 const CONFIG_PATH = path.join(process.cwd(), 'site-config.json');
 
-export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'bella2024';
+export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin125!09*#';
 
 export const COUNTRY_NAMES: Record<string, string> = {
   'OM': 'Oman',
