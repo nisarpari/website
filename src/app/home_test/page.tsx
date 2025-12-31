@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLocale, useCart, useWishlist, useVerification, useAdmin, useTheme } from '@/context';
-import { EditableImage, EditableText } from '@/components/admin';
+import { EditableImage } from '@/components/admin';
 import { OdooAPI, type Product, type Category } from '@/lib/api/odoo';
 import { ProductImage } from '@/components/ProductImage';
 import VideoHeroSection from '@/components/VideoHeroSection';

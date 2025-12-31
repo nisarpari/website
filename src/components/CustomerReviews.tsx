@@ -117,10 +117,10 @@ export default function CustomerReviews() {
                 >
                   <div className={`bg-white dark:bg-navy rounded-2xl p-6 ${isCenter ? 'shadow-xl border border-bella-200 dark:border-white/10' : ''}`}>
                     <p className={`text-gray-600 dark:text-bella-300 mb-4 ${isCenter ? 'text-base' : 'text-sm'} line-clamp-5`}>
-                      "{review.text}"
+                      &ldquo;{review.text}&rdquo;
                     </p>
                     <div className="flex items-center justify-center mb-3">
-                      <span className="text-4xl text-bella-300 dark:text-bella-500">"</span>
+                      <span className="text-4xl text-bella-300 dark:text-bella-500">&ldquo;</span>
                     </div>
                     <div className="mb-2">
                       <StarRating rating={review.rating} />
@@ -149,10 +149,10 @@ export default function CustomerReviews() {
                 className="bg-white dark:bg-navy rounded-2xl p-6 shadow-lg border border-bella-200 dark:border-white/10 mx-auto max-w-sm"
               >
                 <p className="text-gray-600 dark:text-bella-300 mb-4 text-sm">
-                  "{reviews[reviewIndex].text}"
+                  &ldquo;{reviews[reviewIndex].text}&rdquo;
                 </p>
                 <div className="flex items-center justify-center mb-3">
-                  <span className="text-4xl text-bella-300 dark:text-bella-500">"</span>
+                  <span className="text-4xl text-bella-300 dark:text-bella-500">&ldquo;</span>
                 </div>
                 <div className="mb-3">
                   <StarRating rating={reviews[reviewIndex].rating} />
