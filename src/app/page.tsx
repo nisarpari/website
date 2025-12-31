@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useLocale, useCart, useWishlist, useVerification, useAdmin, useTheme } from '@/context';
 import { EditableImage, EditableText } from '@/components/admin';
 import { OdooAPI, type Product, type Category } from '@/lib/api/odoo';
+import { ProductImage } from '@/components/ProductImage';
 
 // ==========================================
 // MOBILE HOME (home2 style) Components
@@ -698,9 +699,9 @@ function ProductCard({ product }: { product: Product }) {
   const inWishlist = isInWishlist(product.id);
 
   return (
-    <Link href={`/product/${product.slug}`} className="product-card bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-      <div className="relative aspect-square bg-bella-100">
-        <Image
+    <Link href={`/product/${product.slug}`} className="product-card bg-white dark:bg-navy-light rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      <div className="relative aspect-square bg-bella-100 dark:bg-navy-light">
+        <ProductImage
           src={product.thumbnail || product.image || '/placeholder.jpg'}
           alt={product.name}
           fill
@@ -709,19 +710,19 @@ function ProductCard({ product }: { product: Product }) {
         />
         <button
           onClick={(e) => { e.preventDefault(); toggleWishlist(product); }}
-          className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-colors ${inWishlist ? 'bg-red-50 hover:bg-red-100' : 'bg-white hover:bg-bella-50'}`}
+          className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-colors ${inWishlist ? 'bg-red-50 hover:bg-red-100' : 'bg-white dark:bg-bella-700 hover:bg-bella-50 dark:hover:bg-bella-600'}`}
         >
-          <svg className={`w-4 h-4 ${inWishlist ? 'text-red-500' : 'text-bella-600'}`} fill={inWishlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+          <svg className={`w-4 h-4 ${inWishlist ? 'text-red-500' : 'text-bella-600 dark:text-bella-300'}`} fill={inWishlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
         </button>
       </div>
       <div className="p-3">
-        <p className="text-bella-500 text-xs uppercase tracking-wide truncate">{product.category}</p>
-        <h3 className="font-display text-sm font-semibold text-navy mt-1 line-clamp-2 min-h-[2.5rem]">{product.name}</h3>
+        <p className="text-bella-500 dark:text-bella-400 text-xs uppercase tracking-wide truncate">{product.category}</p>
+        <h3 className="text-sm font-medium text-navy dark:text-white mt-1 line-clamp-2 min-h-[2.5rem]">{product.name}</h3>
         {isVerified && (
           <div className="flex items-center justify-between mt-2">
-            <span className="text-lg font-bold text-navy">{countryConfig.currencySymbol} {formatPrice(product.price)}</span>
+            <span className="text-lg font-bold text-navy dark:text-white">{countryConfig.currencySymbol} {formatPrice(product.price)}</span>
             {product.inStock !== false && (
               <button
                 onClick={(e) => { e.preventDefault(); addToCart(product, 1); }}

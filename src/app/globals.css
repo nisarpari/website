@@ -431,6 +431,14 @@ html.dark .collection-tile {
   background: linear-gradient(145deg, #1a252f 0%, #0f1419 100%);
 }
 
+/* Category page grids - the 2x2 product thumbnails in dark mode */
+html.dark .grid.grid-cols-2.gap-0\.5,
+html.dark .grid.grid-cols-2.gap-px {
+  background: #2c3e50;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
 /* Scrollbar */
 html.dark ::-webkit-scrollbar-track {
   background: #1a252f;
