@@ -205,18 +205,20 @@ function MobileProductSection({ products, title, badge }: { products: Product[];
 
 // Mobile CTA
 function MobileCTA() {
+  const { isDark } = useTheme();
+
   return (
-    <section className="py-12 bg-navy">
+    <section className={`py-12 ${isDark ? 'bg-navy' : 'bg-bella-100'}`}>
       <div className="px-6 text-center">
-        <h2 className="font-display text-2xl font-bold text-white mb-3">
+        <h2 className={`font-display text-2xl font-bold mb-3 ${isDark ? 'text-white' : 'text-navy'}`}>
           Ready to Transform Your Bathroom?
         </h2>
-        <p className="text-white/70 text-sm mb-6">Get expert advice from our team</p>
+        <p className={`text-sm mb-6 ${isDark ? 'text-white/70' : 'text-bella-600'}`}>Get expert advice from our team</p>
         <div className="flex flex-col gap-3">
           <Link href="/shop" className="px-6 py-3 bg-gold hover:bg-gold-dark text-navy font-semibold rounded-full transition-all">
             Browse Collection
           </Link>
-          <Link href="/contact" className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-full transition-all border border-white/30">
+          <Link href="/contact" className={`px-6 py-3 font-semibold rounded-full transition-all border ${isDark ? 'bg-white/10 hover:bg-white/20 text-white border-white/30' : 'bg-navy/10 hover:bg-navy/20 text-navy border-navy/30'}`}>
             Contact Us
           </Link>
         </div>
@@ -232,6 +234,7 @@ function Hero({ heroImages, onImageUpdate }: {
 }) {
   const { t } = useLocale();
   const { isAdmin, editMode } = useAdmin();
+  const { isDark } = useTheme();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = heroImages.length > 0 ? heroImages : DEFAULT_HERO_IMAGES;
 
@@ -243,22 +246,22 @@ function Hero({ heroImages, onImageUpdate }: {
   }, [images.length]);
 
   return (
-    <section className="hero-gradient relative overflow-hidden min-h-[700px]">
+    <section className={`relative overflow-hidden min-h-[700px] ${isDark ? 'hero-gradient' : 'bg-gradient-to-br from-bella-50 via-bella-100 to-bella-200'}`}>
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-10 w-72 h-72 border border-gold rounded-full" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 border border-gold rounded-full" />
+        <div className={`absolute top-20 left-10 w-72 h-72 border rounded-full ${isDark ? 'border-gold' : 'border-navy/30'}`} />
+        <div className={`absolute bottom-20 right-10 w-96 h-96 border rounded-full ${isDark ? 'border-gold' : 'border-navy/30'}`} />
       </div>
       <div className="max-w-7xl mx-auto px-6 py-20 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="text-white text-left">
-            <span className="inline-block px-4 py-2 bg-gold/20 rounded-full text-gold-light text-sm font-medium mb-6 animate-fade-in">
+          <div className={`text-left ${isDark ? 'text-white' : 'text-navy'}`}>
+            <span className={`inline-block px-4 py-2 rounded-full text-sm font-medium mb-6 animate-fade-in ${isDark ? 'bg-gold/20 text-gold-light' : 'bg-navy/10 text-navy'}`}>
               Premium Bathroom Solutions
             </span>
             <h1 className="font-display text-5xl lg:text-7xl font-bold leading-tight mb-6">
               {t('heroTitle1')} <br />
               <span className="text-gold">{t('heroTitle2')}</span>
             </h1>
-            <p className="text-xl text-bella-300 mb-8 max-w-lg leading-relaxed">
+            <p className={`text-xl mb-8 max-w-lg leading-relaxed ${isDark ? 'text-bella-300' : 'text-bella-600'}`}>
               {t('heroSubtitle')}
             </p>
             <div className="flex gap-8 mt-12">
@@ -269,7 +272,7 @@ function Hero({ heroImages, onImageUpdate }: {
               ].map((stat, i) => (
                 <div key={i} className="text-center">
                   <div className="text-3xl font-bold text-gold">{stat.value}</div>
-                  <div className="text-bella-400 text-sm">{stat.label}</div>
+                  <div className={`text-sm ${isDark ? 'text-bella-400' : 'text-bella-600'}`}>{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -456,17 +459,18 @@ function DynamicProductSection({ products, title, subtitle, badge }: {
 // CTA Section
 function CTASection() {
   const { t } = useLocale();
+  const { isDark } = useTheme();
 
   return (
-    <section className="py-16 bg-gradient-to-r from-navy to-navy-light">
+    <section className={`py-16 ${isDark ? 'bg-gradient-to-r from-navy to-navy-light' : 'bg-gradient-to-r from-bella-100 to-bella-50'}`}>
       <div className="max-w-7xl mx-auto px-6 text-center">
-        <h2 className="font-display text-4xl font-bold text-white mb-4">{t('readyTransform')}</h2>
-        <p className="text-bella-300 mb-8 max-w-2xl mx-auto">{t('browseCollection')}</p>
+        <h2 className={`font-display text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-navy'}`}>{t('readyTransform')}</h2>
+        <p className={`mb-8 max-w-2xl mx-auto ${isDark ? 'text-bella-300' : 'text-bella-600'}`}>{t('browseCollection')}</p>
         <div className="flex flex-wrap gap-4 justify-center">
           <Link href="/shop" className="bg-gold hover:bg-gold-dark text-navy px-8 py-4 rounded-full font-semibold transition-all hover:shadow-xl">
             {t('browseProducts')}
           </Link>
-          <Link href="/contact" className="bg-white text-navy px-8 py-4 rounded-full font-semibold transition-all hover:bg-bella-100">
+          <Link href="/contact" className={`px-8 py-4 rounded-full font-semibold transition-all ${isDark ? 'bg-white text-navy hover:bg-bella-100' : 'bg-navy text-white hover:bg-navy-light'}`}>
             {t('findShowroom')}
           </Link>
         </div>
