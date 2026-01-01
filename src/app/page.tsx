@@ -546,8 +546,8 @@ export default function HomePage() {
         <MobileHero heroImages={heroImages} onImageUpdate={handleHeroImageUpdate} />
         <MobileStatsBar />
         <MobileProductSection products={bestsellers} title="Trending This Week" badge="Hot" />
-        <MobileProductSection products={newArrivals} title="New Arrivals" badge="New" />
         <CustomerReviews />
+        <MobileProductSection products={newArrivals} title="New Arrivals" badge="New" />
         <MobileCTA />
       </div>
 
@@ -565,13 +565,13 @@ export default function HomePage() {
           subtitle="Most popular products our customers are loving right now"
           badge="Hot"
         />
+        <CustomerReviews />
         <DynamicProductSection
           products={newArrivals}
           title="New Arrivals"
           subtitle="Fresh additions to our premium bathroom collection"
           badge="New"
         />
-        <CustomerReviews />
         <CTASection />
       </div>
     </>
