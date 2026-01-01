@@ -14,7 +14,7 @@ export async function PUT(
 
     const { index: indexStr } = await params;
     const index = parseInt(indexStr);
-    const { url, alt } = await request.json();
+    const { url, alt, link } = await request.json();
 
     if (!url) {
       return NextResponse.json({ error: 'Image URL is required' }, { status: 400 });
@@ -32,7 +32,8 @@ export async function PUT(
 
     config.heroImages[index] = {
       url,
-      alt: alt || config.heroImages[index]?.alt || `Hero Image ${index + 1}`
+      alt: alt || config.heroImages[index]?.alt || `Hero Image ${index + 1}`,
+      link: link || config.heroImages[index]?.link || ''
     };
 
     writeSiteConfig(config);

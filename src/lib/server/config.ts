@@ -51,7 +51,7 @@ export interface CategoryLandingContent {
 }
 
 export interface SiteConfig {
-  heroImages?: Array<{ url: string; alt: string; variants?: Record<string, string> }>;
+  heroImages?: Array<{ url: string; alt: string; link?: string; variants?: Record<string, string> }>;
   categoryImages?: Record<string, string>;
   categoryImageVariants?: Record<string, Record<string, string>>;
   categoryLandingContent?: Record<string, CategoryLandingContent>;

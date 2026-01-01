@@ -4,7 +4,8 @@ import { ADMIN_PASSWORD } from '@/lib/server/config';
 
 export async function POST(request: NextRequest) {
   try {
-    const { password } = await request.json();
+    const body = await request.json();
+    const password = (body.password || '').trim();
 
     if (password === ADMIN_PASSWORD) {
       return NextResponse.json({ success: true, token: ADMIN_PASSWORD });

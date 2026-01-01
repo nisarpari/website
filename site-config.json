@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-12-28T18:15:21.799Z",
+  "lastUpdated": "2026-01-01T15:37:39.645Z",
   "categoryImages": {
     "11": "/images/categories/1766923163182-WechatIMG945.jpeg",
     "38": "/images/categories/1766922688446-WCL6002-NÌCÌÄ±aÌCÌ§Â³gÌCÌ.jpg",
@@ -26,29 +26,17 @@
     {
       "url": "/images/hero/1766927839102-1766927839096-SU-620-Sauna--Shower-2.jpg",
       "alt": "Hero Image 1",
-      "variants": {
-        "mobile": "/images/hero/1766927839102-1766927839096-SU-620-Sauna--Shower-2-mobile.jpg",
-        "tablet": "/images/hero/1766927839102-1766927839096-SU-620-Sauna--Shower-2-tablet.jpg",
-        "desktop": "/images/hero/1766927839102-1766927839096-SU-620-Sauna--Shower-2.jpg"
-      }
+      "link": "/product/bu-108a-steam-shower-bluetooth-lights-120x120x220-cm-15441"
     },
     {
       "url": "/images/hero/1766927857273-1766927857255-WechatIMG942.jpg",
       "alt": "Hero Image 2",
-      "variants": {
-        "mobile": "/images/hero/1766927857273-1766927857255-WechatIMG942-mobile.jpg",
-        "tablet": "/images/hero/1766927857273-1766927857255-WechatIMG942-tablet.jpg",
-        "desktop": "/images/hero/1766927857273-1766927857255-WechatIMG942.jpg"
-      }
+      "link": "/product/m720-bathtub-with-waterfall-mixer-170x76x88-cm-15938"
     },
     {
       "url": "/images/hero/1766923794804-1766923794795-4104-2.jpg",
       "alt": "Hero Image 3",
-      "variants": {
-        "mobile": "/images/hero/1766923794804-1766923794795-4104-2-mobile.jpg",
-        "tablet": "/images/hero/1766923794804-1766923794795-4104-2-tablet.jpg",
-        "desktop": "/images/hero/1766923794804-1766923794795-4104-2.jpg"
-      }
+      "link": "/product/jacuzzi-corner-a4104-b-16558"
     }
   ],
   "banners": {

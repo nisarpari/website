@@ -11,7 +11,7 @@ import VideoHeroSection from '@/components/VideoHeroSection';
 import CustomerReviews from '@/components/CustomerReviews';
 
 // Default Hero Images for carousel
-const DEFAULT_HERO_IMAGES = [
+const DEFAULT_HERO_IMAGES: Array<{ url: string; alt: string; link?: string }> = [
   { url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1200&q=80', alt: 'Modern Freestanding Bathtub' },
   { url: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=1200&q=80', alt: 'Luxury Jacuzzi Spa' },
   { url: 'https://images.unsplash.com/photo-1629774631753-88f827bf6447?w=1200&q=80', alt: 'Modern Rain Shower' },
@@ -19,8 +19,8 @@ const DEFAULT_HERO_IMAGES = [
 
 // Mobile Hero Component
 function MobileHero({ heroImages, onImageUpdate }: {
-  heroImages: Array<{ url: string; alt: string }>;
-  onImageUpdate?: (index: number, newUrl: string) => void;
+  heroImages: Array<{ url: string; alt: string; link?: string }>;
+  onImageUpdate?: (index: number, newUrl: string, newLink?: string) => void;
 }) {
   const { t } = useLocale();
   const { isAdmin, editMode } = useAdmin();
@@ -42,9 +42,8 @@ function MobileHero({ heroImages, onImageUpdate }: {
           {images.map((image, index) => (
             <div
               key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ${
-                index === currentImageIndex ? 'opacity-100' : 'opacity-0'
-              }`}
+              className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImageIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                }`}
             >
               {isAdmin && editMode ? (
                 <EditableImage
@@ -52,9 +51,28 @@ function MobileHero({ heroImages, onImageUpdate }: {
                   alt={image.alt}
                   configKey={`heroImages.${index}`}
                   fill
+                  initialLink={image.link}
                   className="object-cover object-center"
-                  onUpdate={(newUrl) => onImageUpdate?.(index, newUrl)}
+                  onUpdate={(newUrl, newLink) => onImageUpdate?.(index, newUrl, newLink)}
                 />
+              ) : image.link ? (
+                <Link href={image.link} className="block w-full h-full relative cursor-pointer">
+                  <Image
+                    src={image.url}
+                    alt={image.alt}
+                    fill
+                    sizes="100vw"
+                    className="object-cover object-center"
+                    priority={index === 0}
+                  />
+                  {/* Mobile Touch Indicator */}
+                  <div className="absolute inset-0 bg-black/0 active:bg-black/10 transition-colors" />
+                  <div className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </div>
+                </Link>
               ) : (
                 <Image
                   src={image.url}
@@ -86,11 +104,10 @@ function MobileHero({ heroImages, onImageUpdate }: {
             <button
               key={index}
               onClick={() => setCurrentImageIndex(index)}
-              className={`h-1 rounded-full transition-all duration-500 ${
-                index === currentImageIndex
-                  ? 'bg-gold w-6'
-                  : isDark ? 'bg-white/40 w-3 hover:bg-white/60' : 'bg-navy/30 w-3 hover:bg-navy/50'
-              }`}
+              className={`h-1 rounded-full transition-all duration-500 ${index === currentImageIndex
+                ? 'bg-gold w-6'
+                : isDark ? 'bg-white/40 w-3 hover:bg-white/60' : 'bg-navy/30 w-3 hover:bg-navy/50'
+                }`}
             />
           ))}
         </div>
@@ -209,8 +226,8 @@ function MobileCTA() {
 
 // Desktop Hero
 function Hero({ heroImages, onImageUpdate }: {
-  heroImages: Array<{ url: string; alt: string }>;
-  onImageUpdate?: (index: number, newUrl: string) => void;
+  heroImages: Array<{ url: string; alt: string; link?: string }>;
+  onImageUpdate?: (index: number, newUrl: string, newLink?: string) => void;
 }) {
   const { t } = useLocale();
   const { isAdmin, editMode } = useAdmin();
@@ -262,9 +279,8 @@ function Hero({ heroImages, onImageUpdate }: {
               {images.map((image, index) => (
                 <div
                   key={index}
-                  className={`absolute inset-0 transition-opacity duration-1000 ${
-                    index === currentImageIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                  }`}
+                  className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImageIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                    }`}
                 >
                   {isAdmin && editMode ? (
                     <EditableImage
@@ -272,9 +288,39 @@ function Hero({ heroImages, onImageUpdate }: {
                       alt={image.alt}
                       configKey={`heroImages.${index}`}
                       fill
+                      initialLink={image.link}
                       className="object-cover"
-                      onUpdate={(newUrl) => onImageUpdate?.(index, newUrl)}
+                      onUpdate={(newUrl, newLink) => onImageUpdate?.(index, newUrl, newLink)}
                     />
+                  ) : image.link ? (
+                    <Link href={image.link} className="block w-full h-full relative cursor-pointer">
+                      <Image
+                        src={image.url}
+                        alt={image.alt}
+                        fill
+                        sizes="50vw"
+                        className="object-cover"
+                        priority={index === 0}
+                      />
+                      {/* Hover effect overlay - Premium Interaction */}
+                      <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all duration-500 flex items-center justify-center group-hover:backdrop-blur-[2px]">
+                        <div className="opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0 flex flex-col items-center">
+                          <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg transition-transform duration-300 hover:scale-110 hover:bg-white/20 hover:border-white/50">
+                            <svg
+                              className="w-6 h-6 text-white transform group-hover:rotate-0 -rotate-45 transition-transform duration-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                          </div>
+                          <span className="mt-3 text-white text-xs font-medium tracking-[0.2em] uppercase drop-shadow-md">
+                            Discover
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
                   ) : (
                     <Image
                       src={image.url}
@@ -293,9 +339,8 @@ function Hero({ heroImages, onImageUpdate }: {
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    index === currentImageIndex ? 'bg-gold w-6' : 'bg-white/50 hover:bg-white/80'
-                  }`}
+                  className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex ? 'bg-gold w-6' : 'bg-white/50 hover:bg-white/80'
+                    }`}
                 />
               ))}
             </div>
@@ -494,12 +539,12 @@ function CTASection() {
 export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
-  const [heroImages, setHeroImages] = useState<Array<{ url: string; alt: string }>>(DEFAULT_HERO_IMAGES);
+  const [heroImages, setHeroImages] = useState<Array<{ url: string; alt: string; link?: string }>>([]);
   const [bestsellers, setBestsellers] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
 
   useEffect(() => {
-    const loadData = async () => {
+    async function loadData() {
       try {
         const [cats, catImages, best, arrivals] = await Promise.all([
           OdooAPI.fetchPublicCategories(),
@@ -507,6 +552,7 @@ export default function HomePage() {
           OdooAPI.fetchBestsellers(8),
           OdooAPI.fetchNewArrivals(8)
         ]);
+
         setCategories(cats);
         setCategoryImages(catImages);
         setBestsellers(best);
@@ -523,10 +569,10 @@ export default function HomePage() {
     loadData();
   }, []);
 
-  const handleHeroImageUpdate = (index: number, newUrl: string) => {
+  const handleHeroImageUpdate = (index: number, newUrl: string, newLink?: string) => {
     setHeroImages(prev => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], url: newUrl };
+      updated[index] = { ...updated[index], url: newUrl, link: newLink };
       return updated;
     });
   };

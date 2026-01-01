@@ -8,9 +8,9 @@ export const getApiUrl = () => {
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
   }
-  // In development with localhost, use the Express proxy server
+  // In development with localhost, use relative path (Next.js automatically handles standard API routes)
   if (isLocalhost) {
-    return 'http://localhost:3001';
+    return ''; // Use relative URLs to avoid CORS/Port issues if Next.js serves both
   }
   // In production, use relative URLs (Next.js API routes)
   return '';
