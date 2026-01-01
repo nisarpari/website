@@ -196,17 +196,42 @@ function AllCategoriesGrid({ categories, categoryImages, onImageUpdate }: {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Categories to hide from the grid
-  const hiddenCategories = ['collections', 'bath assist'];
+  const hiddenCategories = ['collections'];
+
+  // Rename mappings for display (matching navbar)
+  const renameCategory = (name: string) => {
+    const renames: Record<string, string> = {
+      'bathroom': 'Showers',
+      'washlet': 'Toilets',
+    };
+    return renames[name.toLowerCase()] || name;
+  };
+
+  // Custom order for root categories (matching navbar structure)
+  const rootCategoryOrder = [
+    'bathroom',      // Showers in nav
+    'washroom',      // Basins & Faucets
+    'washlet',       // Toilets
+    'wellness',
+    'bath accessories',
+    'bath essentials',
+    'bath assist',
+    'kitchen',
+    'switches & sockets',
+    'water heaters'
+  ];
 
   // Group categories by their root parent for organized display
-  const rootCategories = categories.filter(c =>
-    c.parentId === null && !hiddenCategories.includes(c.name.toLowerCase()) && c.name.toLowerCase() !== 'bath essentials'
-  );
-
-  // Find Bath Essentials to add under Bathroom
-  const bathEssentialsCategory = categories.find(c =>
-    c.parentId === null && c.name.toLowerCase() === 'bath essentials'
-  );
+  const rootCategories = categories
+    .filter(c => c.parentId === null && !hiddenCategories.includes(c.name.toLowerCase()))
+    .sort((a, b) => {
+      const aIndex = rootCategoryOrder.indexOf(a.name.toLowerCase());
+      const bIndex = rootCategoryOrder.indexOf(b.name.toLowerCase());
+      if (aIndex === -1 && bIndex === -1) return 0;
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+      return aIndex - bIndex;
+    });
 
   // Get all leaf categories (no children) - these link directly to products
   const getLeafCategories = (parentId: number | null): Category[] => {
@@ -224,18 +249,11 @@ function AllCategoriesGrid({ categories, categoryImages, onImageUpdate }: {
     return leaves;
   };
 
-  // Get all categories organized by root parent, adding Bath Essentials under Bathroom
+  // Get all categories organized by root parent
   const categoriesByRoot = rootCategories.map(root => {
-    const isBathroom = root.name.toLowerCase() === 'bathroom';
-    let leafCategories = root.childIds && root.childIds.length > 0
+    const leafCategories = root.childIds && root.childIds.length > 0
       ? getLeafCategories(root.id)
       : [root];
-
-    // Add Bath Essentials leaf categories under Bathroom
-    if (isBathroom && bathEssentialsCategory) {
-      const bathEssentialsLeaves = getLeafCategories(bathEssentialsCategory.id);
-      leafCategories = [...leafCategories, ...bathEssentialsLeaves];
-    }
 
     return {
       root,
@@ -359,7 +377,7 @@ function AllCategoriesGrid({ categories, categoryImages, onImageUpdate }: {
                     : 'bg-white text-bella-600 hover:bg-bella-100 border border-bella-200'
                 }`}
               >
-                {root.name}
+                {renameCategory(root.name)}
               </button>
             ))}
           </div>
@@ -382,64 +400,67 @@ function AllCategoriesGrid({ categories, categoryImages, onImageUpdate }: {
           </button>
         </div>
       ) : (
-        displayedGroups.map(group => (
-          <div key={group.root.id} className="space-y-6">
-            {/* Section Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-1 h-8 bg-gold rounded-full" />
-                <div>
-                  <h2 className="font-display text-xl md:text-2xl font-bold text-navy">{group.root.name}</h2>
-                  <p className="text-bella-500 text-sm">{group.categories.length} categories • {group.root.totalCount || 0} products</p>
+        displayedGroups.map(group => {
+          const displayName = renameCategory(group.root.name);
+          return (
+            <div key={group.root.id} className="space-y-6">
+              {/* Section Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-1 h-8 bg-gold rounded-full" />
+                  <div>
+                    <h2 className="font-display text-xl md:text-2xl font-bold text-navy">{displayName}</h2>
+                    <p className="text-bella-500 text-sm">{group.categories.length} categories • {group.root.totalCount || 0} products</p>
+                  </div>
                 </div>
+                <Link
+                  href={`/${group.root.slug}`}
+                  className="hidden md:flex items-center gap-2 px-4 py-2 bg-navy/5 hover:bg-navy/10 rounded-lg text-navy font-medium text-sm transition-colors"
+                >
+                  View All {displayName}
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
               </div>
-              <Link
-                href={`/${group.root.slug}`}
-                className="hidden md:flex items-center gap-2 px-4 py-2 bg-navy/5 hover:bg-navy/10 rounded-lg text-navy font-medium text-sm transition-colors"
-              >
-                View All {group.root.name}
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            </div>
 
-            {/* Category Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-              {group.categories.map((category, idx) => {
-                const customImage = categoryImages[category.id.toString()];
-                const fallbackImage = productFallbackImages[category.id.toString()];
-                const categoryImage = customImage || fallbackImage;
+              {/* Category Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+                {group.categories.map((category, idx) => {
+                  const customImage = categoryImages[category.id.toString()];
+                  const fallbackImage = productFallbackImages[category.id.toString()];
+                  const categoryImage = customImage || fallbackImage;
 
-                return (
-                  <CategoryCard
-                    key={category.id}
-                    category={category}
-                    categoryImage={categoryImage}
-                    customImage={customImage}
-                    isAdmin={isAdmin}
-                    editMode={editMode}
-                    onImageUpdate={onImageUpdate}
-                    index={idx}
-                  />
-                );
-              })}
-            </div>
+                  return (
+                    <CategoryCard
+                      key={category.id}
+                      category={category}
+                      categoryImage={categoryImage}
+                      customImage={customImage}
+                      isAdmin={isAdmin}
+                      editMode={editMode}
+                      onImageUpdate={onImageUpdate}
+                      index={idx}
+                    />
+                  );
+                })}
+              </div>
 
-            {/* Mobile View All Link */}
-            <div className="md:hidden">
-              <Link
-                href={`/${group.root.slug}`}
-                className="flex items-center justify-center gap-2 w-full py-3 bg-navy/5 hover:bg-navy/10 rounded-xl text-navy font-medium text-sm transition-colors"
-              >
-                View All {group.root.name}
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
+              {/* Mobile View All Link */}
+              <div className="md:hidden">
+                <Link
+                  href={`/${group.root.slug}`}
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-navy/5 hover:bg-navy/10 rounded-xl text-navy font-medium text-sm transition-colors"
+                >
+                  View All {displayName}
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
             </div>
-          </div>
-        ))
+          );
+        })
       )}
 
       {/* Quick Links Banner */}
@@ -504,20 +525,6 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
   const { t } = useLocale();
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
 
-  // Only hide Collections from sidebar (it has its own dedicated page)
-  const hiddenFromSidebar = ['collections'];
-
-  // Rename mappings for display (matching navbar)
-  const renameCategory = (name: string) => {
-    const renames: Record<string, string> = {
-      'washlet': 'Toilets',
-    };
-    return renames[name.toLowerCase()] || name;
-  };
-
-  // Custom order for root categories
-  const rootCategoryOrder = ['bathroom', 'washroom', 'toilets', 'wellness', 'kitchen', 'switches & sockets', 'water heaters'];
-
   // Custom submenu order for specific categories (matching navbar)
   const customSubmenuOrder: Record<string, string[]> = {
     'washroom': [
@@ -555,7 +562,7 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
       'Shower Rooms',
       'Shower Seats'
     ],
-    'toilets': [
+    'washlet': [
       'Concealed Cisterns',
       'Exposed Cisterns',
       'Flush Plates',
@@ -569,8 +576,7 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
   // Get ordered children for a category
   const getOrderedChildren = (cat: Category) => {
     const children = categories.filter(c => c.parentId === cat.id);
-    const displayName = renameCategory(cat.name);
-    const customOrder = customSubmenuOrder[displayName.toLowerCase()] || customSubmenuOrder[cat.name.toLowerCase()];
+    const customOrder = customSubmenuOrder[cat.name.toLowerCase()];
 
     if (!customOrder) return children;
 
@@ -584,31 +590,19 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
     });
   };
 
-  // Filter and order root categories (exclude hidden ones)
-  const rootCategories = categories
-    .filter(c => c.parentId === null && !hiddenFromSidebar.includes(c.name.toLowerCase()))
-    .sort((a, b) => {
-      const aName = renameCategory(a.name).toLowerCase();
-      const bName = renameCategory(b.name).toLowerCase();
-      const aIndex = rootCategoryOrder.indexOf(aName);
-      const bIndex = rootCategoryOrder.indexOf(bName);
-      if (aIndex === -1 && bIndex === -1) return 0;
-      if (aIndex === -1) return 1;
-      if (bIndex === -1) return -1;
-      return aIndex - bIndex;
-    });
-
-  // Get children for a category
-  const getCategoryChildren = (cat: Category) => {
-    return getOrderedChildren(cat);
-  };
+  // Find specific categories matching navbar structure
+  const bathroomCategory = categories.find(c => c.parentId === null && c.name.toLowerCase() === 'bathroom');
+  const washroomCategory = categories.find(c => c.parentId === null && c.name.toLowerCase() === 'washroom');
+  const washletCategory = categories.find(c => c.parentId === null && c.name.toLowerCase() === 'washlet');
+  const wellnessCategory = categories.find(c => c.parentId === null && c.name.toLowerCase() === 'wellness');
+  const switchesCategory = categories.find(c => c.parentId === null && c.name.toLowerCase() === 'switches & sockets');
+  const bathAccessoriesCategory = categories.find(c => c.parentId === null && c.name.toLowerCase() === 'bath accessories');
 
   // Auto-expand parent categories when a child is selected
   useEffect(() => {
     if (selectedCategoryId) {
       const selectedCat = categories.find(c => c.id === selectedCategoryId);
       if (selectedCat?.parentId) {
-        // Find all ancestors and expand them
         const ancestors: number[] = [];
         let current: Category | undefined = selectedCat;
         while (current?.parentId) {
@@ -622,11 +616,18 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
               newExpanded.push(id);
             }
           });
+          // Also expand virtual "Basins & WC" if washroom or washlet child is selected
+          if (washroomCategory && ancestors.includes(washroomCategory.id)) {
+            if (!newExpanded.includes(-1)) newExpanded.push(-1);
+          }
+          if (washletCategory && ancestors.includes(washletCategory.id)) {
+            if (!newExpanded.includes(-1)) newExpanded.push(-1);
+          }
           return newExpanded;
         });
       }
     }
-  }, [selectedCategoryId, categories]);
+  }, [selectedCategoryId, categories, washroomCategory, washletCategory]);
 
   const toggleExpand = (catId: number) => {
     setExpandedCategories(prev =>
@@ -634,59 +635,67 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
     );
   };
 
-  const renderCategory = (cat: Category, level = 0) => {
-    const children = getCategoryChildren(cat);
+  // Render a subcategory item
+  const renderSubcategory = (cat: Category) => {
+    const children = getOrderedChildren(cat);
     const hasChildren = children.length > 0;
     const isExpanded = expandedCategories.includes(cat.id);
     const isSelected = selectedCategoryId === cat.id;
-    const displayName = renameCategory(cat.name);
 
-    // Handle click: parent categories expand/collapse, leaf categories navigate
-    const handleCategoryClick = () => {
+    const handleClick = () => {
       if (hasChildren) {
-        // Parent category: just toggle expand/collapse, don't navigate
         toggleExpand(cat.id);
       } else {
-        // Leaf category: navigate to show products
         onSelectCategory(cat.id);
       }
     };
 
     return (
-      <div key={cat.id} className={level > 0 ? 'ml-4' : ''}>
+      <div key={cat.id}>
         <div className="flex items-center">
-          {/* Always render a fixed-width container for the expand button to maintain alignment */}
-          <div className="w-6 flex-shrink-0">
+          <div className="w-5 flex-shrink-0">
             {hasChildren && (
               <button onClick={() => toggleExpand(cat.id)} className="text-bella-500 hover:text-gold">
-                <svg className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
             )}
           </div>
           <button
-            onClick={handleCategoryClick}
-            className={`category-tree-item flex-1 text-left py-2 text-sm ${
-              isSelected
-                ? 'text-gold font-semibold'
-                : hasChildren
-                  ? 'text-navy font-medium hover:text-gold'
-                  : 'text-bella-700 hover:text-gold'
+            onClick={handleClick}
+            className={`flex-1 text-left py-1.5 text-sm ${
+              isSelected ? 'text-gold font-semibold' : 'text-bella-700 hover:text-gold'
             }`}
           >
-            {displayName}
-            <span className="text-bella-400 text-xs ml-2">({cat.totalCount || 0})</span>
+            {cat.name}
+            <span className="text-bella-400 text-xs ml-1">({cat.totalCount || 0})</span>
           </button>
         </div>
         {hasChildren && isExpanded && (
-          <div className="border-l-2 border-bella-100 ml-2 mt-1">
-            {children.map(child => renderCategory(child, level + 1))}
+          <div className="ml-5 border-l border-bella-100 pl-2">
+            {children.map(child => renderSubcategory(child))}
           </div>
         )}
       </div>
     );
   };
+
+  // Check if any child of a category is selected
+  const isCategoryOrChildSelected = (cat: Category): boolean => {
+    if (selectedCategoryId === cat.id) return true;
+    const children = categories.filter(c => c.parentId === cat.id);
+    return children.some(child => isCategoryOrChildSelected(child));
+  };
+
+  // Check if Basins & WC (washroom or washlet) has selected child
+  const isBasinsWcSelected = (washroomCategory && isCategoryOrChildSelected(washroomCategory)) ||
+    (washletCategory && isCategoryOrChildSelected(washletCategory));
+
+  const isBasinsWcExpanded = expandedCategories.includes(-1);
+  const isShowersExpanded = bathroomCategory && expandedCategories.includes(bathroomCategory.id);
+  const isWellnessExpanded = wellnessCategory && expandedCategories.includes(wellnessCategory.id);
+  const isSwitchesExpanded = switchesCategory && expandedCategories.includes(switchesCategory.id);
 
   return (
     <div className="bg-white rounded-2xl p-6 sticky top-28">
@@ -697,8 +706,208 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
       >
         {t('allProducts')}
       </button>
+
       <div className="space-y-1">
-        {rootCategories.map(cat => renderCategory(cat))}
+        {/* 1. Showers (bathroom) */}
+        {bathroomCategory && (
+          <div>
+            <div className="flex items-center">
+              <div className="w-6 flex-shrink-0">
+                <button onClick={() => toggleExpand(bathroomCategory.id)} className="text-bella-500 hover:text-gold">
+                  <svg className={`w-4 h-4 transition-transform ${isShowersExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+              <button
+                onClick={() => toggleExpand(bathroomCategory.id)}
+                className={`flex-1 text-left py-2 text-sm font-medium ${
+                  isCategoryOrChildSelected(bathroomCategory) ? 'text-gold' : 'text-navy hover:text-gold'
+                }`}
+              >
+                Showers
+                <span className="text-bella-400 text-xs ml-2">({bathroomCategory.totalCount || 0})</span>
+              </button>
+            </div>
+            {isShowersExpanded && (
+              <div className="ml-6 border-l-2 border-bella-100 pl-2 mt-1">
+                {getOrderedChildren(bathroomCategory).map(sub => renderSubcategory(sub))}
+                {/* Add Bath Accessories under Showers */}
+                {bathAccessoriesCategory && (
+                  <div className="border-t border-bella-100 mt-2 pt-2">
+                    {renderSubcategory(bathAccessoriesCategory)}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 2. Basins & WC (merged washroom + washlet) */}
+        {(washroomCategory || washletCategory) && (
+          <div>
+            <div className="flex items-center">
+              <div className="w-6 flex-shrink-0">
+                <button onClick={() => toggleExpand(-1)} className="text-bella-500 hover:text-gold">
+                  <svg className={`w-4 h-4 transition-transform ${isBasinsWcExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+              <button
+                onClick={() => toggleExpand(-1)}
+                className={`flex-1 text-left py-2 text-sm font-medium ${
+                  isBasinsWcSelected ? 'text-gold' : 'text-navy hover:text-gold'
+                }`}
+              >
+                Basins & WC
+                <span className="text-bella-400 text-xs ml-2">
+                  ({(washroomCategory?.totalCount || 0) + (washletCategory?.totalCount || 0)})
+                </span>
+              </button>
+            </div>
+            {isBasinsWcExpanded && (
+              <div className="ml-6 border-l-2 border-bella-100 pl-2 mt-1">
+                {/* Washroom (Basins & Faucets) section */}
+                {washroomCategory && (
+                  <>
+                    <div className="text-xs font-semibold text-bella-400 uppercase tracking-wider py-1">
+                      Basins & Faucets
+                    </div>
+                    {getOrderedChildren(washroomCategory).map(sub => renderSubcategory(sub))}
+                  </>
+                )}
+                {/* Washlet (Toilets & Cisterns) section */}
+                {washletCategory && (
+                  <>
+                    <div className="text-xs font-semibold text-bella-400 uppercase tracking-wider py-1 mt-2 border-t border-bella-100 pt-2">
+                      Toilets & Cisterns
+                    </div>
+                    {getOrderedChildren(washletCategory).map(sub => renderSubcategory(sub))}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 3. Wellness */}
+        {wellnessCategory && (
+          <div>
+            <div className="flex items-center">
+              <div className="w-6 flex-shrink-0">
+                {wellnessCategory.childIds && wellnessCategory.childIds.length > 0 && (
+                  <button onClick={() => toggleExpand(wellnessCategory.id)} className="text-bella-500 hover:text-gold">
+                    <svg className={`w-4 h-4 transition-transform ${isWellnessExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => wellnessCategory.childIds && wellnessCategory.childIds.length > 0
+                  ? toggleExpand(wellnessCategory.id)
+                  : onSelectCategory(wellnessCategory.id)}
+                className={`flex-1 text-left py-2 text-sm font-medium ${
+                  isCategoryOrChildSelected(wellnessCategory) ? 'text-gold' : 'text-navy hover:text-gold'
+                }`}
+              >
+                Wellness
+                <span className="text-bella-400 text-xs ml-2">({wellnessCategory.totalCount || 0})</span>
+              </button>
+            </div>
+            {isWellnessExpanded && wellnessCategory.childIds && wellnessCategory.childIds.length > 0 && (
+              <div className="ml-6 border-l-2 border-bella-100 pl-2 mt-1">
+                {getOrderedChildren(wellnessCategory).map(sub => renderSubcategory(sub))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 4. Switches & Sockets */}
+        {switchesCategory && (
+          <div>
+            <div className="flex items-center">
+              <div className="w-6 flex-shrink-0">
+                {switchesCategory.childIds && switchesCategory.childIds.length > 0 && (
+                  <button onClick={() => toggleExpand(switchesCategory.id)} className="text-bella-500 hover:text-gold">
+                    <svg className={`w-4 h-4 transition-transform ${isSwitchesExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => switchesCategory.childIds && switchesCategory.childIds.length > 0
+                  ? toggleExpand(switchesCategory.id)
+                  : onSelectCategory(switchesCategory.id)}
+                className={`flex-1 text-left py-2 text-sm font-medium ${
+                  isCategoryOrChildSelected(switchesCategory) ? 'text-gold' : 'text-navy hover:text-gold'
+                }`}
+              >
+                Switches & Sockets
+                <span className="text-bella-400 text-xs ml-2">({switchesCategory.totalCount || 0})</span>
+              </button>
+            </div>
+            {isSwitchesExpanded && switchesCategory.childIds && switchesCategory.childIds.length > 0 && (
+              <div className="ml-6 border-l-2 border-bella-100 pl-2 mt-1">
+                {getOrderedChildren(switchesCategory).map(sub => renderSubcategory(sub))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Divider */}
+        <div className="border-t border-bella-200 my-3"></div>
+
+        {/* Other Categories (not in navbar) */}
+        {(() => {
+          // Categories already shown in navbar structure
+          const navbarCategoryNames = ['bathroom', 'washroom', 'washlet', 'wellness', 'switches & sockets', 'bath accessories'];
+
+          // Get remaining root categories
+          const otherCategories = categories.filter(c =>
+            c.parentId === null &&
+            !navbarCategoryNames.includes(c.name.toLowerCase())
+          );
+
+          if (otherCategories.length === 0) return null;
+
+          return otherCategories.map(cat => {
+            const isExpanded = expandedCategories.includes(cat.id);
+            const hasChildren = cat.childIds && cat.childIds.length > 0;
+
+            return (
+              <div key={cat.id}>
+                <div className="flex items-center">
+                  <div className="w-6 flex-shrink-0">
+                    {hasChildren && (
+                      <button onClick={() => toggleExpand(cat.id)} className="text-bella-500 hover:text-gold">
+                        <svg className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => hasChildren ? toggleExpand(cat.id) : onSelectCategory(cat.id)}
+                    className={`flex-1 text-left py-2 text-sm font-medium ${
+                      isCategoryOrChildSelected(cat) ? 'text-gold' : 'text-navy hover:text-gold'
+                    }`}
+                  >
+                    {cat.name}
+                    <span className="text-bella-400 text-xs ml-2">({cat.totalCount || 0})</span>
+                  </button>
+                </div>
+                {isExpanded && hasChildren && (
+                  <div className="ml-6 border-l-2 border-bella-100 pl-2 mt-1">
+                    {getOrderedChildren(cat).map(sub => renderSubcategory(sub))}
+                  </div>
+                )}
+              </div>
+            );
+          });
+        })()}
       </div>
     </div>
   );
@@ -721,6 +930,7 @@ function ShopPageContent() {
   const router = useRouter();
   const categoryParam = searchParams.get('category');
   const searchParam = searchParams.get('search');
+  const showAllParam = searchParams.get('showAll') === 'true';
 
   const { t, countryConfig } = useLocale();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -776,7 +986,23 @@ function ShopPageContent() {
         // Check if this is a parent category (has children)
         const selectedCat = cats.find(c => c.id === selectedCategoryId);
         if (selectedCat && selectedCat.childIds && selectedCat.childIds.length > 0) {
-          // Redirect to category landing page for parent categories using slug
+          // If showAll is true, fetch products from parent AND all children
+          if (showAllParam) {
+            const allCategoryIds = [selectedCategoryId, ...selectedCat.childIds];
+            const productPromises = allCategoryIds.map(catId =>
+              OdooAPI.fetchProductsByPublicCategory(catId)
+            );
+            const productArrays = await Promise.all(productPromises);
+            // Flatten and dedupe by product id
+            const allProducts = productArrays.flat();
+            const uniqueProducts = Array.from(
+              new Map(allProducts.map(p => [p.id, p])).values()
+            );
+            setProducts(uniqueProducts);
+            setLoading(false);
+            return;
+          }
+          // Otherwise redirect to category landing page for parent categories using slug
           router.replace(`/${selectedCat.slug}`);
           return;
         }
@@ -790,7 +1016,7 @@ function ShopPageContent() {
       setLoading(false);
     };
     loadData();
-  }, [selectedCategoryId, router]);
+  }, [selectedCategoryId, showAllParam, router]);
 
   // Handle category image updates
   const handleCategoryImageUpdate = (categoryId: string, imageUrl: string) => {

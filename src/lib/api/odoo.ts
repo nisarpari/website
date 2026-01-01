@@ -1,6 +1,6 @@
 'use client';
 
-import { ODOO_CONFIG, MOCK_PRODUCTS, MOCK_CATEGORIES } from './config';
+import { ODOO_CONFIG, MOCK_CATEGORIES } from './config';
 
 export interface RelatedProduct {
   id: number;
@@ -53,7 +53,7 @@ export interface Category {
 
 export const OdooAPI = {
   async fetchProducts(filters: { category?: number; minPrice?: number; maxPrice?: number; search?: string } = {}): Promise<Product[]> {
-    if (!ODOO_CONFIG.useOdoo) return MOCK_PRODUCTS;
+    if (!ODOO_CONFIG.useOdoo) return [];
     try {
       const params = new URLSearchParams();
       if (filters.category) params.append('category', String(filters.category));
@@ -71,7 +71,7 @@ export const OdooAPI = {
       return products;
     } catch (error) {
       console.error('Failed to fetch products:', error);
-      return MOCK_PRODUCTS;
+      return [];
     }
   },
 
@@ -89,18 +89,8 @@ export const OdooAPI = {
   },
 
   async fetchProductsByPublicCategory(categoryId: number, limit?: number): Promise<Product[]> {
-    // Helper to get mock products for category
-    const getMockProducts = () => {
-      const category = MOCK_CATEGORIES.find(c => c.id === categoryId);
-      const childIds = category?.childIds || [];
-      const allCategoryIds = [categoryId, ...childIds];
-      const filtered = MOCK_PRODUCTS.filter(p => allCategoryIds.includes(p.categoryId || 0));
-      const result = filtered.length > 0 ? filtered : MOCK_PRODUCTS.slice(0, 6);
-      return limit ? result.slice(0, limit) : result;
-    };
-
     if (!ODOO_CONFIG.useOdoo) {
-      return getMockProducts();
+      return []; // No mock products in production mode
     }
     try {
       const url = limit
@@ -109,18 +99,16 @@ export const OdooAPI = {
       const response = await fetch(url);
       const products = await response.json();
       if (products.error) throw new Error(products.error);
-      return products.length > 0 ? products : getMockProducts();
+      return products;
     } catch (error) {
       console.error('Failed to fetch products by category:', error);
-      return getMockProducts();
+      return [];
     }
   },
 
   async fetchProductBySlug(slug: string): Promise<Product | null> {
     if (!ODOO_CONFIG.useOdoo) {
-      const match = slug.match(/-(\d+)$/);
-      const id = match ? parseInt(match[1]) : 0;
-      return MOCK_PRODUCTS.find(p => p.id === id) || null;
+      return null;
     }
     try {
       const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/products/by-slug/${slug}`);
@@ -145,28 +133,28 @@ export const OdooAPI = {
   },
 
   async fetchBestsellers(limit = 8): Promise<Product[]> {
-    if (!ODOO_CONFIG.useOdoo) return MOCK_PRODUCTS.slice(0, limit);
+    if (!ODOO_CONFIG.useOdoo) return [];
     try {
       const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/products/popular/bestsellers?limit=${limit}`);
       const products = await response.json();
       if (products.error) throw new Error(products.error);
-      return products.length > 0 ? products : MOCK_PRODUCTS.slice(0, limit);
+      return products;
     } catch (error) {
       console.error('Failed to fetch bestsellers:', error);
-      return MOCK_PRODUCTS.slice(0, limit);
+      return [];
     }
   },
 
   async fetchNewArrivals(limit = 8): Promise<Product[]> {
-    if (!ODOO_CONFIG.useOdoo) return MOCK_PRODUCTS.slice(0, limit);
+    if (!ODOO_CONFIG.useOdoo) return [];
     try {
       const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/products/popular/new-arrivals?limit=${limit}`);
       const products = await response.json();
       if (products.error) throw new Error(products.error);
-      return products.length > 0 ? products : MOCK_PRODUCTS.slice(0, limit);
+      return products;
     } catch (error) {
       console.error('Failed to fetch new arrivals:', error);
-      return MOCK_PRODUCTS.slice(0, limit);
+      return [];
     }
   },
 
@@ -193,7 +181,7 @@ export const OdooAPI = {
   },
 
   async fetchRandomFromCategory(categoryId: number, excludeProductId: number, limit = 8): Promise<Product[]> {
-    if (!ODOO_CONFIG.useOdoo) return MOCK_PRODUCTS.slice(0, limit);
+    if (!ODOO_CONFIG.useOdoo) return [];
     try {
       const response = await fetch(
         `${ODOO_CONFIG.baseUrl}/api/products/random-from-category/${categoryId}?exclude=${excludeProductId}&limit=${limit}`
