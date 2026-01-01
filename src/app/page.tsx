@@ -124,29 +124,25 @@ function MobileStatsBar() {
   );
 }
 
-// Mobile Product Card
+// Mobile Product Card - Compact with image block + name below
 function MobileProductCard({ product }: { product: Product }) {
-  const { countryConfig, formatPrice } = useLocale();
-  const { isVerified } = useVerification();
-
   return (
-    <Link href={`/product/${product.slug}`} className="group flex-shrink-0 w-[140px]">
-      <div className="relative w-[140px] h-[140px] bg-white rounded-xl overflow-hidden shadow-sm border border-bella-100 dark:border-white/10 mb-2">
-        <Image
-          src={product.thumbnail || product.image || '/placeholder.jpg'}
-          alt={product.name}
-          fill
-          sizes="140px"
-          className="object-contain p-3 transition-transform duration-300 group-hover:scale-105"
-        />
-      </div>
-      <div className="px-1">
-        <h3 className="text-sm font-medium text-navy dark:text-white line-clamp-2 leading-snug mb-1">{product.name}</h3>
-        {isVerified && (
-          <span className="text-sm font-semibold text-navy dark:text-gold">
-            {countryConfig.currencySymbol} {formatPrice(product.price)}
-          </span>
-        )}
+    <Link href={`/product/${product.slug}`} className="group flex-shrink-0 w-[120px]">
+      <div className="w-[120px] bg-white rounded-xl overflow-hidden shadow-sm border border-bella-100 dark:border-white/10">
+        {/* Image block */}
+        <div className="relative w-[120px] h-[100px] bg-bella-50">
+          <Image
+            src={product.thumbnail || product.image || '/placeholder.jpg'}
+            alt={product.name}
+            fill
+            sizes="120px"
+            className="object-contain p-2 transition-transform duration-300 group-hover:scale-105"
+          />
+        </div>
+        {/* Product name below image - fixed height */}
+        <div className="p-1.5 h-[40px]">
+          <h3 className="text-[10px] font-medium text-navy dark:text-white line-clamp-2 leading-tight">{product.name}</h3>
+        </div>
       </div>
     </Link>
   );
@@ -178,7 +174,7 @@ function MobileProductSection({ products, title, badge }: { products: Product[];
           </svg>
         </Link>
       </div>
-      <div ref={scrollRef} className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide" style={{ scrollSnapType: 'x mandatory' }}>
+      <div ref={scrollRef} className="flex gap-3 overflow-x-auto px-4 pb-4 scrollbar-hide" style={{ scrollSnapType: 'x mandatory' }}>
         {filteredProducts.map(product => (
           <div key={product.id} style={{ scrollSnapAlign: 'start' }}>
             <MobileProductCard product={product} />
@@ -340,49 +336,36 @@ function TrustBadges() {
   );
 }
 
-// Product Card
+// Product Card - Compact version with image block + name below
 function ProductCard({ product }: { product: Product }) {
-  const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
-  const { countryConfig, formatPrice } = useLocale();
-  const { isVerified } = useVerification();
   const inWishlist = isInWishlist(product.id);
 
   return (
-    <Link href={`/product/${product.slug}`} className="product-card bg-white dark:bg-navy-light rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-      <div className="relative aspect-square bg-bella-100 dark:bg-navy-light">
-        <ProductImage
-          src={product.thumbnail || product.image || '/placeholder.jpg'}
-          alt={product.name}
-          fill
-          className="object-contain p-2"
-          sizes="(max-width: 768px) 240px, 280px"
-        />
-        <button
-          onClick={(e) => { e.preventDefault(); toggleWishlist(product); }}
-          className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-colors ${inWishlist ? 'bg-red-50 hover:bg-red-100' : 'bg-white dark:bg-bella-700 hover:bg-bella-50 dark:hover:bg-bella-600'}`}
-        >
-          <svg className={`w-4 h-4 ${inWishlist ? 'text-red-500' : 'text-bella-600 dark:text-bella-300'}`} fill={inWishlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
-        </button>
-      </div>
-      <div className="p-3">
-        <p className="text-bella-500 dark:text-bella-400 text-xs uppercase tracking-wide truncate">{product.category}</p>
-        <h3 className="text-sm font-medium text-navy dark:text-white mt-1 line-clamp-2 min-h-[2.5rem]">{product.name}</h3>
-        {isVerified && (
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-lg font-bold text-navy dark:text-white">{countryConfig.currencySymbol} {formatPrice(product.price)}</span>
-            {product.inStock !== false && (
-              <button
-                onClick={(e) => { e.preventDefault(); addToCart(product, 1); }}
-                className="px-2 py-1 rounded-lg text-xs font-medium bg-gold hover:bg-gold-dark text-white transition-colors"
-              >
-                Add
-              </button>
-            )}
-          </div>
-        )}
+    <Link href={`/product/${product.slug}`} className="product-card group block">
+      <div className="bg-white dark:bg-navy-light rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-bella-100 dark:border-white/10">
+        {/* Image block */}
+        <div className="relative aspect-square bg-bella-50 dark:bg-navy">
+          <ProductImage
+            src={product.thumbnail || product.image || '/placeholder.jpg'}
+            alt={product.name}
+            fill
+            className="object-contain p-3"
+            sizes="(max-width: 768px) 160px, 180px"
+          />
+          <button
+            onClick={(e) => { e.preventDefault(); toggleWishlist(product); }}
+            className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-sm transition-colors ${inWishlist ? 'bg-red-50 hover:bg-red-100' : 'bg-white/90 dark:bg-bella-700 hover:bg-white dark:hover:bg-bella-600'}`}
+          >
+            <svg className={`w-3.5 h-3.5 ${inWishlist ? 'text-red-500' : 'text-bella-600 dark:text-bella-300'}`} fill={inWishlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
+        </div>
+        {/* Product name below image - fixed height */}
+        <div className="p-2 h-[52px]">
+          <h3 className="text-xs font-medium text-navy dark:text-white line-clamp-2 leading-snug">{product.name}</h3>
+        </div>
       </div>
     </Link>
   );
@@ -460,14 +443,14 @@ function DynamicProductSection({ products, title, subtitle, badge }: {
             </Link>
           </div>
         </div>
-        {/* Single line carousel */}
+        {/* Single line carousel - Compact cards */}
         <div
           ref={scrollRef}
-          className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
+          className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
           style={{ scrollSnapType: 'x mandatory' }}
         >
           {filteredProducts.map(product => (
-            <div key={product.id} className="flex-shrink-0 w-[220px] lg:w-[280px]" style={{ scrollSnapAlign: 'start' }}>
+            <div key={product.id} className="flex-shrink-0 w-[150px] lg:w-[180px]" style={{ scrollSnapAlign: 'start' }}>
               <ProductCard product={product} />
             </div>
           ))}

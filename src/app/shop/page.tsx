@@ -504,8 +504,8 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
   const { t } = useLocale();
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
 
-  // Categories to hide from sidebar
-  const hiddenFromSidebar = ['collections', 'bath assist'];
+  // Only hide Collections from sidebar (it has its own dedicated page)
+  const hiddenFromSidebar = ['collections'];
 
   // Rename mappings for display (matching navbar)
   const renameCategory = (name: string) => {
@@ -515,13 +515,8 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
     return renames[name.toLowerCase()] || name;
   };
 
-  // Find Bath Essentials to add under Bathroom
-  const bathEssentialsCategory = categories.find(c =>
-    c.parentId === null && c.name.toLowerCase() === 'bath essentials'
-  );
-
-  // Custom order for root categories (matching navbar display order)
-  const rootCategoryOrder = ['bathroom', 'washroom', 'toilets', 'wellness', 'kitchen', 'misc', 'water heaters', 'switches & sockets'];
+  // Custom order for root categories
+  const rootCategoryOrder = ['bathroom', 'washroom', 'toilets', 'wellness', 'kitchen', 'switches & sockets', 'water heaters'];
 
   // Custom submenu order for specific categories (matching navbar)
   const customSubmenuOrder: Record<string, string[]> = {
@@ -589,9 +584,9 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
     });
   };
 
-  // Filter and order root categories (exclude Bath Essentials as it shows under Bathroom)
+  // Filter and order root categories (exclude hidden ones)
   const rootCategories = categories
-    .filter(c => c.parentId === null && !hiddenFromSidebar.includes(c.name.toLowerCase()) && c.name.toLowerCase() !== 'bath essentials')
+    .filter(c => c.parentId === null && !hiddenFromSidebar.includes(c.name.toLowerCase()))
     .sort((a, b) => {
       const aName = renameCategory(a.name).toLowerCase();
       const bName = renameCategory(b.name).toLowerCase();
@@ -603,17 +598,9 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
       return aIndex - bIndex;
     });
 
-  // Get children for a category, adding Bath Essentials children under Bathroom
+  // Get children for a category
   const getCategoryChildren = (cat: Category) => {
-    const children = getOrderedChildren(cat);
-    const isBathroom = cat.name.toLowerCase() === 'bathroom';
-
-    // Add Bath Essentials as a child under Bathroom
-    if (isBathroom && bathEssentialsCategory) {
-      return [...children, bathEssentialsCategory];
-    }
-
-    return children;
+    return getOrderedChildren(cat);
   };
 
   // Auto-expand parent categories when a child is selected

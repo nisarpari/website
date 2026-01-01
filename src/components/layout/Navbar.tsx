@@ -101,14 +101,14 @@ export function Navbar({ categories = [] }: NavbarProps) {
     }
   }, [searchQuery, categories]);
 
-  // Categories to hide from main nav (Bath Essentials shows under Bathroom instead)
-  const hiddenFromMainNav = ['collections', 'bath assist', 'bath essentials'];
+  // Categories to hide from main nav (Washroom and Washlet merged into "Basins & WC", Bath Accessories under Showers)
+  const hiddenFromMainNav = ['collections', 'bath assist', 'kitchen', 'water heaters', 'washroom', 'washlet', 'bath accessories'];
 
   // Rename mappings for display (database name -> display name)
   const renameCategory = (name: string) => {
     const renames: Record<string, string> = {
+      'bathroom': 'Showers',
       'washlet': 'Toilets',
-      'faucets': 'Faucet',
     };
     return renames[name.toLowerCase()] || name;
   };
@@ -175,14 +175,32 @@ export function Navbar({ categories = [] }: NavbarProps) {
   };
 
   // Get root categories for nav (exclude hidden ones)
-  const rootCategories = categories
-    .filter(c => c.parentId === null && !hiddenFromMainNav.includes(c.name.toLowerCase()))
-    .slice(0, 6);
+  const filteredRootCategories = categories
+    .filter(c => c.parentId === null && !hiddenFromMainNav.includes(c.name.toLowerCase()));
 
-  // Find Bath Essentials category to add under Bathroom
-  const bathEssentialsCategory = categories.find(c =>
-    c.parentId === null && c.name.toLowerCase() === 'bath essentials'
+  // Find specific categories for the merged "Basins & WC" menu
+  const washroomCategory = categories.find(c =>
+    c.parentId === null && c.name.toLowerCase() === 'washroom'
   );
+  const toiletsCategory = categories.find(c =>
+    c.parentId === null && c.name.toLowerCase() === 'washlet'
+  );
+
+  // Find Switches & Sockets and add it to the nav
+  const switchesCategory = categories.find(c =>
+    c.parentId === null && c.name.toLowerCase() === 'switches & sockets'
+  );
+
+  // Find Bath Accessories to add under Showers menu
+  const bathAccessoriesCategory = categories.find(c =>
+    c.parentId === null && c.name.toLowerCase() === 'bath accessories'
+  );
+
+  // Build final nav categories: Showers (bathroom), Basins & WC (merged), Wellness, Switches
+  const rootCategories = filteredRootCategories.slice(0, 4);
+  if (switchesCategory && !rootCategories.find(c => c.id === switchesCategory.id)) {
+    rootCategories.push(switchesCategory);
+  }
 
   // Helper to get direct children only (not grandchildren)
   // When a category has children, clicking it opens a page showing those children
@@ -214,7 +232,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
   return (
     <>
       {/* Top Bar */}
-      <div className="text-sm py-2" style={{ backgroundColor: '#0d1318', color: '#ffffff' }}>
+      <div className="text-sm py-2 relative z-[60]" style={{ backgroundColor: '#0d1318', color: '#ffffff' }}>
         <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center relative">
           {/* Left side - Theme, Language, Country */}
           <div className="flex items-center gap-2 md:gap-4">
@@ -300,15 +318,125 @@ export function Navbar({ categories = [] }: NavbarProps) {
             </div>
           </div>
 
-          {/* Center - Free Delivery message (desktop only) */}
-          <span className="hidden sm:block absolute left-1/2 -translate-x-1/2" style={{ color: '#e8e4dd' }}>
-            {t('freeDelivery')} {countryConfig.currencySymbol} {countryConfig.freeDeliveryThreshold.toLocaleString()}
-          </span>
+          {/* Right side - Track & Support, Search, Wishlist & Cart */}
+          <div className="flex items-center gap-2 md:gap-3">
+            {/* Track & Support links - all devices */}
+            <div className="flex gap-2 md:gap-4 text-xs md:text-sm" style={{ color: '#e8e4dd' }}>
+              <Link href="/track" className="hover:text-gold-light transition-colors">{t('trackOrder')}</Link>
+              <Link href="/contact" className="hover:text-gold-light transition-colors">{t('support')}</Link>
+            </div>
 
-          {/* Right side - Wishlist & Cart (mobile), Track & Support (desktop) */}
-          <div className="flex items-center gap-2 md:gap-4">
-            {/* Mobile: Wishlist & Cart - extreme right */}
-            <div className="flex lg:hidden items-center gap-2">
+            {/* Desktop Search Bar */}
+            <div className="hidden lg:block relative" ref={searchContainerRef}>
+              <div className="relative">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setShowSearch(true)}
+                  placeholder={t('searchProducts')}
+                  className="w-48 xl:w-56 px-4 py-1.5 text-sm border border-white/20 rounded-full bg-white/10 text-white placeholder-white/60 focus:outline-none focus:border-gold focus:bg-white/20"
+                  autoComplete="off"
+                />
+                <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+
+              {/* Desktop Search Results Dropdown */}
+              {showSearch && searchQuery.length > 0 && (
+                <div className="absolute right-0 top-full mt-2 bg-white dark:bg-navy-light rounded-xl shadow-2xl border border-bella-200 dark:border-white/10 overflow-hidden z-[100] w-80">
+                  {searchLoading && (
+                    <div className="p-4 text-center text-gray-500 text-sm">Searching...</div>
+                  )}
+
+                  {!searchLoading && searchQuery.length >= 3 && categoryResults.length === 0 && searchResults.length === 0 && (
+                    <div className="p-4 text-center text-gray-500 text-sm">No results found</div>
+                  )}
+
+                  {!searchLoading && (categoryResults.length > 0 || searchResults.length > 0) && (
+                    <div className="max-h-80 overflow-y-auto">
+                      {/* Categories Section */}
+                      {categoryResults.length > 0 && (
+                        <>
+                          <div className="px-3 py-2 bg-bella-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Categories
+                          </div>
+                          {categoryResults.map(cat => {
+                            const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
+                            return (
+                              <Link
+                                key={cat.id}
+                                href={getCategoryUrl(cat, hasChildren)}
+                                onClick={() => { setShowSearch(false); setSearchQuery(''); }}
+                                className="flex items-center gap-3 px-3 py-2.5 hover:bg-bella-50 cursor-pointer border-b border-bella-50"
+                              >
+                                <div className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                  <svg className="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                                  </svg>
+                                </div>
+                                <span className="text-sm font-medium text-navy">{renameCategory(cat.name)}</span>
+                                <svg className="w-4 h-4 text-gray-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </Link>
+                            );
+                          })}
+                        </>
+                      )}
+
+                      {/* Products Section */}
+                      {searchResults.length > 0 && (
+                        <>
+                          <div className="px-3 py-2 bg-bella-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Products
+                          </div>
+                          {searchResults.map(product => (
+                            <Link
+                              key={product.id}
+                              href={`/product/${product.slug}`}
+                              onClick={() => { setShowSearch(false); setSearchQuery(''); }}
+                              className="flex items-center gap-3 p-3 hover:bg-bella-50 cursor-pointer border-b border-bella-50 last:border-0"
+                            >
+                              <Image
+                                src={product.thumbnail || product.image || '/placeholder.jpg'}
+                                alt={product.name}
+                                width={48}
+                                height={48}
+                                className="w-12 h-12 object-cover rounded-lg"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-navy line-clamp-2 leading-tight">{product.name}</p>
+                                <p className="text-xs text-gold mt-0.5">{countryConfig.currencySymbol} {formatPrice(product.price)}</p>
+                              </div>
+                            </Link>
+                          ))}
+                        </>
+                      )}
+
+                      <Link
+                        href={`/shop?search=${encodeURIComponent(searchQuery)}`}
+                        onClick={() => { setShowSearch(false); setSearchQuery(''); }}
+                        className="block w-full p-3 text-sm text-center text-gold hover:bg-bella-50 font-medium"
+                      >
+                        View all results
+                      </Link>
+                    </div>
+                  )}
+
+                  {searchQuery.length < 3 && searchQuery.length > 0 && (
+                    <div className="p-4 text-center text-gray-400 text-sm">
+                      Type {3 - searchQuery.length} more character{3 - searchQuery.length > 1 ? 's' : ''}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Wishlist & Cart - all devices */}
+            <div className="flex items-center gap-1 md:gap-2">
               <Link href="/wishlist" className="p-1.5 hover:bg-white/10 rounded-full transition-colors relative">
                 <svg className={`w-5 h-5 ${wishlistCount > 0 ? 'text-red-400' : 'text-white'}`} fill={wishlistCount > 0 ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -327,12 +455,6 @@ export function Navbar({ categories = [] }: NavbarProps) {
                   </span>
                 )}
               </Link>
-            </div>
-
-            {/* Desktop: Track & Support links */}
-            <div className="hidden md:flex gap-4" style={{ color: '#e8e4dd' }}>
-              <Link href="/track" className="hover:text-gold-light transition-colors">{t('trackOrder')}</Link>
-              <Link href="/contact" className="hover:text-gold-light transition-colors">{t('support')}</Link>
             </div>
           </div>
         </div>
@@ -504,191 +626,116 @@ export function Navbar({ categories = [] }: NavbarProps) {
                   Smart Products
                 </Link>
 
-                {rootCategories.map(cat => {
-                  const isBathroom = cat.name.toLowerCase() === 'bathroom';
-                  const hasChildren = !!(cat.childIds && cat.childIds.length > 0) || (isBathroom && !!bathEssentialsCategory);
-                  const orderedChildCategories = getOrderedSubmenus(cat);
-
-                  // For Bathroom, add Bath Essentials at the end of submenu
-                  const displaySubmenus = isBathroom && bathEssentialsCategory
-                    ? [...orderedChildCategories, bathEssentialsCategory]
-                    : orderedChildCategories;
+                {rootCategories.map((cat, index) => {
+                  const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
+                  const displaySubmenus = getOrderedSubmenus(cat);
+                  const isShowers = cat.name.toLowerCase() === 'bathroom';
 
                   return (
-                    <div key={cat.id} className={`nav-item relative group ${hasChildren ? 'nav-item-hover' : ''}`}>
-                      {/* Main category - not clickable, only expands dropdown on hover */}
-                      <span
-                        className="nav-link-anim px-3 xl:px-4 py-2 text-sm font-medium text-navy-light hover:text-gold transition-colors whitespace-nowrap cursor-default flex items-center gap-1"
-                      >
-                        {renameCategory(cat.name)}
-                        {hasChildren && (
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
+                    <>
+                      <div key={cat.id} className={`nav-item relative group ${hasChildren ? 'nav-item-hover' : ''}`}>
+                        {/* Main category - clickable if no children, otherwise hover dropdown */}
+                        {hasChildren ? (
+                          <span
+                            className="nav-link-anim px-3 xl:px-4 py-2 text-sm font-medium text-navy-light hover:text-gold transition-colors whitespace-nowrap cursor-default flex items-center gap-1"
+                          >
+                            {renameCategory(cat.name)}
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </span>
+                        ) : (
+                          <Link
+                            href={`/shop?category=${cat.id}`}
+                            className="nav-link-anim px-3 xl:px-4 py-2 text-sm font-medium text-navy-light hover:text-gold transition-colors whitespace-nowrap flex items-center gap-1"
+                          >
+                            {renameCategory(cat.name)}
+                          </Link>
                         )}
-                      </span>
 
-                    {/* Dropdown for subcategories */}
-                    {hasChildren && (
-                      <div className="nav-dropdown absolute top-full left-0 bg-white shadow-xl rounded-lg py-4 min-w-[220px]">
-                        {displaySubmenus.map(sub => {
-                          const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
-                          return (
+                      {/* Dropdown for subcategories */}
+                      {hasChildren && (
+                        <div className="nav-dropdown absolute top-full left-0 bg-white shadow-xl rounded-lg py-4 min-w-[220px]">
+                          {displaySubmenus.map(sub => {
+                            const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
+                            return (
+                              <Link
+                                key={sub.id}
+                                href={getCategoryUrl(sub, subHasChildren)}
+                                className="block w-full text-left px-5 py-2 text-sm text-navy-light hover:bg-bella-50 hover:text-gold transition-colors"
+                              >
+                                {renameCategory(sub.name)}
+                              </Link>
+                            );
+                          })}
+                          {/* Add Bath Accessories under Showers */}
+                          {isShowers && bathAccessoriesCategory && (
                             <Link
-                              key={sub.id}
-                              href={getCategoryUrl(sub, subHasChildren)}
-                              className="block w-full text-left px-5 py-2 text-sm text-navy-light hover:bg-bella-50 hover:text-gold transition-colors"
+                              href={`/${bathAccessoriesCategory.slug}`}
+                              className="block w-full text-left px-5 py-2 text-sm text-navy-light hover:bg-bella-50 hover:text-gold transition-colors border-t border-bella-100 mt-2 pt-2"
                             >
-                              {renameCategory(sub.name)}
+                              Bath Accessories
                             </Link>
-                          );
-                        })}
+                          )}
+                        </div>
+                      )}
                       </div>
-                    )}
-                    </div>
+
+                      {/* Insert "Basins & WC" menu after Showers (Bathroom) */}
+                      {isShowers && (washroomCategory || toiletsCategory) && (
+                        <div key="basins-wc" className="nav-item relative group nav-item-hover">
+                          <span className="nav-link-anim px-3 xl:px-4 py-2 text-sm font-medium text-navy-light hover:text-gold transition-colors whitespace-nowrap cursor-default flex items-center gap-1">
+                            Basins & WC
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </span>
+                          <div className="nav-dropdown absolute top-full left-0 bg-white shadow-xl rounded-lg py-4 min-w-[220px] max-h-[70vh] overflow-y-auto">
+                            {/* Washroom items (Basins & Faucets) */}
+                            {washroomCategory && (
+                              <>
+                                <div className="px-5 py-1.5 text-xs font-semibold text-bella-400 uppercase tracking-wider">Basins & Faucets</div>
+                                {getOrderedSubmenus(washroomCategory).map(sub => {
+                                  const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
+                                  return (
+                                    <Link
+                                      key={sub.id}
+                                      href={getCategoryUrl(sub, subHasChildren)}
+                                      className="block w-full text-left px-5 py-2 text-sm text-navy-light hover:bg-bella-50 hover:text-gold transition-colors"
+                                    >
+                                      {renameCategory(sub.name)}
+                                    </Link>
+                                  );
+                                })}
+                              </>
+                            )}
+                            {/* Toilets items */}
+                            {toiletsCategory && (
+                              <>
+                                <div className="px-5 py-1.5 text-xs font-semibold text-bella-400 uppercase tracking-wider mt-2 border-t border-bella-100 pt-3">Toilets & Cisterns</div>
+                                {getOrderedSubmenus(toiletsCategory).map(sub => {
+                                  const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
+                                  return (
+                                    <Link
+                                      key={sub.id}
+                                      href={getCategoryUrl(sub, subHasChildren)}
+                                      className="block w-full text-left px-5 py-2 text-sm text-navy-light hover:bg-bella-50 hover:text-gold transition-colors"
+                                    >
+                                      {renameCategory(sub.name)}
+                                    </Link>
+                                  );
+                                })}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   );
                 })}
               </div>
             </div>
 
-            {/* Right Icons - Desktop only (mobile has these in top bar) */}
-            <div className="hidden lg:flex items-center gap-3">
-              {/* Search */}
-              <div className="relative" ref={searchContainerRef}>
-                <button
-                  onClick={() => { setShowSearch(!showSearch); setTimeout(() => searchInputRef.current?.focus(), 100); }}
-                  className="p-2 hover:bg-bella-100 rounded-full transition-colors"
-                >
-                  <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </button>
-
-                {/* Search Dropdown */}
-                {showSearch && (
-                  <div className="absolute right-0 top-full mt-2 bg-white dark:bg-navy-light rounded-xl shadow-2xl border border-bella-200 dark:border-white/10 overflow-hidden z-50 w-80">
-                    <div className="p-3 border-b border-bella-100">
-                      <input
-                        ref={searchInputRef}
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder={t('searchProducts')}
-                        className="w-full px-4 py-2 text-sm border border-bella-200 rounded-lg focus:outline-none focus:border-gold"
-                        autoComplete="off"
-                      />
-                    </div>
-
-                    {searchLoading && (
-                      <div className="p-4 text-center text-gray-500 text-sm">Searching...</div>
-                    )}
-
-                    {!searchLoading && searchQuery.length >= 3 && categoryResults.length === 0 && searchResults.length === 0 && (
-                      <div className="p-4 text-center text-gray-500 text-sm">No results found</div>
-                    )}
-
-                    {!searchLoading && (categoryResults.length > 0 || searchResults.length > 0) && (
-                      <div className="max-h-80 overflow-y-auto">
-                        {/* Categories Section */}
-                        {categoryResults.length > 0 && (
-                          <>
-                            <div className="px-3 py-2 bg-bella-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                              Categories
-                            </div>
-                            {categoryResults.map(cat => {
-                              const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
-                              return (
-                                <Link
-                                  key={cat.id}
-                                  href={getCategoryUrl(cat, hasChildren)}
-                                  onClick={() => { setShowSearch(false); setSearchQuery(''); }}
-                                  className="flex items-center gap-3 px-3 py-2.5 hover:bg-bella-50 cursor-pointer border-b border-bella-50"
-                                >
-                                  <div className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                                    </svg>
-                                  </div>
-                                  <span className="text-sm font-medium text-navy">{renameCategory(cat.name)}</span>
-                                  <svg className="w-4 h-4 text-gray-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                  </svg>
-                                </Link>
-                              );
-                            })}
-                          </>
-                        )}
-
-                        {/* Products Section */}
-                        {searchResults.length > 0 && (
-                          <>
-                            <div className="px-3 py-2 bg-bella-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                              Products
-                            </div>
-                            {searchResults.map(product => (
-                              <Link
-                                key={product.id}
-                                href={`/product/${product.slug}`}
-                                onClick={() => { setShowSearch(false); setSearchQuery(''); }}
-                                className="flex items-center gap-3 p-3 hover:bg-bella-50 cursor-pointer border-b border-bella-50 last:border-0"
-                              >
-                                <Image
-                                  src={product.thumbnail || product.image || '/placeholder.jpg'}
-                                  alt={product.name}
-                                  width={48}
-                                  height={48}
-                                  className="w-12 h-12 object-cover rounded-lg"
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-navy line-clamp-2 leading-tight">{product.name}</p>
-                                  <p className="text-xs text-gold mt-0.5">{countryConfig.currencySymbol} {formatPrice(product.price)}</p>
-                                </div>
-                              </Link>
-                            ))}
-                          </>
-                        )}
-
-                        <Link
-                          href={`/shop?search=${encodeURIComponent(searchQuery)}`}
-                          onClick={() => { setShowSearch(false); setSearchQuery(''); }}
-                          className="block w-full p-3 text-sm text-center text-gold hover:bg-bella-50 font-medium"
-                        >
-                          View all results
-                        </Link>
-                      </div>
-                    )}
-
-                    {searchQuery.length < 3 && searchQuery.length > 0 && (
-                      <div className="p-4 text-center text-gray-400 text-sm">
-                        Type {3 - searchQuery.length} more character{3 - searchQuery.length > 1 ? 's' : ''}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Wishlist */}
-              <Link href="/wishlist" className="p-2 hover:bg-bella-100 rounded-full transition-colors relative">
-                <svg className={`w-5 h-5 ${wishlistCount > 0 ? 'text-red-500' : 'text-navy'}`} fill={wishlistCount > 0 ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">{wishlistCount}</span>
-                )}
-              </Link>
-
-              {/* Cart */}
-              <Link href="/cart" className="p-2 hover:bg-bella-100 rounded-full transition-colors relative">
-                <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-gold text-white text-xs rounded-full flex items-center justify-center">
-                    {cartCount > 99 ? '99+' : cartCount}
-                  </span>
-                )}
-              </Link>
-            </div>
           </div>
         </div>
       </nav>
@@ -709,15 +756,11 @@ export function Navbar({ categories = [] }: NavbarProps) {
             Smart Products
           </Link>
           {rootCategories.map(cat => {
-            const isBathroom = cat.name.toLowerCase() === 'bathroom';
-            const hasChildren = !!(cat.childIds && cat.childIds.length > 0) || (isBathroom && !!bathEssentialsCategory);
+            const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
             const isExpanded = expandedMobileCategories.includes(cat.id);
-            const orderedChildCategories = getOrderedSubmenus(cat);
-
-            // For Bathroom, add Bath Essentials at the end of submenu
-            const displaySubmenus = isBathroom && bathEssentialsCategory
-              ? [...orderedChildCategories, bathEssentialsCategory]
-              : orderedChildCategories;
+            const displaySubmenus = getOrderedSubmenus(cat);
+            const isShowers = cat.name.toLowerCase() === 'bathroom';
+            const isBasinsWcExpanded = expandedMobileCategories.includes(-1); // Use -1 as virtual ID for Basins & WC
 
             if (!hasChildren) {
               // No children - just link to shop with category filter
@@ -735,43 +778,120 @@ export function Navbar({ categories = [] }: NavbarProps) {
 
             // Has children - expandable accordion
             return (
-              <div key={cat.id} className="border-b border-bella-100">
-                <button
-                  onClick={() => setExpandedMobileCategories(prev =>
-                    prev.includes(cat.id) ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
-                  )}
-                  className="flex items-center justify-between w-full text-left py-4 text-lg font-medium text-navy"
-                >
-                  {renameCategory(cat.name)}
-                  <svg
-                    className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+              <>
+                <div key={cat.id} className="border-b border-bella-100">
+                  <button
+                    onClick={() => setExpandedMobileCategories(prev =>
+                      prev.includes(cat.id) ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
+                    )}
+                    className="flex items-center justify-between w-full text-left py-4 text-lg font-medium text-navy"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+                    {renameCategory(cat.name)}
+                    <svg
+                      className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
 
-                {/* Submenu */}
-                {isExpanded && (
-                  <div className="pl-4 pb-2">
-                    {displaySubmenus.map(sub => {
-                      const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
-                      return (
+                  {/* Submenu */}
+                  {isExpanded && (
+                    <div className="pl-4 pb-2">
+                      {displaySubmenus.map(sub => {
+                        const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
+                        return (
+                          <Link
+                            key={sub.id}
+                            href={getCategoryUrl(sub, subHasChildren)}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="block py-3 text-base text-navy-light hover:text-gold transition-colors"
+                          >
+                            {renameCategory(sub.name)}
+                          </Link>
+                        );
+                      })}
+                      {/* Add Bath Accessories under Showers */}
+                      {isShowers && bathAccessoriesCategory && (
                         <Link
-                          key={sub.id}
-                          href={getCategoryUrl(sub, subHasChildren)}
+                          href={`/${bathAccessoriesCategory.slug}`}
                           onClick={() => setMobileMenuOpen(false)}
-                          className="block py-3 text-base text-navy-light hover:text-gold transition-colors"
+                          className="block py-3 text-base text-navy-light hover:text-gold transition-colors border-t border-bella-100 mt-2 pt-2"
                         >
-                          {renameCategory(sub.name)}
+                          Bath Accessories
                         </Link>
-                      );
-                    })}
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Insert "Basins & WC" menu after Showers (Bathroom) */}
+                {isShowers && (washroomCategory || toiletsCategory) && (
+                  <div key="basins-wc-mobile" className="border-b border-bella-100">
+                    <button
+                      onClick={() => setExpandedMobileCategories(prev =>
+                        prev.includes(-1) ? prev.filter(id => id !== -1) : [...prev, -1]
+                      )}
+                      className="flex items-center justify-between w-full text-left py-4 text-lg font-medium text-navy"
+                    >
+                      Basins & WC
+                      <svg
+                        className={`w-5 h-5 text-gray-400 transition-transform ${isBasinsWcExpanded ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {isBasinsWcExpanded && (
+                      <div className="pl-4 pb-2">
+                        {/* Washroom items */}
+                        {washroomCategory && (
+                          <>
+                            <div className="py-2 text-xs font-semibold text-bella-400 uppercase tracking-wider">Basins & Faucets</div>
+                            {getOrderedSubmenus(washroomCategory).map(sub => {
+                              const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
+                              return (
+                                <Link
+                                  key={sub.id}
+                                  href={getCategoryUrl(sub, subHasChildren)}
+                                  onClick={() => setMobileMenuOpen(false)}
+                                  className="block py-3 text-base text-navy-light hover:text-gold transition-colors"
+                                >
+                                  {renameCategory(sub.name)}
+                                </Link>
+                              );
+                            })}
+                          </>
+                        )}
+                        {/* Toilets items */}
+                        {toiletsCategory && (
+                          <>
+                            <div className="py-2 text-xs font-semibold text-bella-400 uppercase tracking-wider mt-2 border-t border-bella-100 pt-3">Toilets & Cisterns</div>
+                            {getOrderedSubmenus(toiletsCategory).map(sub => {
+                              const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
+                              return (
+                                <Link
+                                  key={sub.id}
+                                  href={getCategoryUrl(sub, subHasChildren)}
+                                  onClick={() => setMobileMenuOpen(false)}
+                                  className="block py-3 text-base text-navy-light hover:text-gold transition-colors"
+                                >
+                                  {renameCategory(sub.name)}
+                                </Link>
+                              );
+                            })}
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
+              </>
             );
           })}
         </div>
