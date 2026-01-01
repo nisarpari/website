@@ -11,7 +11,33 @@ interface FooterProps {
 
 export function Footer({ categories = [] }: FooterProps) {
   const { t } = useLocale();
-  const rootCategories = categories.filter(c => c.parentId === null).slice(0, 5);
+
+  // Match navbar category logic - hide merged/special categories
+  const hiddenFromFooter = ['collections', 'bath assist', 'kitchen', 'water heaters', 'washroom', 'washlet', 'bath accessories'];
+
+  // Rename mappings (same as navbar)
+  const renameCategory = (name: string) => {
+    const renames: Record<string, string> = {
+      'bathroom': 'Showers',
+      'wellness': 'Wellness',
+    };
+    return renames[name.toLowerCase()] || name;
+  };
+
+  // Get filtered root categories (same as navbar)
+  const filteredRootCategories = categories
+    .filter(c => c.parentId === null && !hiddenFromFooter.includes(c.name.toLowerCase()));
+
+  // Find Switches & Sockets to include
+  const switchesCategory = categories.find(c =>
+    c.parentId === null && c.name.toLowerCase() === 'switches & sockets'
+  );
+
+  // Build footer categories: filtered ones + switches if not already included
+  const footerCategories = [...filteredRootCategories.slice(0, 4)];
+  if (switchesCategory && !footerCategories.find(c => c.id === switchesCategory.id)) {
+    footerCategories.push(switchesCategory);
+  }
 
   return (
     <footer className="bg-navy-dark text-white pt-12 md:pt-16 pb-8">
@@ -52,20 +78,36 @@ export function Footer({ categories = [] }: FooterProps) {
             </ul>
           </div>
 
-          {/* Categories */}
+          {/* Categories - synced with navbar */}
           <div>
             <h4 className="font-semibold mb-4 text-sm md:text-base">{t('categories')}</h4>
             <ul className="space-y-2 text-bella-400 text-sm">
-              {rootCategories.map(cat => (
-                <li key={cat.id}>
-                  <Link
-                    href={`/shop?category=${cat.id}`}
-                    className="hover:text-gold-light transition-colors text-left"
-                  >
-                    {cat.name}
-                  </Link>
-                </li>
-              ))}
+              {footerCategories.map((cat) => {
+                const isShowers = cat.name.toLowerCase() === 'bathroom';
+                return (
+                  <>
+                    <li key={cat.id}>
+                      <Link
+                        href={cat.childIds && cat.childIds.length > 0 ? `/${cat.slug}` : `/shop?category=${cat.id}`}
+                        className="hover:text-gold-light transition-colors text-left"
+                      >
+                        {renameCategory(cat.name)}
+                      </Link>
+                    </li>
+                    {/* Insert Basins & WC after Showers */}
+                    {isShowers && (
+                      <li key="basins-wc">
+                        <Link
+                          href="/shop?category=washroom"
+                          className="hover:text-gold-light transition-colors text-left"
+                        >
+                          Basins & WC
+                        </Link>
+                      </li>
+                    )}
+                  </>
+                );
+              })}
             </ul>
           </div>
 
