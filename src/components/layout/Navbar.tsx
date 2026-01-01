@@ -49,6 +49,18 @@ export function Navbar({ categories = [] }: NavbarProps) {
     setMobileMenuOpen(false);
   }, [pathname]);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -764,193 +776,154 @@ export function Navbar({ categories = [] }: NavbarProps) {
       </motion.nav>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="mobile-menu fixed inset-0 z-40 bg-white lg:hidden"
-            style={{ transform: 'none' }} // Override specific transform from class if needed by motion
-          >
-            <div className="p-6 pt-24 h-full overflow-y-auto w-full">
-              <Link href="/" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left py-4 text-lg font-medium text-navy border-b border-bella-100">
-                {t('home')}
-              </Link>
-              <Link href="/shop" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left py-4 text-lg font-medium text-navy border-b border-bella-100">
-                {t('shop')}
-              </Link>
-              <Link href="/collections" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left py-4 text-lg font-medium text-navy border-b border-bella-100">
-                Collections
-              </Link>
-              <Link href="/smart-products" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left py-4 text-lg font-medium text-navy border-b border-bella-100">
-                Smart Products
-              </Link>
-              {rootCategories.map(cat => {
-                const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
-                const isExpanded = expandedMobileCategories.includes(cat.id);
-                const displaySubmenus = getOrderedSubmenus(cat);
-                const isShowers = cat.name.toLowerCase() === 'bathroom';
-                // const isBasinsWcExpanded = expandedMobileCategories.includes(-1); // Use -1 as virtual ID for Basins & WC - moved to specific block
+      <div className={`mobile-menu fixed inset-0 z-40 bg-white dark:bg-navy lg:hidden h-[100dvh] overflow-y-auto overscroll-contain ${mobileMenuOpen ? 'open' : ''}`}>
+        <div className="w-full min-h-full p-6 pt-24 pb-40">
+          <Link href="/" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left py-4 text-lg font-medium text-navy dark:text-white border-b border-bella-100 dark:border-white/10">
+            {t('home')}
+          </Link>
+          <Link href="/shop" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left py-4 text-lg font-medium text-navy dark:text-white border-b border-bella-100 dark:border-white/10">
+            {t('shop')}
+          </Link>
+          <Link href="/collections" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left py-4 text-lg font-medium text-navy dark:text-white border-b border-bella-100 dark:border-white/10">
+            Collections
+          </Link>
+          <Link href="/smart-products" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left py-4 text-lg font-medium text-navy dark:text-white border-b border-bella-100 dark:border-white/10">
+            Smart Products
+          </Link>
+          {rootCategories.map(cat => {
+            const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
+            const isExpanded = expandedMobileCategories.includes(cat.id);
+            const displaySubmenus = getOrderedSubmenus(cat);
+            const isShowers = cat.name.toLowerCase() === 'bathroom';
 
-                if (!hasChildren) {
-                  // No children - just link to shop with category filter
-                  return (
-                    <Link
-                      key={cat.id}
-                      href={`/shop?category=${cat.id}`}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block w-full text-left py-4 text-lg font-medium text-navy border-b border-bella-100"
-                    >
-                      {renameCategory(cat.name)}
-                    </Link>
-                  );
-                }
+            if (!hasChildren) {
+              return (
+                <Link
+                  key={cat.id}
+                  href={`/shop?category=${cat.id}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block w-full text-left py-4 text-lg font-medium text-navy dark:text-white border-b border-bella-100 dark:border-white/10"
+                >
+                  {renameCategory(cat.name)}
+                </Link>
+              );
+            }
 
-                // Has children - expandable accordion
-                return (
-                  <div key={cat.id} className="border-b border-bella-100">
-                    <button
-                      onClick={() => setExpandedMobileCategories(prev =>
-                        prev.includes(cat.id) ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
-                      )}
-                      className="flex items-center justify-between w-full text-left py-4 text-lg font-medium text-navy"
-                    >
-                      {renameCategory(cat.name)}
-                      <svg
-                        className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-
-                    {/* Submenu */}
-                    <AnimatePresence>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="overflow-hidden bg-bella-50/50"
-                        >
-                          <div className="pl-4 pb-4">
-                            {displaySubmenus.map(sub => {
-                              const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
-                              return (
-                                <Link
-                                  key={sub.id}
-                                  href={getCategoryUrl(sub, subHasChildren)}
-                                  onClick={() => setMobileMenuOpen(false)}
-                                  className="block py-3 text-base text-navy"
-                                >
-                                  {renameCategory(sub.name)}
-                                </Link>
-                              );
-                            })}
-
-                            {/* Add special Bath Accessories for Bathroom/Showers */}
-                            {isShowers && bathAccessoriesCategory && (
-                              <Link
-                                href={`/${bathAccessoriesCategory.slug}`}
-                                onClick={() => setMobileMenuOpen(false)}
-                                className="block py-3 text-base text-navy"
-                              >
-                                Bath Accessories
-                              </Link>
-                            )}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              })}
-
-              {/* Special Handling for Virtual "Basins & WC" in Mobile */}
-
-              {/* Special Handling for Virtual "Basins & WC" in Mobile */}
-              {(washroomCategory || toiletsCategory) && (
-                <div className="border-b border-bella-100">
-                  <button
-                    onClick={() => setExpandedMobileCategories(prev =>
-                      prev.includes(-1) ? prev.filter(id => id !== -1) : [...prev, -1]
-                    )}
-                    className="flex items-center justify-between w-full text-left py-4 text-lg font-medium text-navy"
+            return (
+              <div key={cat.id} className="border-b border-bella-100 dark:border-white/10">
+                <button
+                  onClick={() => setExpandedMobileCategories(prev =>
+                    prev.includes(cat.id) ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
+                  )}
+                  className="flex items-center justify-between w-full text-left py-4 text-lg font-medium text-navy dark:text-white"
+                >
+                  {renameCategory(cat.name)}
+                  <svg
+                    className={`w-5 h-5 text-gray-400 dark:text-white/60 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    Basins & WC
-                    <svg
-                      className={`w-5 h-5 text-gray-400 transition-transform ${expandedMobileCategories.includes(-1) ? 'rotate-180' : ''}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
 
-                  <AnimatePresence>
-                    {expandedMobileCategories.includes(-1) && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden bg-bella-50/50"
+                {/* Submenu */}
+                {isExpanded && (
+                  <div className="pl-4 pb-4">
+                    {displaySubmenus.map(sub => {
+                      const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
+                      return (
+                        <Link
+                          key={sub.id}
+                          href={getCategoryUrl(sub, subHasChildren)}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block py-3 text-base text-navy dark:text-white hover:text-gold dark:hover:text-gold transition-colors"
+                        >
+                          {renameCategory(sub.name)}
+                        </Link>
+                      );
+                    })}
+
+                    {isShowers && bathAccessoriesCategory && (
+                      <Link
+                        href={`/${bathAccessoriesCategory.slug}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block py-3 text-base text-navy dark:text-white border-t border-bella-100 dark:border-white/10 mt-2 pt-2"
                       >
-                        <div className="pl-4 pb-4">
-                          {/* Washroom items */}
-                          {washroomCategory && (
-                            <>
-                              <div className="py-2 text-xs font-semibold text-bella-400 uppercase tracking-wider">Basins & Faucets</div>
-                              {getOrderedSubmenus(washroomCategory).map(sub => {
-                                const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
-                                return (
-                                  <Link
-                                    key={sub.id}
-                                    href={getCategoryUrl(sub, subHasChildren)}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="block py-3 text-base text-navy-light hover:text-gold transition-colors"
-                                  >
-                                    {renameCategory(sub.name)}
-                                  </Link>
-                                );
-                              })}
-                            </>
-                          )}
-                          {/* Toilets items */}
-                          {toiletsCategory && (
-                            <>
-                              <div className="py-2 text-xs font-semibold text-bella-400 uppercase tracking-wider mt-2 border-t border-bella-100 pt-3">Toilets & Cisterns</div>
-                              {getOrderedSubmenus(toiletsCategory).map(sub => {
-                                const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
-                                return (
-                                  <Link
-                                    key={sub.id}
-                                    href={getCategoryUrl(sub, subHasChildren)}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="block py-3 text-base text-navy-light hover:text-gold transition-colors"
-                                  >
-                                    {renameCategory(sub.name)}
-                                  </Link>
-                                );
-                              })}
-                            </>
-                          )}
-                        </div>
-                      </motion.div>
+                        Bath Accessories
+                      </Link>
                     )}
-                  </AnimatePresence>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Special Handling for Virtual "Basins & WC" in Mobile */}
+          {(washroomCategory || toiletsCategory) && (
+            <div className="border-b border-bella-100 dark:border-white/10">
+              <button
+                onClick={() => setExpandedMobileCategories(prev =>
+                  prev.includes(-1) ? prev.filter(id => id !== -1) : [...prev, -1]
+                )}
+                className="flex items-center justify-between w-full text-left py-4 text-lg font-medium text-navy dark:text-white"
+              >
+                Basins & WC
+                <svg
+                  className={`w-5 h-5 text-gray-400 dark:text-white/60 transition-transform ${expandedMobileCategories.includes(-1) ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {expandedMobileCategories.includes(-1) && (
+                <div className="pl-4 pb-4">
+                  {washroomCategory && (
+                    <>
+                      <div className="py-2 text-xs font-semibold text-gold dark:text-gold uppercase tracking-wider">Basins & Faucets</div>
+                      {getOrderedSubmenus(washroomCategory).map(sub => {
+                        const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
+                        return (
+                          <Link
+                            key={sub.id}
+                            href={getCategoryUrl(sub, subHasChildren)}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="block py-3 text-base text-navy dark:text-white hover:text-gold dark:hover:text-gold transition-colors"
+                          >
+                            {renameCategory(sub.name)}
+                          </Link>
+                        );
+                      })}
+                    </>
+                  )}
+                  {toiletsCategory && (
+                    <>
+                      <div className="py-2 text-xs font-semibold text-gold dark:text-gold uppercase tracking-wider mt-2 border-t border-bella-100 dark:border-white/10 pt-3">Toilets & Cisterns</div>
+                      {getOrderedSubmenus(toiletsCategory).map(sub => {
+                        const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
+                        return (
+                          <Link
+                            key={sub.id}
+                            href={getCategoryUrl(sub, subHasChildren)}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="block py-3 text-base text-navy-light dark:text-gray-300 hover:text-gold dark:hover:text-gold transition-colors"
+                          >
+                            {renameCategory(sub.name)}
+                          </Link>
+                        );
+                      })}
+                    </>
+                  )}
                 </div>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </div>
+      </div>
     </>
   );
 }
