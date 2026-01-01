@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Category } from '@/lib/api/odoo';
+import { useAdmin } from '@/context';
+import { EditableImage } from '@/components/admin';
 
 interface VideoHeroSectionProps {
   categories: Category[];
@@ -14,6 +16,7 @@ interface VideoHeroSectionProps {
 export default function VideoHeroSection({ categories, categoryImages }: VideoHeroSectionProps) {
   const [isInView, setIsInView] = useState(false);
   const sectionRef = useRef<HTMLDivElement | null>(null);
+  const { isAdmin, editMode } = useAdmin();
 
   // Get root categories for display
   const rootCategories = categories
@@ -174,12 +177,23 @@ export default function VideoHeroSection({ categories, categoryImages }: VideoHe
                     href={hasChildren ? `/category/${cat.id}` : `/shop?category=${cat.id}`}
                     className="group relative rounded-xl overflow-hidden aspect-[4/3] block"
                   >
-                    <Image
-                      src={getCategoryImage(cat, index)}
-                      alt={cat.name}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
+                    {isAdmin && editMode ? (
+                      <EditableImage
+                        src={getCategoryImage(cat, index)}
+                        alt={cat.name}
+                        configKey={`categoryImages.${cat.id}`}
+                        fill
+                        sizes="(max-width: 768px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                    ) : (
+                      <Image
+                        src={getCategoryImage(cat, index)}
+                        alt={cat.name}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 group-hover:from-black/90" />
 
                     {/* Hover border effect */}

@@ -1,13 +1,25 @@
 // Dynamic route for category landing pages with clean URLs
 // e.g., /concealed-cisterns, /wall-hung-toilets, /freestanding-bathtubs
 import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
 import { Metadata } from 'next';
 import CategoryLandingPageClient from './CategoryLandingPageClient';
+
+// Force dynamic rendering - required for headers() and dynamic category lookup
+export const dynamic = 'force-dynamic';
+
+// Get the base URL dynamically from headers (works on Vercel)
+async function getBaseUrl() {
+  const headersList = await headers();
+  const host = headersList.get('host') || 'localhost:3000';
+  const protocol = headersList.get('x-forwarded-proto') || 'http';
+  return `${protocol}://${host}`;
+}
 
 // Fetch categories to find by slug
 async function getCategoryBySlug(slug: string) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const baseUrl = await getBaseUrl();
     const response = await fetch(`${baseUrl}/api/public-categories`, {
       next: { revalidate: 60 }
     });
