@@ -41,6 +41,284 @@ function RelatedProductCard({ product, currencySymbol, formatPrice, isVerified }
   );
 }
 
+// ============================================
+// NAVIGATION OPTION 2: Browse by Type Filter Chips
+// Similar to shop page filters, contextual to product
+// ============================================
+function BrowseByTypeChips({
+  product,
+  categories
+}: {
+  product: Product;
+  categories: Category[]
+}) {
+  // Get product's parent category to find sibling product types
+  const primaryCategoryId = product.publicCategoryIds?.[0] || product.categoryId;
+  const primaryCategory = categories.find(c => c.id === primaryCategoryId);
+
+  // Get parent category
+  const parentCategory = primaryCategory?.parentId
+    ? categories.find(c => c.id === primaryCategory.parentId)
+    : null;
+
+  // Get all subcategories (types) under the parent
+  const productTypes = parentCategory
+    ? categories.filter(c => c.parentId === parentCategory.id)
+    : categories.filter(c => c.parentId === primaryCategoryId);
+
+  // If no sub-types, show sibling categories
+  let displayCategories = productTypes.length > 0
+    ? productTypes
+    : categories.filter(c => c.parentId === primaryCategory?.parentId);
+
+  // Fallback: show top-level categories if nothing else found
+  if (displayCategories.length < 2) {
+    displayCategories = categories
+      .filter(c => !c.parentId)
+      .slice(0, 8);
+  }
+
+  if (displayCategories.length < 2) return null;
+
+  const contextName = parentCategory?.name || primaryCategory?.name || 'Products';
+
+  return (
+    <div className="bg-white dark:bg-navy py-6 md:py-8 border-t border-bella-100 dark:border-bella-700">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="flex items-center gap-2 mb-4">
+          <svg className="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          <h3 className="text-lg md:text-xl font-semibold text-navy dark:text-white">Browse {contextName}</h3>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {/* All types button */}
+          {parentCategory && (
+            <Link
+              href={parentCategory.childIds && parentCategory.childIds.length > 0
+                ? `/shop?category=${parentCategory.id}&showAll=true`
+                : `/shop?category=${parentCategory.id}`}
+              className="px-4 py-2 rounded-full text-sm font-medium bg-bella-100 dark:bg-bella-700 text-bella-700 dark:text-bella-200 hover:bg-gold hover:text-white transition-all"
+            >
+              All {parentCategory.name} ({parentCategory.totalCount})
+            </Link>
+          )}
+          {displayCategories.map(cat => {
+            const hasChildren = cat.childIds && cat.childIds.length > 0;
+            const href = hasChildren
+              ? `/shop?category=${cat.id}&showAll=true`
+              : `/shop?category=${cat.id}`;
+            return (
+              <Link
+                key={cat.id}
+                href={href}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  cat.id === primaryCategoryId
+                    ? 'bg-gold text-white'
+                    : 'bg-bella-100 dark:bg-bella-700 text-bella-700 dark:text-bella-200 hover:bg-gold hover:text-white'
+                }`}
+              >
+                {cat.name} ({cat.totalCount})
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// NAVIGATION OPTION 4: Enhanced You Might Also Like with Category Links
+// Products + category shortcuts combined
+// ============================================
+function EnhancedYouMightAlsoLike({
+  title,
+  products,
+  categories,
+  currentProduct,
+  currencySymbol,
+  formatPrice,
+  isVerified
+}: {
+  title: string;
+  products: RelatedProduct[];
+  categories: Category[];
+  currentProduct: Product;
+  currencySymbol: string;
+  formatPrice: (price: number) => string;
+  isVerified: boolean;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
+
+  // Get contextual categories
+  const primaryCategoryId = currentProduct.publicCategoryIds?.[0] || currentProduct.categoryId;
+  const primaryCategory = categories.find(c => c.id === primaryCategoryId);
+  const parentCategory = primaryCategory?.parentId
+    ? categories.find(c => c.id === primaryCategory.parentId)
+    : null;
+
+  // Quick category links - siblings and parent
+  const quickLinks = [
+    ...(parentCategory ? [parentCategory] : []),
+    ...categories.filter(c => c.parentId === primaryCategory?.parentId && c.id !== primaryCategoryId).slice(0, 3)
+  ];
+
+  const checkScrollButtons = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setShowLeftArrow(scrollLeft > 10);
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = 300;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  useEffect(() => {
+    checkScrollButtons();
+    const el = scrollRef.current;
+    if (el) {
+      el.addEventListener('scroll', checkScrollButtons);
+      return () => el.removeEventListener('scroll', checkScrollButtons);
+    }
+  }, []);
+
+  if (products.length === 0) return null;
+
+  return (
+    <div className="bg-gradient-to-b from-white to-bella-50 dark:from-navy dark:to-navy-dark py-6 md:py-8">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
+        {/* Header with title and category shortcuts */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            <h3 className="text-lg md:text-xl font-semibold text-navy dark:text-white">{title}</h3>
+          </div>
+
+          {/* Quick category shortcuts - Enhanced UI */}
+          {quickLinks.length > 0 && (
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide bg-navy/5 dark:bg-white/5 rounded-lg px-3 py-2">
+              <div className="flex items-center gap-1.5 text-navy dark:text-white">
+                <svg className="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span className="text-xs font-medium whitespace-nowrap">Explore:</span>
+              </div>
+              {quickLinks.map(cat => {
+                // Add showAll=true for categories with children
+                const hasChildren = cat.childIds && cat.childIds.length > 0;
+                const href = hasChildren
+                  ? `/shop?category=${cat.id}&showAll=true`
+                  : `/shop?category=${cat.id}`;
+                return (
+                  <Link
+                    key={cat.id}
+                    href={href}
+                    className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-navy-light border border-bella-200 dark:border-bella-600 text-navy dark:text-white hover:bg-gold hover:border-gold hover:text-white transition-all whitespace-nowrap shadow-sm"
+                  >
+                    {cat.name}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Scroll arrows */}
+          <div className="hidden md:flex gap-2">
+            <button
+              onClick={() => scroll('left')}
+              className={`p-2 rounded-full border border-bella-200 dark:border-bella-600 transition-colors ${showLeftArrow ? 'hover:bg-bella-50 dark:hover:bg-bella-700 text-navy dark:text-white' : 'opacity-30 cursor-default'}`}
+              disabled={!showLeftArrow}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              className={`p-2 rounded-full border border-bella-200 dark:border-bella-600 transition-colors ${showRightArrow ? 'hover:bg-bella-50 dark:hover:bg-bella-700 text-navy dark:text-white' : 'opacity-30 cursor-default'}`}
+              disabled={!showRightArrow}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Product carousel */}
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
+          style={{ scrollSnapType: 'x mandatory' }}
+        >
+          {products.map(p => (
+            <Link
+              key={p.id}
+              href={`/product/${p.slug}`}
+              className="flex-shrink-0 w-40 md:w-48 bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow"
+            >
+              <div className="relative aspect-square bg-white dark:bg-navy-light">
+                <ProductImage
+                  src={p.thumbnail || '/placeholder.jpg'}
+                  alt={p.name}
+                  fill
+                  sizes="(max-width: 768px) 160px, 192px"
+                  className="object-contain p-2"
+                />
+              </div>
+              <div className="p-3">
+                <h4 className="text-sm font-medium text-navy dark:text-white line-clamp-2 mb-1">{p.name}</h4>
+                {isVerified ? (
+                  <span className="text-sm font-semibold text-navy dark:text-white">{currencySymbol} {formatPrice(p.price)}</span>
+                ) : (
+                  <span className="text-xs text-gold">Login to see price</span>
+                )}
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* Bottom: Browse more link */}
+        {primaryCategory && (
+          <div className="mt-4 text-center">
+            {(() => {
+              const targetCat = parentCategory || primaryCategory;
+              const hasChildren = targetCat.childIds && targetCat.childIds.length > 0;
+              const href = hasChildren
+                ? `/shop?category=${targetCat.id}&showAll=true`
+                : `/shop?category=${targetCat.id}`;
+              return (
+                <Link
+                  href={href}
+                  className="inline-flex items-center gap-2 text-sm text-gold hover:text-gold-dark font-medium transition-colors"
+                >
+                  Browse all {targetCat.name}
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </Link>
+              );
+            })()}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Horizontal Scroll Container with Arrows
 function HorizontalScrollSection({ title, children }: { title: string; children: React.ReactNode }) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -481,20 +759,21 @@ export default function ProductDetailPage() {
           </HorizontalScrollSection>
         )}
 
-        {/* Alternative/Related Products (Mobile) */}
+        {/* Alternative/Related Products (Mobile) - OPTION 4: Enhanced version */}
         {alternativeProducts.length > 0 && (
-          <HorizontalScrollSection title={product.alternativeProducts?.length ? "Alternative Products" : "You May Also Like"}>
-            {alternativeProducts.map(p => (
-              <RelatedProductCard
-                key={p.id}
-                product={p}
-                currencySymbol={countryConfig.currencySymbol}
-                formatPrice={formatPrice}
-                isVerified={isVerified}
-              />
-            ))}
-          </HorizontalScrollSection>
+          <EnhancedYouMightAlsoLike
+            title={product.alternativeProducts?.length ? "Alternative Products" : "You May Also Like"}
+            products={alternativeProducts}
+            categories={categories}
+            currentProduct={product}
+            currencySymbol={countryConfig.currencySymbol}
+            formatPrice={formatPrice}
+            isVerified={isVerified}
+          />
         )}
+
+        {/* NAVIGATION OPTION 2: Browse by Type Chips (Mobile) */}
+        <BrowseByTypeChips product={product} categories={categories} />
 
         {/* Fixed Bottom Action Bar */}
         {product.inStock !== false && (
@@ -699,20 +978,21 @@ export default function ProductDetailPage() {
           </HorizontalScrollSection>
         )}
 
-        {/* Alternative/Related Products Section (Desktop) */}
+        {/* Alternative/Related Products Section (Desktop) - OPTION 4: Enhanced version */}
         {alternativeProducts.length > 0 && (
-          <HorizontalScrollSection title={product.alternativeProducts?.length ? "Alternative Products" : "You May Also Like"}>
-            {alternativeProducts.map(p => (
-              <RelatedProductCard
-                key={p.id}
-                product={p}
-                currencySymbol={countryConfig.currencySymbol}
-                formatPrice={formatPrice}
-                isVerified={isVerified}
-              />
-            ))}
-          </HorizontalScrollSection>
+          <EnhancedYouMightAlsoLike
+            title={product.alternativeProducts?.length ? "Alternative Products" : "You May Also Like"}
+            products={alternativeProducts}
+            categories={categories}
+            currentProduct={product}
+            currencySymbol={countryConfig.currencySymbol}
+            formatPrice={formatPrice}
+            isVerified={isVerified}
+          />
         )}
+
+        {/* NAVIGATION OPTION 2: Browse by Type Chips (Desktop) */}
+        <BrowseByTypeChips product={product} categories={categories} />
       </div>
     </div>
   );
