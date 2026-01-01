@@ -3,10 +3,20 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Category } from '@/lib/api/odoo';
 import { useAdmin } from '@/context';
 import { EditableImage } from '@/components/admin';
+
+// Hero media items - video first, then images
+const heroMedia = [
+  { type: 'video', src: '/hero-video.mp4' },
+  { type: 'image', src: '/hero-images/Bella_HI_1.jpg' },
+  { type: 'image', src: '/hero-images/Bella_HI_2.jpg' },
+  { type: 'image', src: '/hero-images/Bella_HI_3.jpg' },
+  { type: 'image', src: '/hero-images/Bella_HI_4.jpg' },
+  { type: 'image', src: '/hero-images/Bella_HI_5.jpg' },
+];
 
 interface VideoHeroSectionProps {
   categories: Category[];
@@ -15,8 +25,20 @@ interface VideoHeroSectionProps {
 
 export default function VideoHeroSection({ categories, categoryImages }: VideoHeroSectionProps) {
   const [isInView, setIsInView] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const { isAdmin, editMode } = useAdmin();
+
+  // Auto-advance carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % heroMedia.length);
+    }, 8000); // 8 seconds per slide
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const currentMedia = heroMedia[currentIndex];
 
   // Get root categories for display
   const rootCategories = categories
@@ -77,56 +99,85 @@ export default function VideoHeroSection({ categories, categoryImages }: VideoHe
 
   return (
     <div ref={sectionRef} className="relative overflow-hidden bg-navy">
-      {/* Full-width Video Section */}
+      {/* Full-width Hero Media Section */}
       <div className="relative w-full">
-        {/* Video with gradient overlay */}
+        {/* Media carousel with gradient overlay */}
         <motion.div
           className="relative w-full aspect-[16/9] md:aspect-[21/9] overflow-hidden"
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 1.2, ease: 'easeOut' }}
         >
-          <video
-            src="/hero-video.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            className="w-full h-full object-cover"
-          />
-          {/* Gradient overlays for smooth transition */}
-          <div className="absolute inset-0 bg-gradient-to-t from-navy via-transparent to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-navy/30 via-transparent to-transparent" />
+          {/* Media Items */}
+          <AnimatePresence mode="wait">
+            {currentMedia.type === 'video' ? (
+              <motion.video
+                key="video"
+                src={currentMedia.src}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                className="absolute inset-0 w-full h-full object-cover"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1 }}
+              />
+            ) : (
+              <motion.div
+                key={currentMedia.src}
+                className="absolute inset-0"
+                initial={{ opacity: 0, scale: 1.1 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1 }}
+              >
+                <Image
+                  src={currentMedia.src}
+                  alt="Bella Bathwares"
+                  fill
+                  className="object-cover"
+                  priority={currentIndex === 0}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Gradient overlays for smooth transition and text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/30 to-transparent z-[1]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-navy/40 via-transparent to-transparent z-[1]" />
+          <div className="absolute inset-0 bg-navy/20 z-[1]" />
 
           {/* Animated corner accents */}
           <motion.div
-            className="absolute top-4 left-4 w-16 h-16 md:w-24 md:h-24 border-l-2 border-t-2 border-gold/50"
+            className="absolute top-4 left-4 w-16 h-16 md:w-24 md:h-24 border-l-2 border-t-2 border-gold/50 z-[2]"
             initial={{ opacity: 0, x: -20, y: -20 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
           />
           <motion.div
-            className="absolute top-4 right-4 w-16 h-16 md:w-24 md:h-24 border-r-2 border-t-2 border-gold/50"
+            className="absolute top-4 right-4 w-16 h-16 md:w-24 md:h-24 border-r-2 border-t-2 border-gold/50 z-[2]"
             initial={{ opacity: 0, x: 20, y: -20 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
           />
           <motion.div
-            className="absolute bottom-4 left-4 w-16 h-16 md:w-24 md:h-24 border-l-2 border-b-2 border-gold/50"
+            className="absolute bottom-4 left-4 w-16 h-16 md:w-24 md:h-24 border-l-2 border-b-2 border-gold/50 z-[2]"
             initial={{ opacity: 0, x: -20, y: 20 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
           />
           <motion.div
-            className="absolute bottom-4 right-4 w-16 h-16 md:w-24 md:h-24 border-r-2 border-b-2 border-gold/50"
+            className="absolute bottom-4 right-4 w-16 h-16 md:w-24 md:h-24 border-r-2 border-b-2 border-gold/50 z-[2]"
             initial={{ opacity: 0, x: 20, y: 20 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
           />
 
           {/* Floating particles/dots animation */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none overflow-hidden z-[2]">
             {[...Array(6)].map((_, i) => (
               <motion.div
                 key={i}
@@ -147,6 +198,29 @@ export default function VideoHeroSection({ categories, categoryImages }: VideoHe
                 }}
               />
             ))}
+          </div>
+
+          {/* Hero Text Overlay */}
+          <div className="absolute inset-0 flex flex-col items-end justify-end text-right px-6 md:px-12 lg:px-20 pb-8 md:pb-16 lg:pb-20 z-[3]">
+            {/* Main Headline */}
+            <motion.h1
+              className="font-display text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-2 md:mb-3 drop-shadow-lg"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+            >
+              Curated Luxury
+            </motion.h1>
+
+            {/* Gold Subheadline */}
+            <motion.h2
+              className="font-display text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-gold italic leading-tight drop-shadow-lg"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.7, duration: 0.8 }}
+            >
+              For Your Sanctuary
+            </motion.h2>
           </div>
         </motion.div>
       </div>
