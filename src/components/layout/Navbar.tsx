@@ -19,7 +19,9 @@ export function Navbar({ categories = [] }: NavbarProps) {
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [categoryResults, setCategoryResults] = useState<Category[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [expandedMobileCategories, setExpandedMobileCategories] = useState<number[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchContainerRef = useRef<HTMLDivElement>(null);
@@ -72,6 +74,14 @@ export function Navbar({ categories = [] }: NavbarProps) {
         try {
           const products = await OdooAPI.fetchProducts();
           const query = searchQuery.toLowerCase();
+
+          // Filter categories matching the search query
+          const matchingCategories = categories.filter(cat =>
+            cat.name.toLowerCase().includes(query)
+          ).slice(0, 3); // Limit to 3 categories
+          setCategoryResults(matchingCategories);
+
+          // Filter products
           const filtered = products.filter(p =>
             p.name.toLowerCase().includes(query) ||
             p.category?.toLowerCase().includes(query) ||
@@ -80,14 +90,16 @@ export function Navbar({ categories = [] }: NavbarProps) {
           setSearchResults(filtered);
         } catch {
           setSearchResults([]);
+          setCategoryResults([]);
         }
         setSearchLoading(false);
       }, 300);
       return () => clearTimeout(timer);
     } else {
       setSearchResults([]);
+      setCategoryResults([]);
     }
-  }, [searchQuery]);
+  }, [searchQuery, categories]);
 
   // Categories to hide from main nav (Bath Essentials shows under Bathroom instead)
   const hiddenFromMainNav = ['collections', 'bath assist', 'bath essentials'];
@@ -379,32 +391,71 @@ export function Navbar({ categories = [] }: NavbarProps) {
                       <div className="p-4 text-center text-gray-500 text-sm">Searching...</div>
                     )}
 
-                    {!searchLoading && searchQuery.length >= 3 && searchResults.length === 0 && (
-                      <div className="p-4 text-center text-gray-500 text-sm">No products found</div>
+                    {!searchLoading && searchQuery.length >= 3 && categoryResults.length === 0 && searchResults.length === 0 && (
+                      <div className="p-4 text-center text-gray-500 text-sm">No results found</div>
                     )}
 
-                    {!searchLoading && searchResults.length > 0 && (
+                    {!searchLoading && (categoryResults.length > 0 || searchResults.length > 0) && (
                       <div className="max-h-80 overflow-y-auto">
-                        {searchResults.map(product => (
-                          <Link
-                            key={product.id}
-                            href={`/product/${product.slug}`}
-                            onClick={() => { setShowSearch(false); setSearchQuery(''); }}
-                            className="flex items-center gap-3 p-3 hover:bg-bella-50 cursor-pointer border-b border-bella-50 last:border-0"
-                          >
-                            <Image
-                              src={product.thumbnail || product.image || '/placeholder.jpg'}
-                              alt={product.name}
-                              width={48}
-                              height={48}
-                              className="w-12 h-12 object-cover rounded-lg"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-navy truncate">{product.name}</p>
-                              <p className="text-xs text-gold">{countryConfig.currencySymbol} {formatPrice(product.price)}</p>
+                        {/* Categories Section */}
+                        {categoryResults.length > 0 && (
+                          <>
+                            <div className="px-3 py-2 bg-bella-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                              Categories
                             </div>
-                          </Link>
-                        ))}
+                            {categoryResults.map(cat => {
+                              const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
+                              return (
+                                <Link
+                                  key={cat.id}
+                                  href={getCategoryUrl(cat, hasChildren)}
+                                  onClick={() => { setShowSearch(false); setSearchQuery(''); }}
+                                  className="flex items-center gap-3 px-3 py-2.5 hover:bg-bella-50 cursor-pointer border-b border-bella-50"
+                                >
+                                  <div className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                                    </svg>
+                                  </div>
+                                  <span className="text-sm font-medium text-navy">{renameCategory(cat.name)}</span>
+                                  <svg className="w-4 h-4 text-gray-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </Link>
+                              );
+                            })}
+                          </>
+                        )}
+
+                        {/* Products Section */}
+                        {searchResults.length > 0 && (
+                          <>
+                            <div className="px-3 py-2 bg-bella-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                              Products
+                            </div>
+                            {searchResults.map(product => (
+                              <Link
+                                key={product.id}
+                                href={`/product/${product.slug}`}
+                                onClick={() => { setShowSearch(false); setSearchQuery(''); }}
+                                className="flex items-center gap-2 px-3 py-2 hover:bg-bella-50 cursor-pointer border-b border-bella-50 last:border-0"
+                              >
+                                <Image
+                                  src={product.thumbnail || product.image || '/placeholder.jpg'}
+                                  alt={product.name}
+                                  width={40}
+                                  height={40}
+                                  className="w-10 h-10 object-cover rounded-lg flex-shrink-0"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium text-navy line-clamp-2 leading-tight">{product.name}</p>
+                                  <p className="text-xs text-gold mt-0.5">{countryConfig.currencySymbol} {formatPrice(product.price)}</p>
+                                </div>
+                              </Link>
+                            ))}
+                          </>
+                        )}
+
                         <Link
                           href={`/shop?search=${encodeURIComponent(searchQuery)}`}
                           onClick={() => { setShowSearch(false); setSearchQuery(''); }}
@@ -532,32 +583,71 @@ export function Navbar({ categories = [] }: NavbarProps) {
                       <div className="p-4 text-center text-gray-500 text-sm">Searching...</div>
                     )}
 
-                    {!searchLoading && searchQuery.length >= 3 && searchResults.length === 0 && (
-                      <div className="p-4 text-center text-gray-500 text-sm">No products found</div>
+                    {!searchLoading && searchQuery.length >= 3 && categoryResults.length === 0 && searchResults.length === 0 && (
+                      <div className="p-4 text-center text-gray-500 text-sm">No results found</div>
                     )}
 
-                    {!searchLoading && searchResults.length > 0 && (
+                    {!searchLoading && (categoryResults.length > 0 || searchResults.length > 0) && (
                       <div className="max-h-80 overflow-y-auto">
-                        {searchResults.map(product => (
-                          <Link
-                            key={product.id}
-                            href={`/product/${product.slug}`}
-                            onClick={() => { setShowSearch(false); setSearchQuery(''); }}
-                            className="flex items-center gap-3 p-3 hover:bg-bella-50 cursor-pointer border-b border-bella-50 last:border-0"
-                          >
-                            <Image
-                              src={product.thumbnail || product.image || '/placeholder.jpg'}
-                              alt={product.name}
-                              width={48}
-                              height={48}
-                              className="w-12 h-12 object-cover rounded-lg"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-navy truncate">{product.name}</p>
-                              <p className="text-xs text-gold">{countryConfig.currencySymbol} {formatPrice(product.price)}</p>
+                        {/* Categories Section */}
+                        {categoryResults.length > 0 && (
+                          <>
+                            <div className="px-3 py-2 bg-bella-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                              Categories
                             </div>
-                          </Link>
-                        ))}
+                            {categoryResults.map(cat => {
+                              const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
+                              return (
+                                <Link
+                                  key={cat.id}
+                                  href={getCategoryUrl(cat, hasChildren)}
+                                  onClick={() => { setShowSearch(false); setSearchQuery(''); }}
+                                  className="flex items-center gap-3 px-3 py-2.5 hover:bg-bella-50 cursor-pointer border-b border-bella-50"
+                                >
+                                  <div className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                                    </svg>
+                                  </div>
+                                  <span className="text-sm font-medium text-navy">{renameCategory(cat.name)}</span>
+                                  <svg className="w-4 h-4 text-gray-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </Link>
+                              );
+                            })}
+                          </>
+                        )}
+
+                        {/* Products Section */}
+                        {searchResults.length > 0 && (
+                          <>
+                            <div className="px-3 py-2 bg-bella-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                              Products
+                            </div>
+                            {searchResults.map(product => (
+                              <Link
+                                key={product.id}
+                                href={`/product/${product.slug}`}
+                                onClick={() => { setShowSearch(false); setSearchQuery(''); }}
+                                className="flex items-center gap-3 p-3 hover:bg-bella-50 cursor-pointer border-b border-bella-50 last:border-0"
+                              >
+                                <Image
+                                  src={product.thumbnail || product.image || '/placeholder.jpg'}
+                                  alt={product.name}
+                                  width={48}
+                                  height={48}
+                                  className="w-12 h-12 object-cover rounded-lg"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-navy line-clamp-2 leading-tight">{product.name}</p>
+                                  <p className="text-xs text-gold mt-0.5">{countryConfig.currencySymbol} {formatPrice(product.price)}</p>
+                                </div>
+                              </Link>
+                            ))}
+                          </>
+                        )}
+
                         <Link
                           href={`/shop?search=${encodeURIComponent(searchQuery)}`}
                           onClick={() => { setShowSearch(false); setSearchQuery(''); }}
@@ -619,16 +709,69 @@ export function Navbar({ categories = [] }: NavbarProps) {
             Smart Products
           </Link>
           {rootCategories.map(cat => {
-            const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
+            const isBathroom = cat.name.toLowerCase() === 'bathroom';
+            const hasChildren = !!(cat.childIds && cat.childIds.length > 0) || (isBathroom && !!bathEssentialsCategory);
+            const isExpanded = expandedMobileCategories.includes(cat.id);
+            const orderedChildCategories = getOrderedSubmenus(cat);
+
+            // For Bathroom, add Bath Essentials at the end of submenu
+            const displaySubmenus = isBathroom && bathEssentialsCategory
+              ? [...orderedChildCategories, bathEssentialsCategory]
+              : orderedChildCategories;
+
+            if (!hasChildren) {
+              // No children - just link to shop with category filter
+              return (
+                <Link
+                  key={cat.id}
+                  href={`/shop?category=${cat.id}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block w-full text-left py-4 text-lg font-medium text-navy border-b border-bella-100"
+                >
+                  {renameCategory(cat.name)}
+                </Link>
+              );
+            }
+
+            // Has children - expandable accordion
             return (
-              <Link
-                key={cat.id}
-                href={getCategoryUrl(cat, hasChildren)}
-                onClick={() => setMobileMenuOpen(false)}
-                className="block w-full text-left py-4 text-lg font-medium text-navy border-b border-bella-100"
-              >
-                {renameCategory(cat.name)}
-              </Link>
+              <div key={cat.id} className="border-b border-bella-100">
+                <button
+                  onClick={() => setExpandedMobileCategories(prev =>
+                    prev.includes(cat.id) ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
+                  )}
+                  className="flex items-center justify-between w-full text-left py-4 text-lg font-medium text-navy"
+                >
+                  {renameCategory(cat.name)}
+                  <svg
+                    className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* Submenu */}
+                {isExpanded && (
+                  <div className="pl-4 pb-2">
+                    {displaySubmenus.map(sub => {
+                      const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
+                      return (
+                        <Link
+                          key={sub.id}
+                          href={getCategoryUrl(sub, subHasChildren)}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block py-3 text-base text-navy-light hover:text-gold transition-colors"
+                        >
+                          {renameCategory(sub.name)}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
