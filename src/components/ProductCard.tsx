@@ -20,8 +20,8 @@ export default function ProductCard({ product }: { product: Product }) {
                 whileHover={{ y: -5 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
             >
-                {/* Image block */}
-                <div className="relative aspect-square bg-bella-50 dark:bg-navy overflow-hidden">
+                {/* Image block - 4:5 ratio for elegant vertical look */}
+                <div className="relative aspect-[4/5] bg-bella-50 dark:bg-navy overflow-hidden">
                     <ProductImage
                         src={product.thumbnail || product.image || '/placeholder.jpg'}
                         alt={product.name}

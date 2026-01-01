@@ -62,7 +62,7 @@ export default function RootLayout({
       <head>
         <link id="favicon" rel="icon" href="/favicon-light.ico" />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased overflow-x-hidden">
         <Providers>
           <SmoothScroll />
           <LayoutWrapper>{children}</LayoutWrapper>

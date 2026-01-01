@@ -19,6 +19,7 @@ This plan outlines the next phase of development for the Bella Bathwares website
 - Video/image caching headers in `next.config.mjs`
 - Social media links (Instagram, YouTube, X, WhatsApp)
 - **Phase 1, Step 1: Odoo API Caching** - All API calls now use `revalidate: 3600` (1 hour ISR)
+- **Phase 1, Step 3: Mobile Layout Polish** - Product cards now use `aspect-[4/5]` for elegant vertical look, added `overflow-x-hidden` to body to prevent horizontal scroll
 
 ---
 
