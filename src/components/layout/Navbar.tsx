@@ -87,8 +87,8 @@ export function Navbar({ categories = [] }: NavbarProps) {
     }
   }, [searchQuery]);
 
-  // Categories to hide from main nav
-  const hiddenFromMainNav = ['collections', 'bath assist'];
+  // Categories to hide from main nav (Bath Essentials shows under Bathroom instead)
+  const hiddenFromMainNav = ['collections', 'bath assist', 'bath essentials'];
 
   // Rename mappings for display (database name -> display name)
   const renameCategory = (name: string) => {
@@ -164,6 +164,11 @@ export function Navbar({ categories = [] }: NavbarProps) {
   const rootCategories = categories
     .filter(c => c.parentId === null && !hiddenFromMainNav.includes(c.name.toLowerCase()))
     .slice(0, 6);
+
+  // Find Bath Essentials category to add under Bathroom
+  const bathEssentialsCategory = categories.find(c =>
+    c.parentId === null && c.name.toLowerCase() === 'bath essentials'
+  );
 
   // Helper to get direct children only (not grandchildren)
   // When a category has children, clicking it opens a page showing those children
@@ -348,8 +353,14 @@ export function Navbar({ categories = [] }: NavbarProps) {
                 </Link>
 
                 {rootCategories.map(cat => {
-                  const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
+                  const isBathroom = cat.name.toLowerCase() === 'bathroom';
+                  const hasChildren = !!(cat.childIds && cat.childIds.length > 0) || (isBathroom && !!bathEssentialsCategory);
                   const orderedChildCategories = getOrderedSubmenus(cat);
+
+                  // For Bathroom, add Bath Essentials at the end of submenu
+                  const displaySubmenus = isBathroom && bathEssentialsCategory
+                    ? [...orderedChildCategories, bathEssentialsCategory]
+                    : orderedChildCategories;
 
                   return (
                     <div key={cat.id} className={`nav-item relative group ${hasChildren ? 'nav-item-hover' : ''}`}>
@@ -363,7 +374,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
                     {/* Dropdown for subcategories */}
                     {hasChildren && (
                       <div className="nav-dropdown absolute top-full left-0 bg-white shadow-xl rounded-lg py-4 min-w-[220px]">
-                        {orderedChildCategories.map(sub => {
+                        {displaySubmenus.map(sub => {
                           const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
                           return (
                             <Link
