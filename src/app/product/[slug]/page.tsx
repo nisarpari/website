@@ -318,12 +318,14 @@ export default function ProductDetailPage() {
       <div className="md:hidden">
         {/* Compact Header with Back Button */}
         <div className="bg-white sticky top-0 z-10 px-4 py-3 flex items-center gap-3 border-b border-bella-100">
-          <Link href="/shop" className="p-1">
+          <Link href="/shop" className="p-1 flex-shrink-0">
             <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
-          <span className="text-xs text-bella-500 truncate">{product.category || 'Product'}</span>
+          <div className="text-xs text-bella-500 truncate flex items-center overflow-x-auto scrollbar-hide">
+            {renderCategoryBreadcrumb()}
+          </div>
         </div>
 
         {/* Image Gallery */}
