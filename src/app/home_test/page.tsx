@@ -465,7 +465,6 @@ export default function HomeTestPage() {
   const [heroImages, setHeroImages] = useState<Array<{ url: string; alt: string }>>(DEFAULT_HERO_IMAGES);
   const [bestsellers, setBestsellers] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
@@ -488,7 +487,6 @@ export default function HomeTestPage() {
       } catch (error) {
         console.error('Failed to load data:', error);
       }
-      setLoading(false);
     };
     loadData();
   }, []);
@@ -500,14 +498,6 @@ export default function HomeTestPage() {
       return updated;
     });
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="loader"></div>
-      </div>
-    );
-  }
 
   return (
     <>
