@@ -21,6 +21,7 @@ This plan outlines the next phase of development for the Bella Bathwares website
 - **Phase 1, Step 1: Odoo API Caching** - All API calls now use `revalidate: 3600` (1 hour ISR)
 - **Phase 1, Step 3: Mobile Layout Polish** - Product cards now use `aspect-[4/5]` for elegant vertical look, added `overflow-x-hidden` to body to prevent horizontal scroll
 - **Phase 1, Step 4: Image Fallback** - `ProductImage` component now handles broken Odoo URLs gracefully with `onError` fallback to `/placeholder-product.jpg`
+- **Phase 1, Step 2: Unified Design System** - Added reusable `<Heading>` and `<Container>` components to `src/components/ui/`, existing `<Button>` already well-structured
 
 ---
 
