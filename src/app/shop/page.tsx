@@ -196,7 +196,7 @@ function AllCategoriesGrid({ categories, categoryImages, onImageUpdate }: {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Categories to hide from the grid (same as navbar/sidebar)
-  const hiddenCategories = ['collections', 'bath essentials', 'bath assist'];
+  const hiddenCategories = ['collections', 'bath assist'];
 
   // Group categories by their root parent for organized display
   const rootCategories = categories.filter(c =>
@@ -489,7 +489,7 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
 
   // Categories to hide from sidebar (matching navbar)
-  const hiddenFromSidebar = ['collections', 'bath essentials', 'bath assist'];
+  const hiddenFromSidebar = ['collections', 'bath assist'];
 
   // Rename mappings for display (matching navbar)
   const renameCategory = (name: string) => {
