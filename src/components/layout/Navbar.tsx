@@ -626,7 +626,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
                   Smart Products
                 </Link>
 
-                {rootCategories.map((cat, index) => {
+                {rootCategories.map((cat) => {
                   const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
                   const displaySubmenus = getOrderedSubmenus(cat);
                   const isShowers = cat.name.toLowerCase() === 'bathroom';

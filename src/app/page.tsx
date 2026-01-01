@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useLocale, useCart, useWishlist, useVerification, useAdmin, useTheme } from '@/context';
+import { useLocale, useWishlist, useAdmin, useTheme } from '@/context';
 import { EditableImage } from '@/components/admin';
 import { OdooAPI, type Product, type Category } from '@/lib/api/odoo';
 import { ProductImage } from '@/components/ProductImage';
