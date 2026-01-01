@@ -195,8 +195,13 @@ function AllCategoriesGrid({ categories, categoryImages, onImageUpdate }: {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Categories to hide from the grid (same as navbar/sidebar)
+  const hiddenCategories = ['collections', 'bath essentials', 'bath assist'];
+
   // Group categories by their root parent for organized display
-  const rootCategories = categories.filter(c => c.parentId === null);
+  const rootCategories = categories.filter(c =>
+    c.parentId === null && !hiddenCategories.includes(c.name.toLowerCase())
+  );
 
   // Get all leaf categories (no children) - these link directly to products
   const getLeafCategories = (parentId: number | null): Category[] => {

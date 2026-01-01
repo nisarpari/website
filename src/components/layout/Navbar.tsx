@@ -387,13 +387,18 @@ export function Navbar({ categories = [] }: NavbarProps) {
                       <div className="nav-dropdown absolute top-full left-0 bg-white shadow-xl rounded-lg py-4 min-w-[220px]">
                         {displaySubmenus.map(sub => {
                           const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
+                          // For Accessories (renamed from Bath Essentials), link to shop with category filter
+                          const isAccessories = sub.name === 'Accessories';
+                          const subUrl = isAccessories
+                            ? `/shop?category=${sub.id}`
+                            : getCategoryUrl(sub, subHasChildren);
                           return (
                             <Link
                               key={sub.id}
-                              href={getCategoryUrl(sub, subHasChildren)}
+                              href={subUrl}
                               className="block w-full text-left px-5 py-2 text-sm text-navy-light hover:bg-bella-50 hover:text-gold transition-colors"
                             >
-                              {sub.name === 'Accessories' ? 'Accessories' : renameCategory(sub.name)}
+                              {isAccessories ? 'Accessories' : renameCategory(sub.name)}
                             </Link>
                           );
                         })}
