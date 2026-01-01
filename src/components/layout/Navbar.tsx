@@ -22,6 +22,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
   const [searchLoading, setSearchLoading] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const mobileSearchContainerRef = useRef<HTMLDivElement>(null);
   const langMenuRef = useRef<HTMLDivElement>(null);
   const countryMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -48,7 +49,8 @@ export function Navbar({ categories = [] }: NavbarProps) {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node) &&
+          mobileSearchContainerRef.current && !mobileSearchContainerRef.current.contains(e.target as Node)) {
         setShowSearch(false);
       }
       if (langMenuRef.current && !langMenuRef.current.contains(e.target as Node)) {
@@ -287,6 +289,28 @@ export function Navbar({ categories = [] }: NavbarProps) {
               )}
             </div>
 
+            {/* Mobile: Wishlist & Cart in top bar */}
+            <div className="flex lg:hidden items-center gap-1 ml-1 border-l border-white/20 pl-2">
+              <Link href="/wishlist" className="p-1.5 hover:bg-white/10 rounded-full transition-colors relative">
+                <svg className={`w-4 h-4 ${wishlistCount > 0 ? 'text-red-400' : 'text-white'}`} fill={wishlistCount > 0 ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center">{wishlistCount}</span>
+                )}
+              </Link>
+              <Link href="/cart" className="p-1.5 hover:bg-white/10 rounded-full transition-colors relative">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-gold text-white text-[10px] rounded-full flex items-center justify-center">
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                )}
+              </Link>
+            </div>
+
             <div className="hidden md:flex gap-4 ml-2 border-l border-white/20 pl-4" style={{ color: '#e8e4dd' }}>
               <Link href="/track" className="hover:text-gold-light transition-colors">{t('trackOrder')}</Link>
               <Link href="/contact" className="hover:text-gold-light transition-colors">{t('support')}</Link>
@@ -324,8 +348,77 @@ export function Navbar({ categories = [] }: NavbarProps) {
               </svg>
             </button>
 
-            {/* Mobile Logo - Centered */}
-            <Link href="/" className="cursor-pointer absolute left-1/2 -translate-x-1/2 lg:hidden z-10">
+            {/* Mobile Search Input - Centered */}
+            <div className="flex-1 mx-3 lg:hidden">
+              <div className="relative" ref={mobileSearchContainerRef}>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setShowSearch(true)}
+                  placeholder={t('searchProducts')}
+                  className="w-full px-4 py-2 text-sm border border-bella-200 rounded-full focus:outline-none focus:border-gold bg-bella-50"
+                  autoComplete="off"
+                />
+                <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+
+                {/* Mobile Search Results Dropdown */}
+                {showSearch && searchQuery.length > 0 && (
+                  <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-navy-light rounded-xl shadow-2xl border border-bella-200 dark:border-white/10 overflow-hidden z-50">
+                    {searchLoading && (
+                      <div className="p-4 text-center text-gray-500 text-sm">Searching...</div>
+                    )}
+
+                    {!searchLoading && searchQuery.length >= 3 && searchResults.length === 0 && (
+                      <div className="p-4 text-center text-gray-500 text-sm">No products found</div>
+                    )}
+
+                    {!searchLoading && searchResults.length > 0 && (
+                      <div className="max-h-80 overflow-y-auto">
+                        {searchResults.map(product => (
+                          <Link
+                            key={product.id}
+                            href={`/product/${product.slug}`}
+                            onClick={() => { setShowSearch(false); setSearchQuery(''); }}
+                            className="flex items-center gap-3 p-3 hover:bg-bella-50 cursor-pointer border-b border-bella-50 last:border-0"
+                          >
+                            <Image
+                              src={product.thumbnail || product.image || '/placeholder.jpg'}
+                              alt={product.name}
+                              width={48}
+                              height={48}
+                              className="w-12 h-12 object-cover rounded-lg"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-navy truncate">{product.name}</p>
+                              <p className="text-xs text-gold">{countryConfig.currencySymbol} {formatPrice(product.price)}</p>
+                            </div>
+                          </Link>
+                        ))}
+                        <Link
+                          href={`/shop?search=${encodeURIComponent(searchQuery)}`}
+                          onClick={() => { setShowSearch(false); setSearchQuery(''); }}
+                          className="block w-full p-3 text-sm text-center text-gold hover:bg-bella-50 font-medium"
+                        >
+                          View all results
+                        </Link>
+                      </div>
+                    )}
+
+                    {searchQuery.length < 3 && searchQuery.length > 0 && (
+                      <div className="p-4 text-center text-gray-400 text-sm">
+                        Type {3 - searchQuery.length} more character{3 - searchQuery.length > 1 ? 's' : ''}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile Logo - Right side */}
+            <Link href="/" className="cursor-pointer lg:hidden">
               <Image
                 src={isDark ? '/bella_logo_white.png' : '/bella_logo.png'}
                 alt="Bella Bathwares"
@@ -394,8 +487,8 @@ export function Navbar({ categories = [] }: NavbarProps) {
               </div>
             </div>
 
-            {/* Right Icons */}
-            <div className="flex items-center gap-3">
+            {/* Right Icons - Desktop only (mobile has these in top bar) */}
+            <div className="hidden lg:flex items-center gap-3">
               {/* Search */}
               <div className="relative" ref={searchContainerRef}>
                 <button
@@ -409,7 +502,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
 
                 {/* Search Dropdown */}
                 {showSearch && (
-                  <div className="fixed md:absolute left-4 right-4 md:left-auto md:right-0 top-[120px] md:top-full md:mt-2 bg-white dark:bg-navy-light rounded-xl shadow-2xl border border-bella-200 dark:border-white/10 overflow-hidden z-50 md:w-80">
+                  <div className="absolute right-0 top-full mt-2 bg-white dark:bg-navy-light rounded-xl shadow-2xl border border-bella-200 dark:border-white/10 overflow-hidden z-50 w-80">
                     <div className="p-3 border-b border-bella-100">
                       <input
                         ref={searchInputRef}
