@@ -8,6 +8,7 @@ import { useLocale, useCart, useWishlist, useVerification, useAdmin } from '@/co
 import { OdooAPI, type Product, type Category } from '@/lib/api/odoo';
 import { EditableImage } from '@/components/admin';
 import { ProductImage } from '@/components/ProductImage';
+import { ProductGridSkeleton } from '@/components/ProductCardSkeleton';
 
 // Custom hook for scroll animation using Intersection Observer
 function useScrollAnimation(options?: IntersectionObserverInit) {
@@ -1426,9 +1427,7 @@ function ShopPageContent() {
             )}
 
             {loading ? (
-              <div className="flex items-center justify-center py-20">
-                <Image src="/bella-loading.gif" alt="Loading..." width={80} height={80} unoptimized />
-              </div>
+              <ProductGridSkeleton count={8} />
             ) : !selectedCategoryId ? (
               // Show all categories grid when no category is selected
               <AllCategoriesGrid
