@@ -87,8 +87,116 @@ export function Navbar({ categories = [] }: NavbarProps) {
     }
   }, [searchQuery]);
 
-  // Get root categories for nav
-  const rootCategories = categories.filter(c => c.parentId === null).slice(0, 6);
+  // Categories to hide from main nav
+  const hiddenFromMainNav = ['collections', 'bath essentials', 'bath assist'];
+
+  // Rename mappings for display (database name -> display name)
+  const renameCategory = (name: string) => {
+    const renames: Record<string, string> = {
+      'bath essentials': 'Accessories',
+      'washlet': 'Toilets',
+      'faucets': 'Faucet',
+    };
+    return renames[name.toLowerCase()] || name;
+  };
+
+  // Dedicated pages mapping - categories with custom landing pages
+  // Maps category slug to dedicated page URL
+  const dedicatedPages: Record<string, string> = {
+    'concealed-cisterns': '/concealed-cisterns',
+    'wall-hung-toilets': '/wall-hung-toilets',
+    'single-piece-toilets': '/siphonicwc',
+    'bathtubs': '/bathtubs',
+    'jacuzzi': '/jacuzzis',
+    'steam-sauna': '/sauna-steam',
+  };
+
+  // Get the correct URL for a category - dedicated page or default
+  const getCategoryUrl = (cat: Category, hasChildren: boolean) => {
+    // Check if category has a dedicated page
+    if (dedicatedPages[cat.slug]) {
+      return dedicatedPages[cat.slug];
+    }
+    // Default: category landing page if has children, shop page otherwise
+    return hasChildren ? `/${cat.slug}` : `/shop?category=${cat.id}`;
+  };
+
+  // Custom submenu order for specific categories (matching bellabathwares.com)
+  // Order based on actual database category names from Odoo
+  const customSubmenuOrder: Record<string, string[]> = {
+    'washroom': [
+      'Hygiene Pro',
+      'Faucets',
+      'Basin Mixer',
+      'Basin Mixer Tall',
+      'Concealed Basin Mixers',
+      'Deck Mount Basin Mixer',
+      'Floor Mounted Mixers',
+      'Sensor Faucets',
+      'Basins',
+      'Art Basins',
+      'Wall Hung Basins',
+      'Pedestal Basin',
+      'Stand Basins',
+      'Artificial Stone Basins',
+      'Stone Art Basins',
+      'Stone Stand Basins',
+      'Wudu Basin',
+      'Cabinets',
+      'Shattaf',
+      'Shattaf Mixer'
+    ],
+    'bathroom': [
+      'Concealed Shower',
+      'Shower Mixer',
+      'Shower Mixer Column',
+      'Shower Panels',
+      'Shower Accessories',
+      'Rain Showers',
+      'Hand Showers',
+      'Shower Arms',
+      'Bath Spouts',
+      'Shower Rooms',
+      'Shower Seats'
+    ],
+  };
+
+  // Get root categories for nav (exclude hidden ones)
+  const rootCategories = categories
+    .filter(c => c.parentId === null && !hiddenFromMainNav.includes(c.name.toLowerCase()))
+    .slice(0, 6);
+
+  // Find Bath Essentials category for adding as Accessories under Bathroom
+  const bathEssentialsCategory = categories.find(c =>
+    c.parentId === null && c.name.toLowerCase() === 'bath essentials'
+  );
+
+  // Helper to get direct children only (not grandchildren)
+  // When a category has children, clicking it opens a page showing those children
+  // So we only need to show direct children in the dropdown
+  const getDirectChildren = (cat: Category): Category[] => {
+    if (!cat.childIds || cat.childIds.length === 0) return [];
+    return categories.filter(c => cat.childIds?.includes(c.id));
+  };
+
+  // Helper to get ordered submenus for a category (direct children only)
+  const getOrderedSubmenus = (cat: Category) => {
+    // Get direct children only
+    const children = getDirectChildren(cat);
+    const customOrder = customSubmenuOrder[cat.name.toLowerCase()];
+
+    if (!customOrder) return children;
+
+    // Sort by custom order, items not in order go to end
+    return [...children].sort((a, b) => {
+      const aIndex = customOrder.findIndex(name => a.name.toLowerCase() === name.toLowerCase());
+      const bIndex = customOrder.findIndex(name => b.name.toLowerCase() === name.toLowerCase());
+      if (aIndex === -1 && bIndex === -1) return 0;
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+      return aIndex - bIndex;
+    });
+  };
 
   return (
     <>
@@ -205,47 +313,71 @@ export function Navbar({ categories = [] }: NavbarProps) {
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-1">
-              <Link href="/" className="nav-link-anim px-4 py-2 text-sm font-medium text-navy-light hover:text-gold transition-colors">
-                {t('home')}
-              </Link>
-              <Link href="/shop" className="nav-link-anim px-4 py-2 text-sm font-medium text-navy-light hover:text-gold transition-colors">
-                {t('shop')}
-              </Link>
+            <div className="hidden lg:flex items-center justify-center flex-1 mx-4">
+              <div className="flex items-center gap-1 xl:gap-2">
+                <Link href="/" className="nav-link-anim px-3 xl:px-4 py-2 text-sm font-medium text-navy-light hover:text-gold transition-colors whitespace-nowrap">
+                  {t('home')}
+                </Link>
+                <Link href="/shop" className="nav-link-anim px-3 xl:px-4 py-2 text-sm font-medium text-navy-light hover:text-gold transition-colors whitespace-nowrap">
+                  {t('shop')}
+                </Link>
+                <Link href="/collections" className="nav-link-anim px-3 xl:px-4 py-2 text-sm font-medium text-navy-light hover:text-gold transition-colors whitespace-nowrap">
+                  Collections
+                </Link>
+                <Link href="/smart-products" className="nav-link-anim px-3 xl:px-4 py-2 text-sm font-medium text-navy-light hover:text-gold transition-colors whitespace-nowrap">
+                  Smart Products
+                </Link>
 
-              {rootCategories.map(cat => {
-                const hasChildren = cat.childIds && cat.childIds.length > 0;
-                const childCategories = categories.filter(c => cat.childIds?.includes(c.id));
+                {rootCategories.map(cat => {
+                  const isBathroom = cat.name.toLowerCase() === 'bathroom';
+                  const hasChildren = (cat.childIds && cat.childIds.length > 0) || (isBathroom && bathEssentialsCategory);
+                  const orderedChildCategories = getOrderedSubmenus(cat);
 
-                return (
-                  <div key={cat.id} className={`nav-item relative group ${hasChildren ? 'nav-item-hover' : ''}`}>
-                    <Link
-                      href={hasChildren ? `/category/${cat.id}` : `/shop?category=${cat.id}`}
-                      className="nav-link-anim px-4 py-2 text-sm font-medium text-navy-light hover:text-gold transition-colors"
-                    >
-                      {cat.name}
-                    </Link>
+                  // For Bathroom, we need to insert Accessories in the right position
+                  let displaySubmenus = orderedChildCategories;
+                  if (isBathroom && bathEssentialsCategory) {
+                    // Find where Accessories should be inserted based on custom order
+                    const accessoriesIndex = customSubmenuOrder['bathroom']?.findIndex(
+                      name => name.toLowerCase() === 'accessories'
+                    ) ?? -1;
+                    if (accessoriesIndex !== -1) {
+                      displaySubmenus = [...orderedChildCategories];
+                      // Insert at the right position
+                      const insertAt = Math.min(accessoriesIndex, displaySubmenus.length);
+                      displaySubmenus.splice(insertAt, 0, { ...bathEssentialsCategory, name: 'Accessories' } as Category);
+                    }
+                  }
+
+                  return (
+                    <div key={cat.id} className={`nav-item relative group ${hasChildren ? 'nav-item-hover' : ''}`}>
+                      <Link
+                        href={getCategoryUrl(cat, hasChildren)}
+                        className="nav-link-anim px-3 xl:px-4 py-2 text-sm font-medium text-navy-light hover:text-gold transition-colors whitespace-nowrap"
+                      >
+                        {renameCategory(cat.name)}
+                      </Link>
 
                     {/* Dropdown for subcategories */}
                     {hasChildren && (
                       <div className="nav-dropdown absolute top-full left-0 bg-white shadow-xl rounded-lg py-4 min-w-[220px]">
-                        {childCategories.map(sub => {
+                        {displaySubmenus.map(sub => {
                           const subHasChildren = sub.childIds && sub.childIds.length > 0;
                           return (
                             <Link
                               key={sub.id}
-                              href={subHasChildren ? `/category/${sub.id}` : `/shop?category=${sub.id}`}
+                              href={getCategoryUrl(sub, subHasChildren)}
                               className="block w-full text-left px-5 py-2 text-sm text-navy-light hover:bg-bella-50 hover:text-gold transition-colors"
                             >
-                              {sub.name}
+                              {sub.name === 'Accessories' ? 'Accessories' : renameCategory(sub.name)}
                             </Link>
                           );
                         })}
                       </div>
                     )}
-                  </div>
-                );
-              })}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Right Icons */}
@@ -371,16 +503,22 @@ export function Navbar({ categories = [] }: NavbarProps) {
           <Link href="/shop" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left py-4 text-lg font-medium text-navy border-b border-bella-100">
             {t('shop')}
           </Link>
+          <Link href="/collections" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left py-4 text-lg font-medium text-navy border-b border-bella-100">
+            Collections
+          </Link>
+          <Link href="/smart-products" onClick={() => setMobileMenuOpen(false)} className="block w-full text-left py-4 text-lg font-medium text-navy border-b border-bella-100">
+            Smart Products
+          </Link>
           {rootCategories.map(cat => {
             const hasChildren = cat.childIds && cat.childIds.length > 0;
             return (
               <Link
                 key={cat.id}
-                href={hasChildren ? `/category/${cat.id}` : `/shop?category=${cat.id}`}
+                href={getCategoryUrl(cat, hasChildren)}
                 onClick={() => setMobileMenuOpen(false)}
                 className="block w-full text-left py-4 text-lg font-medium text-navy border-b border-bella-100"
               >
-                {cat.name}
+                {renameCategory(cat.name)}
               </Link>
             );
           })}
