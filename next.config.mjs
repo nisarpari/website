@@ -36,6 +36,31 @@ const nextConfig = {
       },
     ],
   },
+  // Add caching headers for static assets
+  async headers() {
+    return [
+      {
+        // Cache video files for 1 year (immutable)
+        source: '/:path*.mp4',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // Cache images for 1 year
+        source: '/images/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

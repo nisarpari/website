@@ -92,7 +92,7 @@ export default function VideoHeroSection({ categories, categoryImages }: VideoHe
             muted
             loop
             playsInline
-            preload="auto"
+            preload="metadata"
             className="w-full h-full object-cover"
           />
           {/* Gradient overlays for smooth transition */}
