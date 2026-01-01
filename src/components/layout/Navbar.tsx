@@ -495,20 +495,14 @@ export function Navbar({ categories = [] }: NavbarProps) {
           {/* Desktop: Logo centered above nav */}
           <div className="hidden lg:flex justify-center py-4">
             <Link href="/" className="cursor-pointer">
-              <motion.div
-                layoutId="navbar-logo"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-              >
-                <Image
-                  src={isDark ? '/bella_logo_white.png' : '/bella_logo.png'}
-                  alt="Bella Bathwares"
-                  width={180}
-                  height={90}
-                  className="h-12 w-auto object-contain"
-                  priority
-                />
-              </motion.div>
+              <Image
+                src={isDark ? '/bella_logo_white.png' : '/bella_logo.png'}
+                alt="Bella Bathwares"
+                width={180}
+                height={90}
+                className="h-12 w-auto object-contain transition-opacity hover:opacity-80"
+                priority
+              />
             </Link>
           </div>
 
