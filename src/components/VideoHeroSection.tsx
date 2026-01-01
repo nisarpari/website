@@ -114,6 +114,7 @@ export default function VideoHeroSection({ categories, categoryImages }: VideoHe
               <motion.video
                 key="video"
                 src={currentMedia.src}
+                poster="/hero-images/Bella_HI_1.jpg"
                 autoPlay
                 muted
                 loop

@@ -23,6 +23,7 @@ This plan outlines the next phase of development for the Bella Bathwares website
 - **Phase 1, Step 4: Image Fallback** - `ProductImage` component now handles broken Odoo URLs gracefully with `onError` fallback to `/placeholder-product.jpg`
 - **Phase 1, Step 2: Unified Design System** - Added reusable `<Heading>` and `<Container>` components to `src/components/ui/`, existing `<Button>` already well-structured
 - **Skeleton Loaders** - Added `ProductCardSkeleton` and `ProductGridSkeleton` components, integrated into shop page loading state
+- **Video Optimization** - Added `poster` attribute to hero video for instant visual while video loads
 
 ---
 
