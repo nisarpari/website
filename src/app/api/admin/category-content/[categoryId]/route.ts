@@ -1,6 +1,6 @@
 // GET/PUT/DELETE /api/admin/category-content/[categoryId] - Single category landing page content
 import { NextRequest, NextResponse } from 'next/server';
-import { readSiteConfig, writeSiteConfig, checkAdminAuth } from '@/lib/server/config';
+import { readSiteConfig, writeSiteConfig, checkAdminAuth, CategoryLandingContent } from '@/lib/server/config';
 
 interface RouteParams {
   params: Promise<{ categoryId: string }>;
@@ -11,7 +11,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { categoryId } = await params;
     const config = readSiteConfig();
-    const content = config.categoryLandingContent?.[categoryId] || null;
+    const categoryContent = config.categoryLandingContent as Record<string, CategoryLandingContent> | undefined;
+    const content = categoryContent?.[categoryId] || null;
     return NextResponse.json(content);
   } catch (error) {
     console.error('Error reading category content:', error);
@@ -32,10 +33,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     const config = readSiteConfig();
     if (!config.categoryLandingContent) {
-      config.categoryLandingContent = {};
+      config.categoryLandingContent = {} as Record<string, CategoryLandingContent>;
     }
 
-    config.categoryLandingContent[categoryId] = content;
+    (config.categoryLandingContent as Record<string, CategoryLandingContent>)[categoryId] = content;
     writeSiteConfig(config);
 
     return NextResponse.json({ success: true, content });
@@ -56,8 +57,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const { categoryId } = await params;
 
     const config = readSiteConfig();
-    if (config.categoryLandingContent?.[categoryId]) {
-      delete config.categoryLandingContent[categoryId];
+    const categoryContent = config.categoryLandingContent as Record<string, CategoryLandingContent> | undefined;
+    if (categoryContent?.[categoryId]) {
+      delete categoryContent[categoryId];
       writeSiteConfig(config);
     }
 

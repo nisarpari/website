@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useLocale } from '@/context';
 import { type Category } from '@/lib/api/odoo';
 
@@ -19,15 +20,15 @@ export function Footer({ categories = [] }: FooterProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 mb-10">
           {/* Logo & Description - Full width on mobile */}
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-gold to-gold-dark rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-display font-bold">B</span>
-              </div>
-              <div>
-                <h3 className="font-display text-xl font-bold">BELLA</h3>
-                <p className="text-xs tracking-wider text-bella-400">BATHWARES</p>
-              </div>
-            </div>
+            <Link href="/" className="inline-block mb-4">
+              <Image
+                src="/bella_logo_white.png"
+                alt="Bella Bathwares"
+                width={160}
+                height={80}
+                className="h-12 md:h-14 w-auto object-contain"
+              />
+            </Link>
             <p className="text-bella-400 text-sm leading-relaxed">{t('heroSubtitle')}</p>
           </div>
 

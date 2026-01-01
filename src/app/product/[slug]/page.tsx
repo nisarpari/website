@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useLocale, useCart, useWishlist, useVerification } from '@/context';
 import { OdooAPI, type Product, type Category, type RelatedProduct } from '@/lib/api/odoo';
+import { ProductImage } from '@/components/ProductImage';
 
 // Related Product Card Component
 function RelatedProductCard({ product, currencySymbol, formatPrice, isVerified }: {
@@ -17,10 +18,10 @@ function RelatedProductCard({ product, currencySymbol, formatPrice, isVerified }
   return (
     <Link
       href={`/product/${product.slug}`}
-      className="flex-shrink-0 w-40 md:w-48 bg-white rounded-lg overflow-hidden shadow-sm border border-bella-100 hover:shadow-md transition-shadow"
+      className="flex-shrink-0 w-40 md:w-48 bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow"
     >
-      <div className="relative aspect-square bg-white">
-        <Image
+      <div className="relative aspect-square bg-white dark:bg-navy-light">
+        <ProductImage
           src={product.thumbnail || '/placeholder.jpg'}
           alt={product.name}
           fill
@@ -29,9 +30,9 @@ function RelatedProductCard({ product, currencySymbol, formatPrice, isVerified }
         />
       </div>
       <div className="p-3">
-        <h4 className="text-sm font-medium text-navy line-clamp-2 mb-1">{product.name}</h4>
+        <h4 className="text-sm font-medium text-navy dark:text-white line-clamp-2 mb-1">{product.name}</h4>
         {isVerified ? (
-          <span className="text-sm font-semibold text-navy">{currencySymbol} {formatPrice(product.price)}</span>
+          <span className="text-sm font-semibold text-navy dark:text-white">{currencySymbol} {formatPrice(product.price)}</span>
         ) : (
           <span className="text-xs text-gold">Login to see price</span>
         )}
@@ -74,14 +75,14 @@ function HorizontalScrollSection({ title, children }: { title: string; children:
   }, []);
 
   return (
-    <div className="bg-white py-6 md:py-8">
+    <div className="bg-white dark:bg-navy py-6 md:py-8">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg md:text-xl font-semibold text-navy">{title}</h3>
+          <h3 className="text-lg md:text-xl font-semibold text-navy dark:text-white">{title}</h3>
           <div className="hidden md:flex gap-2">
             <button
               onClick={() => scroll('left')}
-              className={`p-2 rounded-full border border-bella-200 transition-colors ${showLeftArrow ? 'hover:bg-bella-50 text-navy' : 'opacity-30 cursor-default'}`}
+              className={`p-2 rounded-full border border-bella-200 dark:border-bella-600 transition-colors ${showLeftArrow ? 'hover:bg-bella-50 dark:hover:bg-bella-700 text-navy dark:text-white' : 'opacity-30 cursor-default'}`}
               disabled={!showLeftArrow}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,7 +91,7 @@ function HorizontalScrollSection({ title, children }: { title: string; children:
             </button>
             <button
               onClick={() => scroll('right')}
-              className={`p-2 rounded-full border border-bella-200 transition-colors ${showRightArrow ? 'hover:bg-bella-50 text-navy' : 'opacity-30 cursor-default'}`}
+              className={`p-2 rounded-full border border-bella-200 dark:border-bella-600 transition-colors ${showRightArrow ? 'hover:bg-bella-50 dark:hover:bg-bella-700 text-navy dark:text-white' : 'opacity-30 cursor-default'}`}
               disabled={!showRightArrow}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -530,8 +531,8 @@ export default function ProductDetailPage() {
           <div className="grid md:grid-cols-2 gap-12">
             {/* Images */}
             <div>
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-white dark:bg-bella-800 mb-4">
-                <Image
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-white dark:bg-navy-light mb-4 product-detail-image">
+                <ProductImage
                   src={images[selectedImage] || '/placeholder.jpg'}
                   alt={product.name}
                   fill
@@ -568,7 +569,7 @@ export default function ProductDetailPage() {
             {/* Info */}
             <div>
               <p className="text-bella-500 dark:text-bella-400 text-sm uppercase tracking-wide mb-2">{product.category}</p>
-              <h1 className="font-display text-3xl md:text-4xl font-bold text-navy dark:text-white mb-4">{product.name}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-navy dark:text-white mb-4">{product.name}</h1>
 
               {/* Price */}
               <div className="mb-6">

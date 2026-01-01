@@ -60,7 +60,7 @@ export default function WishlistPage() {
               </div>
               <div className="p-4">
                 <p className="text-bella-500 text-xs uppercase tracking-wide">{item.category}</p>
-                <h3 className="font-display text-lg font-semibold text-navy mt-1 line-clamp-2">{item.name}</h3>
+                <h3 className="text-base font-medium text-navy mt-1 line-clamp-2">{item.name}</h3>
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-xl font-bold text-navy">{countryConfig.currencySymbol} {formatPrice(item.price)}</span>
                 </div>

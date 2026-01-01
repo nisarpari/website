@@ -33,10 +33,28 @@ export const DEFAULT_HERO_IMAGES = [
   { url: 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=1200&q=80', alt: 'Contemporary Walk-in Shower' }
 ];
 
+export interface CategoryFeature {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface CategoryLandingContent {
+  heroTitle?: string;
+  heroSubtitle?: string;
+  heroImage?: string;
+  description?: string;
+  features?: CategoryFeature[];
+  productSectionTitle?: string;
+  ctaText?: string;
+  ctaLink?: string;
+}
+
 export interface SiteConfig {
   heroImages?: Array<{ url: string; alt: string; variants?: Record<string, string> }>;
   categoryImages?: Record<string, string>;
   categoryImageVariants?: Record<string, Record<string, string>>;
+  categoryLandingContent?: Record<string, CategoryLandingContent>;
   hiddenCategories?: string[];
   lastUpdated?: string;
   [key: string]: unknown;

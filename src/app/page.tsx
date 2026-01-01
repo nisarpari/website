@@ -4,15 +4,20 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLocale, useCart, useWishlist, useVerification, useAdmin, useTheme } from '@/context';
-import { EditableImage, EditableText } from '@/components/admin';
+import { EditableImage } from '@/components/admin';
 import { OdooAPI, type Product, type Category } from '@/lib/api/odoo';
 import { ProductImage } from '@/components/ProductImage';
+import VideoHeroSection from '@/components/VideoHeroSection';
+import CustomerReviews from '@/components/CustomerReviews';
 
-// ==========================================
-// MOBILE HOME (home2 style) Components
-// ==========================================
+// Default Hero Images for carousel
+const DEFAULT_HERO_IMAGES = [
+  { url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1200&q=80', alt: 'Modern Freestanding Bathtub' },
+  { url: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=1200&q=80', alt: 'Luxury Jacuzzi Spa' },
+  { url: 'https://images.unsplash.com/photo-1629774631753-88f827bf6447?w=1200&q=80', alt: 'Modern Rain Shower' },
+];
 
-// Mobile Hero with stacked layout - compact version
+// Mobile Hero Component
 function MobileHero({ heroImages, onImageUpdate }: {
   heroImages: Array<{ url: string; alt: string }>;
   onImageUpdate?: (index: number, newUrl: string) => void;
@@ -32,7 +37,6 @@ function MobileHero({ heroImages, onImageUpdate }: {
 
   return (
     <section className={`relative overflow-hidden ${isDark ? 'bg-navy' : 'bg-bella-50'}`}>
-      {/* Image Area - Top - With rounded corners and padding */}
       <div className="px-4 pt-4">
         <div className="relative h-[38vh] min-h-[240px] max-h-[300px] rounded-2xl overflow-hidden shadow-lg">
           {images.map((image, index) => (
@@ -65,25 +69,18 @@ function MobileHero({ heroImages, onImageUpdate }: {
           ))}
         </div>
       </div>
-
-      {/* Content Area - Bottom (compact) */}
       <div className="px-6 pt-2 pb-6">
         <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-3 w-fit ${isDark ? 'bg-white/10 text-white' : 'bg-navy/10 text-navy'}`}>
           <span className="w-1.5 h-1.5 bg-gold rounded-full animate-pulse" />
           Premium Bathroom Solutions
         </span>
-
         <h1 className={`font-display text-3xl font-bold leading-tight mb-2 ${isDark ? 'text-white' : 'text-navy'}`}>
-          {t('heroTitle1')}
-          <br />
+          {t('heroTitle1')}<br />
           <span className="text-gold">{t('heroTitle2')}</span>
         </h1>
-
         <p className={`text-sm mb-4 leading-relaxed ${isDark ? 'text-white/70' : 'text-bella-600'}`}>
           {t('heroSubtitle')}
         </p>
-
-        {/* Image indicators */}
         <div className="flex gap-2 justify-center">
           {images.map((_, index) => (
             <button
@@ -127,17 +124,13 @@ function MobileStatsBar() {
   );
 }
 
-// Mobile Product Card - Clean minimal design (no wishlist icon)
+// Mobile Product Card
 function MobileProductCard({ product }: { product: Product }) {
   const { countryConfig, formatPrice } = useLocale();
   const { isVerified } = useVerification();
 
   return (
-    <Link
-      href={`/product/${product.slug}`}
-      className="group flex-shrink-0 w-[140px]"
-    >
-      {/* Product Image - Fixed size container */}
+    <Link href={`/product/${product.slug}`} className="group flex-shrink-0 w-[140px]">
       <div className="relative w-[140px] h-[140px] bg-white rounded-xl overflow-hidden shadow-sm border border-bella-100 dark:border-white/10 mb-2">
         <Image
           src={product.thumbnail || product.image || '/placeholder.jpg'}
@@ -147,7 +140,6 @@ function MobileProductCard({ product }: { product: Product }) {
           className="object-contain p-3 transition-transform duration-300 group-hover:scale-105"
         />
       </div>
-      {/* Product Info - Below image */}
       <div className="px-1">
         <h3 className="text-sm font-medium text-navy dark:text-white line-clamp-2 leading-snug mb-1">{product.name}</h3>
         {isVerified && (
@@ -160,20 +152,20 @@ function MobileProductCard({ product }: { product: Product }) {
   );
 }
 
-// Mobile Product Section with horizontal scroll - clean design
-function MobileProductSection({ products, title, badge }: {
-  products: Product[];
-  title: string;
-  badge: string;
-}) {
+// Mobile Product Section
+function MobileProductSection({ products, title, badge }: { products: Product[]; title: string; badge: string; }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { t } = useLocale();
 
-  if (products.length === 0) return null;
+  // Filter products that have images and limit to 8
+  const filteredProducts = products
+    .filter(p => p.thumbnail || p.image)
+    .slice(0, 8);
+
+  if (filteredProducts.length === 0) return null;
 
   return (
     <section className="py-6 bg-bella-50 dark:bg-navy">
-      {/* Section Header */}
       <div className="px-4 mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="px-2.5 py-1 bg-gold/10 text-gold text-xs font-semibold rounded-full">{badge}</span>
@@ -186,13 +178,8 @@ function MobileProductSection({ products, title, badge }: {
           </svg>
         </Link>
       </div>
-      {/* Product Scroll */}
-      <div
-        ref={scrollRef}
-        className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide"
-        style={{ scrollSnapType: 'x mandatory' }}
-      >
-        {products.map(product => (
+      <div ref={scrollRef} className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide" style={{ scrollSnapType: 'x mandatory' }}>
+        {filteredProducts.map(product => (
           <div key={product.id} style={{ scrollSnapAlign: 'start' }}>
             <MobileProductCard product={product} />
           </div>
@@ -202,7 +189,7 @@ function MobileProductSection({ products, title, badge }: {
   );
 }
 
-// Mobile CTA Section
+// Mobile CTA
 function MobileCTA() {
   return (
     <section className="py-12 bg-navy">
@@ -210,20 +197,12 @@ function MobileCTA() {
         <h2 className="font-display text-2xl font-bold text-white mb-3">
           Ready to Transform Your Bathroom?
         </h2>
-        <p className="text-white/70 text-sm mb-6">
-          Get expert advice from our team
-        </p>
+        <p className="text-white/70 text-sm mb-6">Get expert advice from our team</p>
         <div className="flex flex-col gap-3">
-          <Link
-            href="/shop"
-            className="px-6 py-3 bg-gold hover:bg-gold-dark text-navy font-semibold rounded-full transition-all"
-          >
+          <Link href="/shop" className="px-6 py-3 bg-gold hover:bg-gold-dark text-navy font-semibold rounded-full transition-all">
             Browse Collection
           </Link>
-          <Link
-            href="/contact"
-            className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-full transition-all border border-white/30"
-          >
+          <Link href="/contact" className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-full transition-all border border-white/30">
             Contact Us
           </Link>
         </div>
@@ -232,159 +211,7 @@ function MobileCTA() {
   );
 }
 
-// Mobile Category Grid (2x2 layout)
-function MobileCategoryGrid({
-  categories,
-  categoryImages,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onImageUpdate
-}: {
-  categories: Category[];
-  categoryImages: Record<string, string>;
-  onImageUpdate?: (categoryId: string, imageUrl: string) => void;
-}) {
-  const { t } = useLocale();
-  const { isAdmin, editMode, isCategoryHidden, toggleCategoryVisibility } = useAdmin();
-
-  // Get all root categories
-  const allRootCategories = categories.filter(c => c.parentId === null);
-
-  // For regular view: filter out hidden categories and limit to 6
-  // For admin edit mode: show all categories (including hidden ones)
-  const rootCategories = isAdmin && editMode
-    ? allRootCategories
-    : allRootCategories.filter(c => !isCategoryHidden(c.id.toString())).slice(0, 6);
-
-  // Default fallback images
-  const defaultImages = [
-    'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&q=80',
-    'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&q=80',
-    'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=600&q=80',
-    'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=600&q=80',
-    'https://images.unsplash.com/photo-1585128792020-803d29415281?w=600&q=80',
-    'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600&q=80'
-  ];
-
-  const getCategoryImage = (cat: Category, index: number): string => {
-    if (categoryImages[cat.id.toString()]) return categoryImages[cat.id.toString()];
-    if (categoryImages[cat.slug]) return categoryImages[cat.slug];
-    const nameLower = cat.name.toLowerCase();
-    if (categoryImages[nameLower]) return categoryImages[nameLower];
-    return defaultImages[index % defaultImages.length];
-  };
-
-  const handleToggleVisibility = async (e: React.MouseEvent, categoryId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    await toggleCategoryVisibility(categoryId);
-  };
-
-  if (rootCategories.length === 0) return null;
-
-  return (
-    <section className="py-8 bg-bella-50 dark:bg-navy-light">
-      <div className="px-4">
-        <div className="flex items-center justify-between mb-4 px-2">
-          <h2 className="font-display text-xl font-bold text-navy dark:text-white">{t('shopByCategory')}</h2>
-          {isAdmin && editMode && (
-            <span className="text-xs text-bella-500 dark:text-bella-300">
-              Click eye icon to show/hide
-            </span>
-          )}
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          {rootCategories.map((cat, index) => {
-            const hasChildren = cat.childIds && cat.childIds.length > 0;
-            const isHidden = isCategoryHidden(cat.id.toString());
-
-            return (
-              <div key={cat.id} className="relative">
-                <Link
-                  href={hasChildren ? `/category/${cat.id}` : `/shop?category=${cat.id}`}
-                  className={`relative rounded-xl overflow-hidden aspect-[4/3] group block ${
-                    isAdmin && editMode && isHidden ? 'opacity-50' : ''
-                  }`}
-                >
-                  <Image
-                    src={getCategoryImage(cat, index)}
-                    alt={cat.name}
-                    fill
-                    sizes="(max-width: 768px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-3">
-                    <h3 className="text-white font-display text-base font-bold">{cat.name}</h3>
-                    <span className="text-white/70 text-xs">{cat.totalCount || 0}+ Products</span>
-                  </div>
-                  {/* Hidden badge for admin */}
-                  {isAdmin && editMode && isHidden && (
-                    <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded">
-                      HIDDEN
-                    </div>
-                  )}
-                </Link>
-                {/* Admin visibility toggle button */}
-                {isAdmin && editMode && (
-                  <button
-                    onClick={(e) => handleToggleVisibility(e, cat.id.toString())}
-                    className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all z-20 ${
-                      isHidden
-                        ? 'bg-red-500 hover:bg-red-600'
-                        : 'bg-green-500 hover:bg-green-600'
-                    }`}
-                    title={isHidden ? 'Show on homepage' : 'Hide from homepage'}
-                  >
-                    {isHidden ? (
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    )}
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ==========================================
-// DESKTOP HOME Components (existing)
-// ==========================================
-
-// Default Hero Images for carousel - Bathtubs, Jacuzzi, Showers
-const DEFAULT_HERO_IMAGES = [
-  {
-    url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1200&q=80',
-    alt: 'Modern Freestanding Bathtub'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=1200&q=80',
-    alt: 'Luxury Jacuzzi Spa'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1629774631753-88f827bf6447?w=1200&q=80',
-    alt: 'Modern Rain Shower'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=1200&q=80',
-    alt: 'Elegant Soaking Tub'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=1200&q=80',
-    alt: 'Contemporary Walk-in Shower'
-  }
-];
-
-// Desktop Hero Section (desktop only - mobile uses MobileHero)
+// Desktop Hero
 function Hero({ heroImages, onImageUpdate }: {
   heroImages: Array<{ url: string; alt: string }>;
   onImageUpdate?: (index: number, newUrl: string) => void;
@@ -394,121 +221,91 @@ function Hero({ heroImages, onImageUpdate }: {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = heroImages.length > 0 ? heroImages : DEFAULT_HERO_IMAGES;
 
-  // Auto-shuffle images every 15 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
     }, 15000);
-
     return () => clearInterval(interval);
   }, [images.length]);
 
   return (
     <section className="hero-gradient relative overflow-hidden min-h-[700px]">
-        {/* Background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 border border-gold rounded-full" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 border border-gold rounded-full" />
-        </div>
-
-        <div className="max-w-7xl mx-auto px-6 py-20 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div className="text-white text-left">
-              <span className="inline-block px-4 py-2 bg-gold/20 rounded-full text-gold-light text-sm font-medium mb-6 animate-fade-in">
-                <EditableText
-                  value="Premium Bathroom Solutions"
-                  configKey="customTexts.heroBadge"
-                  as="span"
-                  className="text-gold-light text-sm font-medium"
-                />
-              </span>
-              <h1 className="font-display text-5xl lg:text-7xl font-bold leading-tight mb-6">
-                <EditableText
-                  value={t('heroTitle1')}
-                  configKey="customTexts.heroTitle1"
-                  as="span"
-                  className="text-white"
-                /> <br />
-                <EditableText
-                  value={t('heroTitle2')}
-                  configKey="customTexts.heroTitle2"
-                  as="span"
-                  className="text-gold"
-                />
-              </h1>
-              <p className="text-xl text-bella-300 mb-8 max-w-lg leading-relaxed">
-                <EditableText
-                  value={t('heroSubtitle')}
-                  configKey="customTexts.heroSubtitle"
-                  as="span"
-                  className="text-bella-300"
-                />
-              </p>
-              {/* Stats */}
-              <div className="flex gap-8 mt-12">
-                {[
-                  { value: 'Million+', label: 'Happy Customers' },
-                  { value: '5000+', label: t('products') },
-                  { value: '1999', label: 'Since' }
-                ].map((stat, i) => (
-                  <div key={i} className="text-center">
-                    <div className="text-3xl font-bold text-gold">{stat.value}</div>
-                    <div className="text-bella-400 text-sm">{stat.label}</div>
-                  </div>
-                ))}
-              </div>
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-10 w-72 h-72 border border-gold rounded-full" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 border border-gold rounded-full" />
+      </div>
+      <div className="max-w-7xl mx-auto px-6 py-20 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="text-white text-left">
+            <span className="inline-block px-4 py-2 bg-gold/20 rounded-full text-gold-light text-sm font-medium mb-6 animate-fade-in">
+              Premium Bathroom Solutions
+            </span>
+            <h1 className="font-display text-5xl lg:text-7xl font-bold leading-tight mb-6">
+              {t('heroTitle1')} <br />
+              <span className="text-gold">{t('heroTitle2')}</span>
+            </h1>
+            <p className="text-xl text-bella-300 mb-8 max-w-lg leading-relaxed">
+              {t('heroSubtitle')}
+            </p>
+            <div className="flex gap-8 mt-12">
+              {[
+                { value: 'Million+', label: 'Happy Customers' },
+                { value: '5000+', label: t('products') },
+                { value: '1999', label: 'Since' }
+              ].map((stat, i) => (
+                <div key={i} className="text-center">
+                  <div className="text-3xl font-bold text-gold">{stat.value}</div>
+                  <div className="text-bella-400 text-sm">{stat.label}</div>
+                </div>
+              ))}
             </div>
-
-            {/* Right Image Carousel */}
-            <div className="relative">
-              <div className="absolute inset-0 bg-gold/20 rounded-3xl transform rotate-6" />
-              <div className="relative w-full h-[500px] rounded-3xl shadow-2xl overflow-hidden">
-                {images.map((image, index) => (
-                  <div
-                    key={index}
-                    className={`absolute inset-0 transition-opacity duration-1000 ${
-                      index === currentImageIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                    }`}
-                  >
-                    {isAdmin && editMode ? (
-                      <EditableImage
-                        src={image.url}
-                        alt={image.alt}
-                        configKey={`heroImages.${index}`}
-                        fill
-                        className="object-cover"
-                        onUpdate={(newUrl) => onImageUpdate?.(index, newUrl)}
-                      />
-                    ) : (
-                      <Image
-                        src={image.url}
-                        alt={image.alt}
-                        fill
-                        sizes="50vw"
-                        className="object-cover"
-                        priority={index === 0}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-              {/* Image Indicators */}
-              <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2">
-                {images.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      index === currentImageIndex ? 'bg-gold w-6' : 'bg-white/50 hover:bg-white/80'
-                    }`}
-                    aria-label={`Go to image ${index + 1}`}
-                  />
-                ))}
-              </div>
+          </div>
+          <div className="relative">
+            <div className="absolute inset-0 bg-gold/20 rounded-3xl transform rotate-6" />
+            <div className="relative w-full h-[500px] rounded-3xl shadow-2xl overflow-hidden">
+              {images.map((image, index) => (
+                <div
+                  key={index}
+                  className={`absolute inset-0 transition-opacity duration-1000 ${
+                    index === currentImageIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                  }`}
+                >
+                  {isAdmin && editMode ? (
+                    <EditableImage
+                      src={image.url}
+                      alt={image.alt}
+                      configKey={`heroImages.${index}`}
+                      fill
+                      className="object-cover"
+                      onUpdate={(newUrl) => onImageUpdate?.(index, newUrl)}
+                    />
+                  ) : (
+                    <Image
+                      src={image.url}
+                      alt={image.alt}
+                      fill
+                      sizes="50vw"
+                      className="object-cover"
+                      priority={index === 0}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2">
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    index === currentImageIndex ? 'bg-gold w-6' : 'bg-white/50 hover:bg-white/80'
+                  }`}
+                />
+              ))}
             </div>
           </div>
         </div>
+      </div>
     </section>
   );
 }
@@ -516,7 +313,6 @@ function Hero({ heroImages, onImageUpdate }: {
 // Trust Badges
 function TrustBadges() {
   const { t } = useLocale();
-
   const badges = [
     { icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', label: t('genuineProducts') },
     { icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', label: t('fastDelivery') },
@@ -538,152 +334,6 @@ function TrustBadges() {
               <span className="text-sm font-medium text-navy">{badge.label}</span>
             </div>
           ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// Category Grid
-function CategoryGrid({
-  categories,
-  categoryImages,
-  onImageUpdate
-}: {
-  categories: Category[];
-  categoryImages: Record<string, string>;
-  onImageUpdate?: (categoryId: string, imageUrl: string) => void;
-}) {
-  const { t } = useLocale();
-  const { isAdmin, editMode, isCategoryHidden, toggleCategoryVisibility } = useAdmin();
-
-  // Get all root categories
-  const allRootCategories = categories.filter(c => c.parentId === null);
-
-  // For regular view: filter out hidden categories and limit to 6
-  // For admin edit mode: show all categories (including hidden ones)
-  const rootCategories = isAdmin && editMode
-    ? allRootCategories
-    : allRootCategories.filter(c => !isCategoryHidden(c.id.toString())).slice(0, 6);
-
-  // Default fallback images if no custom image is set
-  const defaultImages = [
-    'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&q=80',
-    'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&q=80',
-    'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=600&q=80',
-    'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=600&q=80',
-    'https://images.unsplash.com/photo-1585128792020-803d29415281?w=600&q=80',
-    'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600&q=80'
-  ];
-
-  // Get image for category - check config by ID, slug, or name
-  const getCategoryImage = (cat: Category, index: number): string => {
-    // Check by category ID
-    if (categoryImages[cat.id.toString()]) {
-      return categoryImages[cat.id.toString()];
-    }
-    // Check by slug
-    if (categoryImages[cat.slug]) {
-      return categoryImages[cat.slug];
-    }
-    // Check by name (lowercase)
-    const nameLower = cat.name.toLowerCase();
-    if (categoryImages[nameLower]) {
-      return categoryImages[nameLower];
-    }
-    // Fallback to default image
-    return defaultImages[index % defaultImages.length];
-  };
-
-  const handleToggleVisibility = async (e: React.MouseEvent, categoryId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    await toggleCategoryVisibility(categoryId);
-  };
-
-  return (
-    <section className="py-16 bg-bella-50">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-12">
-          <h2 className="font-display text-4xl font-bold text-navy mb-4">
-            <EditableText
-              value={t('shopByCategory')}
-              configKey="customTexts.categoryTitle"
-              as="span"
-            />
-          </h2>
-          <p className="text-bella-600 max-w-2xl mx-auto">
-            <EditableText
-              value={t('exploreCollections')}
-              configKey="customTexts.categorySubtitle"
-              as="span"
-            />
-          </p>
-          {isAdmin && editMode && (
-            <p className="text-xs text-bella-500 mt-2">Click eye icon to show/hide categories on homepage</p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-          {rootCategories.map((cat, index) => {
-            // Parent categories go to category landing page, leaf categories go to shop
-            const hasChildren = cat.childIds && cat.childIds.length > 0;
-            const isHidden = isCategoryHidden(cat.id.toString());
-
-            return (
-              <div key={cat.id} className="relative">
-                <Link
-                  href={hasChildren ? `/category/${cat.id}` : `/shop?category=${cat.id}`}
-                  className={`category-card relative rounded-2xl overflow-hidden aspect-[4/3] group block ${
-                    isAdmin && editMode && isHidden ? 'opacity-50' : ''
-                  }`}
-                >
-                  <EditableImage
-                    src={getCategoryImage(cat, index)}
-                    alt={cat.name}
-                    configKey={`categoryImages.${cat.id}`}
-                    fill
-                    className="object-cover"
-                    onUpdate={(newUrl) => onImageUpdate?.(cat.id.toString(), newUrl)}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 pointer-events-none">
-                    <h3 className="text-white font-display text-2xl font-bold mb-2">{cat.name}</h3>
-                    <span className="text-white/80 text-sm">{cat.totalCount || 0}+ Products</span>
-                  </div>
-                  {/* Hidden badge for admin */}
-                  {isAdmin && editMode && isHidden && (
-                    <div className="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded">
-                      HIDDEN
-                    </div>
-                  )}
-                </Link>
-                {/* Admin visibility toggle button */}
-                {isAdmin && editMode && (
-                  <button
-                    onClick={(e) => handleToggleVisibility(e, cat.id.toString())}
-                    className={`absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all z-30 shadow-lg ${
-                      isHidden
-                        ? 'bg-red-500 hover:bg-red-600'
-                        : 'bg-green-500 hover:bg-green-600'
-                    }`}
-                    title={isHidden ? 'Show on homepage' : 'Hide from homepage'}
-                  >
-                    {isHidden ? (
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                      </svg>
-                    ) : (
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    )}
-                  </button>
-                )}
-              </div>
-            );
-          })}
         </div>
       </div>
     </section>
@@ -738,18 +388,32 @@ function ProductCard({ product }: { product: Product }) {
   );
 }
 
-// Dynamic Product Section
-function DynamicProductSection({ products, title, subtitle, badge, configKeyTitle, configKeySubtitle }: {
+// Dynamic Product Section - Single line carousel
+function DynamicProductSection({ products, title, subtitle, badge }: {
   products: Product[];
   title: string;
   subtitle: string;
   badge?: string;
-  configKeyTitle?: string;
-  configKeySubtitle?: string;
 }) {
   const { t } = useLocale();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  if (products.length === 0) return null;
+  // Filter products that have images and limit to 8
+  const filteredProducts = products
+    .filter(p => p.thumbnail || p.image)
+    .slice(0, 8);
+
+  if (filteredProducts.length === 0) return null;
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = 300;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   return (
     <section className="py-12 md:py-16">
@@ -763,35 +427,51 @@ function DynamicProductSection({ products, title, subtitle, badge, configKeyTitl
                 </span>
               )}
             </div>
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-navy">
-              {configKeyTitle ? (
-                <EditableText value={title} configKey={configKeyTitle} as="span" />
-              ) : title}
-            </h2>
-            <p className="text-bella-600 mt-1 md:mt-2 text-sm md:text-base">
-              {configKeySubtitle ? (
-                <EditableText value={subtitle} configKey={configKeySubtitle} as="span" />
-              ) : subtitle}
-            </p>
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-navy">{title}</h2>
+            <p className="text-bella-600 mt-1 md:mt-2 text-sm md:text-base">{subtitle}</p>
           </div>
-          <Link href="/shop" className="hidden md:flex items-center gap-2 text-gold hover:text-gold-dark font-medium">
-            {t('viewAll')}
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </Link>
+          <div className="hidden md:flex items-center gap-4">
+            {/* Carousel Navigation */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => scroll('left')}
+                className="w-10 h-10 rounded-full border border-bella-200 flex items-center justify-center hover:bg-bella-50 transition-colors"
+                aria-label="Scroll left"
+              >
+                <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={() => scroll('right')}
+                className="w-10 h-10 rounded-full border border-bella-200 flex items-center justify-center hover:bg-bella-50 transition-colors"
+                aria-label="Scroll right"
+              >
+                <svg className="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+            <Link href="/shop" className="flex items-center gap-2 text-gold hover:text-gold-dark font-medium">
+              {t('viewAll')}
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+          </div>
         </div>
-
-        {/* Horizontal scroll on mobile, grid on desktop */}
-        <div className="flex overflow-x-auto gap-3 md:gap-5 pb-4 scrollbar-hide md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible md:pb-0 -mx-6 px-6 md:mx-0 md:px-0">
-          {products.slice(0, 8).map(product => (
-            <div key={product.id} className="flex-shrink-0 w-[180px] md:w-auto">
+        {/* Single line carousel */}
+        <div
+          ref={scrollRef}
+          className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
+          style={{ scrollSnapType: 'x mandatory' }}
+        >
+          {filteredProducts.map(product => (
+            <div key={product.id} className="flex-shrink-0 w-[220px] lg:w-[280px]" style={{ scrollSnapAlign: 'start' }}>
               <ProductCard product={product} />
             </div>
           ))}
         </div>
-
-        {/* Mobile View All */}
         <div className="mt-6 text-center md:hidden">
           <Link href="/shop" className="inline-flex items-center gap-2 text-gold hover:text-gold-dark font-medium">
             {t('viewAll')}
@@ -812,20 +492,8 @@ function CTASection() {
   return (
     <section className="py-16 bg-gradient-to-r from-navy to-navy-light">
       <div className="max-w-7xl mx-auto px-6 text-center">
-        <h2 className="font-display text-4xl font-bold text-white mb-4">
-          <EditableText
-            value={t('readyTransform')}
-            configKey="customTexts.ctaTitle"
-            as="span"
-          />
-        </h2>
-        <p className="text-bella-300 mb-8 max-w-2xl mx-auto">
-          <EditableText
-            value={t('browseCollection')}
-            configKey="customTexts.ctaSubtitle"
-            as="span"
-          />
-        </p>
+        <h2 className="font-display text-4xl font-bold text-white mb-4">{t('readyTransform')}</h2>
+        <p className="text-bella-300 mb-8 max-w-2xl mx-auto">{t('browseCollection')}</p>
         <div className="flex flex-wrap gap-4 justify-center">
           <Link href="/shop" className="bg-gold hover:bg-gold-dark text-navy px-8 py-4 rounded-full font-semibold transition-all hover:shadow-xl">
             {t('browseProducts')}
@@ -839,14 +507,13 @@ function CTASection() {
   );
 }
 
-// Main HomePage
+// Main Home Page with Video Section
 export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
   const [heroImages, setHeroImages] = useState<Array<{ url: string; alt: string }>>(DEFAULT_HERO_IMAGES);
   const [bestsellers, setBestsellers] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
@@ -862,7 +529,6 @@ export default function HomePage() {
         setBestsellers(best);
         setNewArrivals(arrivals);
 
-        // Load hero images from config if available
         const configHeroImages = await OdooAPI.fetchHeroImages();
         if (configHeroImages && configHeroImages.length > 0) {
           setHeroImages(configHeroImages);
@@ -870,17 +536,10 @@ export default function HomePage() {
       } catch (error) {
         console.error('Failed to load data:', error);
       }
-      setLoading(false);
     };
     loadData();
   }, []);
 
-  // Handle category image updates from admin editing
-  const handleCategoryImageUpdate = (categoryId: string, imageUrl: string) => {
-    setCategoryImages(prev => ({ ...prev, [categoryId]: imageUrl }));
-  };
-
-  // Handle hero image updates from admin editing
   const handleHeroImageUpdate = (index: number, newUrl: string) => {
     setHeroImages(prev => {
       const updated = [...prev];
@@ -889,72 +548,47 @@ export default function HomePage() {
     });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="loader"></div>
-      </div>
-    );
-  }
-
   return (
     <>
-      {/* Mobile Version (home2 style) - visible on mobile only */}
+      {/* Mobile Version */}
       <div className="lg:hidden">
         <style jsx global>{`
-          .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-          .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-          }
+          .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+          .scrollbar-hide::-webkit-scrollbar { display: none; }
         `}</style>
+
+        {/* VIDEO HERO SECTION - First block */}
+        <VideoHeroSection categories={categories} categoryImages={categoryImages} />
+
         <MobileHero heroImages={heroImages} onImageUpdate={handleHeroImageUpdate} />
         <MobileStatsBar />
-        <MobileCategoryGrid
-          categories={categories}
-          categoryImages={categoryImages}
-          onImageUpdate={handleCategoryImageUpdate}
-        />
-        <MobileProductSection
-          products={bestsellers}
-          title="Trending This Week"
-          badge="Hot"
-        />
-        <MobileProductSection
-          products={newArrivals}
-          title="New Arrivals"
-          badge="New"
-        />
+        <MobileProductSection products={bestsellers} title="Trending This Week" badge="Hot" />
+        <MobileProductSection products={newArrivals} title="New Arrivals" badge="New" />
+        <CustomerReviews />
         <MobileCTA />
       </div>
 
-      {/* Desktop Version - visible on large screens only */}
+      {/* Desktop Version */}
       <div className="hidden lg:block">
+        {/* VIDEO HERO SECTION - First block */}
+        <VideoHeroSection categories={categories} categoryImages={categoryImages} />
+
         <Hero heroImages={heroImages} onImageUpdate={handleHeroImageUpdate} />
         <TrustBadges />
-        <CategoryGrid
-          categories={categories}
-          categoryImages={categoryImages}
-          onImageUpdate={handleCategoryImageUpdate}
-        />
+
         <DynamicProductSection
           products={bestsellers}
           title="Trending This Week"
           subtitle="Most popular products our customers are loving right now"
           badge="Hot"
-          configKeyTitle="customTexts.bestsellersTitle"
-          configKeySubtitle="customTexts.bestsellersSubtitle"
         />
         <DynamicProductSection
           products={newArrivals}
           title="New Arrivals"
           subtitle="Fresh additions to our premium bathroom collection"
           badge="New"
-          configKeyTitle="customTexts.newArrivalsTitle"
-          configKeySubtitle="customTexts.newArrivalsSubtitle"
         />
+        <CustomerReviews />
         <CTASection />
       </div>
     </>
