@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
 import { LayoutWrapper } from "@/components/layout";
+import SmoothScroll from "@/components/SmoothScroll";
 
 export const metadata: Metadata = {
   title: {
@@ -63,9 +64,10 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <Providers>
+          <SmoothScroll />
           <LayoutWrapper>{children}</LayoutWrapper>
         </Providers>
       </body>
-    </html>
+    </html >
   );
 }
