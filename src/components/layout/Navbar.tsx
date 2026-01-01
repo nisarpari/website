@@ -203,10 +203,8 @@ export function Navbar({ categories = [] }: NavbarProps) {
     <>
       {/* Top Bar */}
       <div className="text-sm py-2" style={{ backgroundColor: '#0d1318', color: '#ffffff' }}>
-        <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center">
-          <span className="hidden sm:block" style={{ color: '#e8e4dd' }}>
-            {t('freeDelivery')} {countryConfig.currencySymbol} {countryConfig.freeDeliveryThreshold.toLocaleString()}
-          </span>
+        <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center relative">
+          {/* Left side - Theme, Language, Country */}
           <div className="flex items-center gap-2 md:gap-4">
             {/* Theme Toggle */}
             <button
@@ -239,7 +237,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
                 </svg>
               </button>
               {showLangMenu && (
-                <div className="absolute top-full right-0 mt-1 rounded-lg shadow-xl py-1 min-w-[120px] z-[100]" style={{ backgroundColor: '#ffffff', border: '1px solid #e5e0d8' }}>
+                <div className="absolute top-full left-0 mt-1 rounded-lg shadow-xl py-1 min-w-[120px] z-[100]" style={{ backgroundColor: '#ffffff', border: '1px solid #e5e0d8' }}>
                   {[
                     { code: 'en', name: 'English', flag: '🇬🇧' },
                     { code: 'ar', name: 'العربية', flag: '🇸🇦' },
@@ -273,7 +271,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
                 </svg>
               </button>
               {showCountryMenu && (
-                <div className="absolute top-full right-0 mt-1 rounded-lg shadow-xl py-1 min-w-[140px] z-[100]" style={{ backgroundColor: '#ffffff', border: '1px solid #e5e0d8' }}>
+                <div className="absolute top-full left-0 mt-1 rounded-lg shadow-xl py-1 min-w-[140px] z-[100]" style={{ backgroundColor: '#ffffff', border: '1px solid #e5e0d8' }}>
                   {Object.entries(countryConfigs).map(([code, config]) => (
                     <button
                       key={code}
@@ -288,11 +286,19 @@ export function Navbar({ categories = [] }: NavbarProps) {
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Mobile: Wishlist & Cart in top bar */}
-            <div className="flex lg:hidden items-center gap-1 ml-1 border-l border-white/20 pl-2">
+          {/* Center - Free Delivery message (desktop only) */}
+          <span className="hidden sm:block absolute left-1/2 -translate-x-1/2" style={{ color: '#e8e4dd' }}>
+            {t('freeDelivery')} {countryConfig.currencySymbol} {countryConfig.freeDeliveryThreshold.toLocaleString()}
+          </span>
+
+          {/* Right side - Wishlist & Cart (mobile), Track & Support (desktop) */}
+          <div className="flex items-center gap-2 md:gap-4">
+            {/* Mobile: Wishlist & Cart - extreme right */}
+            <div className="flex lg:hidden items-center gap-2">
               <Link href="/wishlist" className="p-1.5 hover:bg-white/10 rounded-full transition-colors relative">
-                <svg className={`w-4 h-4 ${wishlistCount > 0 ? 'text-red-400' : 'text-white'}`} fill={wishlistCount > 0 ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-5 h-5 ${wishlistCount > 0 ? 'text-red-400' : 'text-white'}`} fill={wishlistCount > 0 ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
                 {wishlistCount > 0 && (
@@ -300,7 +306,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
                 )}
               </Link>
               <Link href="/cart" className="p-1.5 hover:bg-white/10 rounded-full transition-colors relative">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 {cartCount > 0 && (
@@ -311,7 +317,8 @@ export function Navbar({ categories = [] }: NavbarProps) {
               </Link>
             </div>
 
-            <div className="hidden md:flex gap-4 ml-2 border-l border-white/20 pl-4" style={{ color: '#e8e4dd' }}>
+            {/* Desktop: Track & Support links */}
+            <div className="hidden md:flex gap-4" style={{ color: '#e8e4dd' }}>
               <Link href="/track" className="hover:text-gold-light transition-colors">{t('trackOrder')}</Link>
               <Link href="/contact" className="hover:text-gold-light transition-colors">{t('support')}</Link>
             </div>
