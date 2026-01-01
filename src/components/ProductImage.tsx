@@ -1,6 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
+
+const PLACEHOLDER_IMAGE = '/placeholder-product.jpg';
 
 interface ProductImageProps {
   src: string;
@@ -13,8 +16,8 @@ interface ProductImageProps {
   priority?: boolean;
 }
 
-// Simple wrapper around Next.js Image - no background removal
-// Background removal was too aggressive and affected product colors
+// Wrapper around Next.js Image with fallback handling
+// Shows placeholder if Odoo image fails to load
 export function ProductImage({
   src,
   alt,
@@ -25,28 +28,33 @@ export function ProductImage({
   className = '',
   priority = false,
 }: ProductImageProps) {
+  const [error, setError] = useState(false);
+  const imageSrc = error || !src ? PLACEHOLDER_IMAGE : src;
+
   if (fill) {
     return (
       <Image
-        src={src}
+        src={imageSrc}
         alt={alt}
         fill
         sizes={sizes}
         className={className}
         priority={priority}
+        onError={() => setError(true)}
       />
     );
   }
 
   return (
     <Image
-      src={src}
+      src={imageSrc}
       alt={alt}
       width={width}
       height={height}
       sizes={sizes}
       className={className}
       priority={priority}
+      onError={() => setError(true)}
     />
   );
 }
