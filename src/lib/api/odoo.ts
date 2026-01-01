@@ -1,5 +1,3 @@
-'use client';
-
 import { ODOO_CONFIG, MOCK_CATEGORIES } from './config';
 
 export interface RelatedProduct {
@@ -65,7 +63,7 @@ export const OdooAPI = {
         ? `${ODOO_CONFIG.baseUrl}/api/search?${params.toString()}`
         : `${ODOO_CONFIG.baseUrl}/api/products`;
 
-      const response = await fetch(url);
+      const response = await fetch(url, { next: { revalidate: 3600, tags: ['products'] } });
       const products = await response.json();
       if (products.error) throw new Error(products.error);
       return products;
@@ -78,7 +76,7 @@ export const OdooAPI = {
   async fetchPublicCategories(): Promise<Category[]> {
     if (!ODOO_CONFIG.useOdoo) return MOCK_CATEGORIES;
     try {
-      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/public-categories`);
+      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/public-categories`, { next: { revalidate: 3600, tags: ['categories'] } });
       const categories = await response.json();
       if (categories.error) throw new Error(categories.error);
       return categories;
@@ -96,7 +94,7 @@ export const OdooAPI = {
       const url = limit
         ? `${ODOO_CONFIG.baseUrl}/api/products/public-category/${categoryId}?limit=${limit}`
         : `${ODOO_CONFIG.baseUrl}/api/products/public-category/${categoryId}`;
-      const response = await fetch(url);
+      const response = await fetch(url, { next: { revalidate: 3600, tags: [`category-${categoryId}`] } });
       const products = await response.json();
       if (products.error) throw new Error(products.error);
       return products;
@@ -111,7 +109,7 @@ export const OdooAPI = {
       return null;
     }
     try {
-      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/products/by-slug/${slug}`);
+      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/products/by-slug/${slug}`, { next: { revalidate: 3600, tags: [`product-${slug}`] } });
       const product = await response.json();
       if (product.error) throw new Error(product.error);
       return product;
@@ -124,7 +122,7 @@ export const OdooAPI = {
   async fetchRibbons() {
     if (!ODOO_CONFIG.useOdoo) return [];
     try {
-      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/ribbons`);
+      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/ribbons`, { next: { revalidate: 86400 } }); // Cache for 24h
       return await response.json();
     } catch (error) {
       console.error('Failed to fetch ribbons:', error);
@@ -135,7 +133,7 @@ export const OdooAPI = {
   async fetchBestsellers(limit = 8): Promise<Product[]> {
     if (!ODOO_CONFIG.useOdoo) return [];
     try {
-      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/products/popular/bestsellers?limit=${limit}`);
+      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/products/popular/bestsellers?limit=${limit}`, { next: { revalidate: 3600 } });
       const products = await response.json();
       if (products.error) throw new Error(products.error);
       return products;
@@ -148,7 +146,7 @@ export const OdooAPI = {
   async fetchNewArrivals(limit = 8): Promise<Product[]> {
     if (!ODOO_CONFIG.useOdoo) return [];
     try {
-      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/products/popular/new-arrivals?limit=${limit}`);
+      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/products/popular/new-arrivals?limit=${limit}`, { next: { revalidate: 3600 } });
       const products = await response.json();
       if (products.error) throw new Error(products.error);
       return products;
@@ -160,7 +158,7 @@ export const OdooAPI = {
 
   async fetchCategoryImages(): Promise<Record<string, string>> {
     try {
-      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/admin/category-images`);
+      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/admin/category-images`, { next: { revalidate: 3600 } });
       const images = await response.json();
       return images || {};
     } catch (error) {
@@ -171,7 +169,7 @@ export const OdooAPI = {
 
   async fetchHeroImages(): Promise<Array<{ url: string; alt: string }>> {
     try {
-      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/admin/config`);
+      const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/admin/config`, { next: { revalidate: 3600 } });
       const config = await response.json();
       return config?.heroImages || [];
     } catch (error) {
@@ -184,7 +182,8 @@ export const OdooAPI = {
     if (!ODOO_CONFIG.useOdoo) return [];
     try {
       const response = await fetch(
-        `${ODOO_CONFIG.baseUrl}/api/products/random-from-category/${categoryId}?exclude=${excludeProductId}&limit=${limit}`
+        `${ODOO_CONFIG.baseUrl}/api/products/random-from-category/${categoryId}?exclude=${excludeProductId}&limit=${limit}`,
+        { next: { revalidate: 3600 } }
       );
       const products = await response.json();
       if (products.error) throw new Error(products.error);
