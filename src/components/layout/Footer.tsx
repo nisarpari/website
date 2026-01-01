@@ -136,7 +136,7 @@ export function Footer({ categories = [] }: FooterProps) {
                 </svg>
               </a>
               {/* WhatsApp */}
-              <a href="https://wa.me/96899999999" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-navy-light rounded-full flex items-center justify-center hover:bg-green-500 transition-colors">
+              <a href="https://wa.me/971566851447" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-navy-light rounded-full flex items-center justify-center hover:bg-green-500 transition-colors">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M17.47,14.38c-.29-.14-1.7-.84-1.96-.94s-.46-.14-.65.14-.75.94-.92,1.13-.34.21-.63.07a7.94,7.94,0,0,1-2.34-1.44,8.77,8.77,0,0,1-1.62-2.01c-.17-.29,0-.45.13-.59s.29-.34.44-.51a2,2,0,0,0,.29-.48.53.53,0,0,0,0-.51c-.07-.14-.65-1.57-.89-2.15s-.47-.49-.65-.5-.36,0-.55,0a1.06,1.06,0,0,0-.77.36,3.22,3.22,0,0,0-1,2.4,5.59,5.59,0,0,0,1.17,2.97,12.82,12.82,0,0,0,4.9,4.33,16.17,16.17,0,0,0,1.64.61,3.94,3.94,0,0,0,1.81.11,2.96,2.96,0,0,0,1.94-1.37,2.4,2.4,0,0,0,.17-1.37C17.94,14.52,17.76,14.45,17.47,14.38Z" />
                   <path d="M20.52,3.48A11.93,11.93,0,0,0,12.05,0,11.82,11.82,0,0,0,1.75,17.69L0,24l6.47-1.7A11.83,11.83,0,0,0,12.05,24h0A11.82,11.82,0,0,0,20.52,3.48ZM12.05,21.64a9.82,9.82,0,0,1-5-1.37l-.36-.21-3.73.98,1-3.65-.24-.37a9.86,9.86,0,1,1,8.33,4.62Z" />
