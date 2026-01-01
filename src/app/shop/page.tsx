@@ -7,6 +7,33 @@ import Image from 'next/image';
 import { useLocale, useCart, useWishlist, useVerification, useAdmin } from '@/context';
 import { OdooAPI, type Product, type Category } from '@/lib/api/odoo';
 import { EditableImage } from '@/components/admin';
+import { ProductImage } from '@/components/ProductImage';
+
+// Custom hook for scroll animation using Intersection Observer
+function useScrollAnimation(options?: IntersectionObserverInit) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(element); // Only animate once
+        }
+      },
+      { threshold: 0.1, rootMargin: '50px', ...options }
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [options]);
+
+  return { ref, isVisible };
+}
 
 const PRODUCTS_PER_PAGE = 25;
 
@@ -18,9 +45,9 @@ function ProductCard({ product }: { product: Product }) {
   const inWishlist = isInWishlist(product.id);
 
   return (
-    <Link href={`/product/${product.slug}`} className="product-card bg-white rounded-lg overflow-hidden shadow-sm border border-bella-100 hover:shadow-md transition-shadow">
-      <div className="relative aspect-square bg-white p-1">
-        <Image
+    <Link href={`/product/${product.slug}`} className="product-card bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow">
+      <div className="relative aspect-square bg-white dark:bg-navy-light p-1">
+        <ProductImage
           src={product.thumbnail || product.image || '/placeholder.jpg'}
           alt={product.name}
           fill
@@ -29,21 +56,21 @@ function ProductCard({ product }: { product: Product }) {
         />
         <button
           onClick={(e) => { e.preventDefault(); toggleWishlist(product); }}
-          className={`absolute top-1 right-1 w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow-sm transition-colors ${inWishlist ? 'bg-red-50 hover:bg-red-100' : 'bg-white hover:bg-bella-50'}`}
+          className={`absolute top-1 right-1 w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow-sm transition-colors ${inWishlist ? 'bg-red-50 hover:bg-red-100' : 'bg-white dark:bg-bella-700 hover:bg-bella-50 dark:hover:bg-bella-600'}`}
         >
-          <svg className={`w-3 h-3 md:w-4 md:h-4 ${inWishlist ? 'text-red-500' : 'text-bella-400'}`} fill={inWishlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+          <svg className={`w-3 h-3 md:w-4 md:h-4 ${inWishlist ? 'text-red-500' : 'text-bella-400 dark:text-bella-300'}`} fill={inWishlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
         </button>
       </div>
-      <div className="p-2 md:p-3 border-t border-bella-50">
-        <p className="text-bella-400 text-[9px] md:text-[10px] uppercase tracking-wide truncate">{product.category}</p>
-        <h3 className="text-xs md:text-sm font-medium text-navy mt-0.5 line-clamp-2 leading-tight min-h-[2rem] md:min-h-[2.5rem]">{product.name}</h3>
+      <div className="p-2 md:p-3 border-t border-bella-50 dark:border-bella-700">
+        <p className="text-bella-400 dark:text-bella-500 text-[9px] md:text-[10px] uppercase tracking-wide truncate">{product.category}</p>
+        <h3 className="text-xs md:text-sm font-medium text-navy dark:text-white mt-0.5 line-clamp-2 leading-tight min-h-[2rem] md:min-h-[2.5rem]">{product.name}</h3>
         <div className="flex items-center justify-between mt-1.5 md:mt-2">
           {isVerified ? (
-            <span className="text-sm md:text-base font-bold text-navy">{countryConfig.currencySymbol} {formatPrice(product.price)}</span>
+            <span className="text-sm md:text-base font-bold text-navy dark:text-white">{countryConfig.currencySymbol} {formatPrice(product.price)}</span>
           ) : (
-            <span className="text-xs md:text-sm text-bella-500">Login to see price</span>
+            <span className="text-xs md:text-sm text-bella-500 dark:text-bella-400">Login to see price</span>
           )}
           {product.inStock !== false && isVerified && (
             <button
@@ -59,69 +86,50 @@ function ProductCard({ product }: { product: Product }) {
   );
 }
 
-// Category colors for visual distinction
-const CATEGORY_COLORS: Record<string, string> = {
-  'Bathroom': 'from-blue-500 to-blue-700',
-  'Collections': 'from-purple-500 to-purple-700',
-  'Bath Essentials': 'from-teal-500 to-teal-700',
-  'Washroom': 'from-cyan-500 to-cyan-700',
-  'Wellness': 'from-green-500 to-green-700',
-  'Washlet': 'from-indigo-500 to-indigo-700',
-};
 
-// Category icons (SVG paths)
-const CATEGORY_ICONS: Record<string, JSX.Element> = {
-  'Bathroom': (
-    <svg className="w-12 h-12 md:w-16 md:h-16 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  'Collections': (
-    <svg className="w-12 h-12 md:w-16 md:h-16 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-    </svg>
-  ),
-  'default': (
-    <svg className="w-12 h-12 md:w-16 md:h-16 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-    </svg>
-  ),
-};
 
-function CategoryCard({ category, categoryImage, onImageUpdate }: {
+// Category Card Component with scroll animation
+function CategoryCard({ category, categoryImage, customImage, isAdmin, editMode, onImageUpdate, index = 0 }: {
   category: Category;
-  categoryImage?: string;
+  categoryImage: string | undefined;
+  customImage: string | undefined;
+  isAdmin: boolean;
+  editMode: boolean;
   onImageUpdate?: (categoryId: string, imageUrl: string) => void;
+  index?: number;
 }) {
-  const { isAdmin, editMode } = useAdmin();
-  const colorClass = CATEGORY_COLORS[category.name] || 'from-bella-500 to-bella-700';
-  const icon = CATEGORY_ICONS[category.name] || CATEGORY_ICONS['default'];
-  const hasChildren = category.childIds && category.childIds.length > 0;
+  const { ref, isVisible } = useScrollAnimation();
+  const hasImage = !!categoryImage;
+  const isFallback = categoryImage && !customImage;
 
-  // Parent categories go to category landing page, leaf categories go to shop
-  const href = hasChildren ? `/category/${category.id}` : `/shop?category=${category.id}`;
-
-  // Check if category has a custom image
-  const hasCustomImage = !!categoryImage;
+  // Staggered animation delay based on index (max 5 items per row)
+  const staggerDelay = (index % 5) * 0.1;
 
   return (
-    <Link
-      href={href}
-      className={`group relative aspect-[4/3] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all ${
-        hasCustomImage ? '' : `bg-gradient-to-br ${colorClass}`
+    <div
+      ref={ref}
+      className={`transition-all duration-700 ease-out ${
+        isVisible
+          ? 'opacity-100 translate-y-0'
+          : 'opacity-0 translate-y-8'
       }`}
+      style={{ transitionDelay: isVisible ? `${staggerDelay}s` : '0s' }}
     >
-      {/* Custom Image Background */}
-      {hasCustomImage && (
-        <>
-          {isAdmin && editMode ? (
+      <Link
+        href={`/shop?category=${category.id}`}
+        className="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-bella-100 hover:border-gold/30 block"
+      >
+      {/* Image Container */}
+      <div className={`relative aspect-[4/3] ${isFallback ? 'bg-white' : 'bg-gradient-to-br from-bella-50 to-bella-100'}`}>
+        {hasImage ? (
+          isAdmin && editMode ? (
             <EditableImage
               src={categoryImage}
               alt={category.name}
               configKey={`categoryImages.${category.id}`}
               fill
-              sizes="(max-width: 768px) 50vw, 33vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className={`${customImage ? 'object-cover' : 'object-contain p-4'} transition-transform duration-500 group-hover:scale-110`}
               onUpdate={(newUrl) => onImageUpdate?.(category.id.toString(), newUrl)}
             />
           ) : (
@@ -129,70 +137,343 @@ function CategoryCard({ category, categoryImage, onImageUpdate }: {
               src={categoryImage}
               alt={category.name}
               fill
-              sizes="(max-width: 768px) 50vw, 33vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className={`${customImage ? 'object-cover' : 'object-contain p-4'} transition-transform duration-500 group-hover:scale-110`}
             />
-          )}
-          {/* Overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10 pointer-events-none" />
-        </>
-      )}
-
-      {/* Admin Edit Button for categories without custom image */}
-      {!hasCustomImage && isAdmin && editMode && (
-        <div className="absolute inset-0 z-10">
-          <EditableImage
-            src="/placeholder.jpg"
-            alt={category.name}
-            configKey={`categoryImages.${category.id}`}
-            fill
-            sizes="(max-width: 768px) 50vw, 33vw"
-            className="object-cover opacity-0"
-            onUpdate={(newUrl) => onImageUpdate?.(category.id.toString(), newUrl)}
-          />
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-10 pointer-events-none">
-        {!hasCustomImage && icon}
-        <h3 className="text-white font-semibold text-lg md:text-xl mt-3 text-center drop-shadow-lg">{category.name}</h3>
-        <p className="text-white/80 text-sm mt-1 drop-shadow">{category.totalCount || 0} products</p>
+          )
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            {isAdmin && editMode ? (
+              <EditableImage
+                src="/placeholder.jpg"
+                alt={category.name}
+                configKey={`categoryImages.${category.id}`}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-cover opacity-30"
+                onUpdate={(newUrl) => onImageUpdate?.(category.id.toString(), newUrl)}
+              />
+            ) : (
+              <svg className="w-16 h-16 text-bella-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            )}
+          </div>
+        )}
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-navy/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
 
-      {/* Hover overlay */}
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
-    </Link>
+      {/* Category Info */}
+      <div className="p-4">
+        <h3 className="font-semibold text-navy text-sm md:text-base group-hover:text-gold transition-colors line-clamp-1">
+          {category.name}
+        </h3>
+        <div className="flex items-center justify-between mt-2">
+          <span className="text-bella-500 text-xs">{category.totalCount || 0} products</span>
+          <span className="text-gold text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+            Browse
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+      </div>
+      </Link>
+    </div>
   );
 }
 
-function CategoryPicker({ categories, categoryImages, onImageUpdate }: {
+// All Categories Grid - Shows all categories with improved UI/UX
+function AllCategoriesGrid({ categories, categoryImages, onImageUpdate }: {
   categories: Category[];
   categoryImages: Record<string, string>;
   onImageUpdate?: (categoryId: string, imageUrl: string) => void;
 }) {
-  const { t } = useLocale();
+  const { isAdmin, editMode } = useAdmin();
+  const [productFallbackImages, setProductFallbackImages] = useState<Record<string, string>>({});
+  const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Group categories by their root parent for organized display
   const rootCategories = categories.filter(c => c.parentId === null);
 
+  // Get all leaf categories (no children) - these link directly to products
+  const getLeafCategories = (parentId: number | null): Category[] => {
+    const children = categories.filter(c => c.parentId === parentId);
+    const leaves: Category[] = [];
+
+    children.forEach(child => {
+      if (!child.childIds || child.childIds.length === 0) {
+        leaves.push(child);
+      } else {
+        leaves.push(...getLeafCategories(child.id));
+      }
+    });
+
+    return leaves;
+  };
+
+  // Get all categories organized by root parent
+  const categoriesByRoot = rootCategories.map(root => ({
+    root,
+    categories: root.childIds && root.childIds.length > 0
+      ? getLeafCategories(root.id)
+      : [root]
+  })).filter(group => group.categories.length > 0);
+
+  // Filter categories based on search
+  const filteredCategoriesByRoot = useMemo(() => {
+    if (!searchQuery.trim()) return categoriesByRoot;
+
+    const query = searchQuery.toLowerCase();
+    return categoriesByRoot.map(group => ({
+      ...group,
+      categories: group.categories.filter(cat =>
+        cat.name.toLowerCase().includes(query)
+      )
+    })).filter(group => group.categories.length > 0);
+  }, [categoriesByRoot, searchQuery]);
+
+  // Get displayed categories based on active tab
+  const displayedGroups = useMemo(() => {
+    if (!activeTab) return filteredCategoriesByRoot;
+    return filteredCategoriesByRoot.filter(group => group.root.id.toString() === activeTab);
+  }, [filteredCategoriesByRoot, activeTab]);
+
+  // Get all leaf category IDs as a stable dependency
+  const leafCategoryIds = useMemo(() =>
+    categoriesByRoot.flatMap(group => group.categories).map(cat => cat.id).sort().join(','),
+    [categoriesByRoot]
+  );
+
+  // Fetch product images as fallback for categories without custom images
+  useEffect(() => {
+    const fetchFallbackImages = async () => {
+      const allLeafCategories = categoriesByRoot.flatMap(group => group.categories);
+      const categoriesNeedingImages = allLeafCategories.filter(
+        cat => !categoryImages[cat.id.toString()] && !productFallbackImages[cat.id.toString()]
+      );
+
+      if (categoriesNeedingImages.length === 0) return;
+
+      const imagePromises = categoriesNeedingImages.map(async (cat) => {
+        try {
+          const products = await OdooAPI.fetchProductsByPublicCategory(cat.id, 1);
+          const imageUrl = products[0]?.thumbnail || products[0]?.image;
+          if (imageUrl) {
+            return { categoryId: cat.id.toString(), imageUrl };
+          }
+        } catch (error) {
+          console.error(`Failed to fetch fallback image for category ${cat.id}:`, error);
+        }
+        return null;
+      });
+
+      const results = await Promise.all(imagePromises);
+      const newFallbackImages: Record<string, string> = {};
+      results.forEach(result => {
+        if (result) {
+          newFallbackImages[result.categoryId] = result.imageUrl;
+        }
+      });
+
+      if (Object.keys(newFallbackImages).length > 0) {
+        setProductFallbackImages(prev => ({ ...prev, ...newFallbackImages }));
+      }
+    };
+
+    fetchFallbackImages();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leafCategoryIds, categoryImages]);
+
   return (
-    <div className="py-8">
-      <div className="text-center mb-8">
-        <h2 className="font-display text-2xl md:text-3xl font-bold text-navy mb-2">{t('shopByCategory')}</h2>
-        <p className="text-bella-600">Select a category to browse products</p>
+    <div className="space-y-6">
+      {/* Category Tabs with Search */}
+      <div className="sticky top-20 z-30 bg-bella-50/95 backdrop-blur-sm py-3 -mx-4 px-4 md:-mx-6 md:px-6">
+        <div className="flex items-center gap-3">
+          {/* Search Input */}
+          <div className="relative flex-shrink-0">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-32 md:w-40 px-3 py-1.5 pl-8 bg-white border border-bella-200 rounded-full text-sm text-navy placeholder-bella-400 focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold"
+            />
+            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-bella-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-bella-400 hover:text-navy"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          {/* Category Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
+            <button
+              onClick={() => setActiveTab(null)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                !activeTab
+                  ? 'bg-navy text-white'
+                  : 'bg-white text-bella-600 hover:bg-bella-100 border border-bella-200'
+              }`}
+            >
+              All
+            </button>
+            {rootCategories.map(root => (
+              <button
+                key={root.id}
+                onClick={() => setActiveTab(activeTab === root.id.toString() ? null : root.id.toString())}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                  activeTab === root.id.toString()
+                    ? 'bg-gold text-white'
+                    : 'bg-white text-bella-600 hover:bg-bella-100 border border-bella-200'
+                }`}
+              >
+                {root.name}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-        {rootCategories.map(category => (
-          <CategoryCard
-            key={category.id}
-            category={category}
-            categoryImage={categoryImages[category.id.toString()]}
-            onImageUpdate={onImageUpdate}
-          />
-        ))}
-      </div>
+
+      {/* Category Sections */}
+      {displayedGroups.length === 0 ? (
+        <div className="text-center py-12">
+          <svg className="w-16 h-16 mx-auto text-bella-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <h3 className="text-lg font-medium text-navy mb-2">No categories found</h3>
+          <p className="text-bella-500">Try a different search term</p>
+          <button
+            onClick={() => setSearchQuery('')}
+            className="mt-4 text-gold hover:text-gold-dark font-medium"
+          >
+            Clear search
+          </button>
+        </div>
+      ) : (
+        displayedGroups.map(group => (
+          <div key={group.root.id} className="space-y-6">
+            {/* Section Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-1 h-8 bg-gold rounded-full" />
+                <div>
+                  <h2 className="font-display text-xl md:text-2xl font-bold text-navy">{group.root.name}</h2>
+                  <p className="text-bella-500 text-sm">{group.categories.length} categories • {group.root.totalCount || 0} products</p>
+                </div>
+              </div>
+              <Link
+                href={`/${group.root.slug}`}
+                className="hidden md:flex items-center gap-2 px-4 py-2 bg-navy/5 hover:bg-navy/10 rounded-lg text-navy font-medium text-sm transition-colors"
+              >
+                View All {group.root.name}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+
+            {/* Category Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+              {group.categories.map((category, idx) => {
+                const customImage = categoryImages[category.id.toString()];
+                const fallbackImage = productFallbackImages[category.id.toString()];
+                const categoryImage = customImage || fallbackImage;
+
+                return (
+                  <CategoryCard
+                    key={category.id}
+                    category={category}
+                    categoryImage={categoryImage}
+                    customImage={customImage}
+                    isAdmin={isAdmin}
+                    editMode={editMode}
+                    onImageUpdate={onImageUpdate}
+                    index={idx}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Mobile View All Link */}
+            <div className="md:hidden">
+              <Link
+                href={`/${group.root.slug}`}
+                className="flex items-center justify-center gap-2 w-full py-3 bg-navy/5 hover:bg-navy/10 rounded-xl text-navy font-medium text-sm transition-colors"
+              >
+                View All {group.root.name}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        ))
+      )}
+
+      {/* Quick Links Banner */}
+      {!searchQuery && !activeTab && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+          <Link
+            href="/collections"
+            className="group flex items-center gap-4 p-6 bg-gradient-to-r from-gold/10 to-gold/5 rounded-2xl border border-gold/20 hover:border-gold/40 transition-all"
+          >
+            <div className="w-12 h-12 bg-gold/20 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-navy group-hover:text-gold transition-colors">Collections</h3>
+              <p className="text-sm text-bella-500">Curated bathroom sets</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/smart-products"
+            className="group flex items-center gap-4 p-6 bg-gradient-to-r from-navy/10 to-navy/5 rounded-2xl border border-navy/20 hover:border-navy/40 transition-all"
+          >
+            <div className="w-12 h-12 bg-navy/20 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-navy group-hover:text-gold transition-colors">Smart Products</h3>
+              <p className="text-sm text-bella-500">Tech-enabled solutions</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/wellness"
+            className="group flex items-center gap-4 p-6 bg-gradient-to-r from-emerald-500/10 to-emerald-500/5 rounded-2xl border border-emerald-500/20 hover:border-emerald-500/40 transition-all"
+          >
+            <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-navy group-hover:text-gold transition-colors">Wellness</h3>
+              <p className="text-sm text-bella-500">Jacuzzis, Saunas & more</p>
+            </div>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
+
 
 function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
   categories: Category[];
@@ -201,7 +482,100 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
 }) {
   const { t } = useLocale();
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
-  const rootCategories = categories.filter(c => c.parentId === null);
+
+  // Categories to hide from sidebar (matching navbar)
+  const hiddenFromSidebar = ['collections', 'bath essentials', 'bath assist'];
+
+  // Rename mappings for display (matching navbar)
+  const renameCategory = (name: string) => {
+    const renames: Record<string, string> = {
+      'washlet': 'Toilets',
+    };
+    return renames[name.toLowerCase()] || name;
+  };
+
+  // Custom order for root categories (matching navbar display order)
+  const rootCategoryOrder = ['bathroom', 'washroom', 'toilets', 'wellness', 'kitchen', 'misc', 'water heaters', 'switches & sockets'];
+
+  // Custom submenu order for specific categories (matching navbar)
+  const customSubmenuOrder: Record<string, string[]> = {
+    'washroom': [
+      'Hygiene Pro',
+      'Faucets',
+      'Basin Mixer',
+      'Basin Mixer Tall',
+      'Concealed Basin Mixers',
+      'Deck Mount Basin Mixer',
+      'Floor Mounted Mixers',
+      'Sensor Faucets',
+      'Basins',
+      'Art Basins',
+      'Wall Hung Basins',
+      'Pedestal Basin',
+      'Stand Basins',
+      'Artificial Stone Basins',
+      'Stone Art Basins',
+      'Stone Stand Basins',
+      'Wudu Basin',
+      'Cabinets',
+      'Shattaf',
+      'Shattaf Mixer'
+    ],
+    'bathroom': [
+      'Concealed Shower',
+      'Shower Mixer',
+      'Shower Mixer Column',
+      'Shower Panels',
+      'Shower Accessories',
+      'Rain Showers',
+      'Hand Showers',
+      'Shower Arms',
+      'Bath Spouts',
+      'Shower Rooms',
+      'Shower Seats'
+    ],
+    'toilets': [
+      'Concealed Cisterns',
+      'Exposed Cisterns',
+      'Flush Plates',
+      'Wall Hung Toilets',
+      'Tankless WC',
+      'Single Piece Toilet',
+      'Urinals'
+    ],
+  };
+
+  // Get ordered children for a category
+  const getOrderedChildren = (cat: Category) => {
+    const children = categories.filter(c => c.parentId === cat.id);
+    const displayName = renameCategory(cat.name);
+    const customOrder = customSubmenuOrder[displayName.toLowerCase()] || customSubmenuOrder[cat.name.toLowerCase()];
+
+    if (!customOrder) return children;
+
+    return [...children].sort((a, b) => {
+      const aIndex = customOrder.findIndex(name => a.name.toLowerCase() === name.toLowerCase());
+      const bIndex = customOrder.findIndex(name => b.name.toLowerCase() === name.toLowerCase());
+      if (aIndex === -1 && bIndex === -1) return 0;
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+      return aIndex - bIndex;
+    });
+  };
+
+  // Filter and order root categories
+  const rootCategories = categories
+    .filter(c => c.parentId === null && !hiddenFromSidebar.includes(c.name.toLowerCase()))
+    .sort((a, b) => {
+      const aName = renameCategory(a.name).toLowerCase();
+      const bName = renameCategory(b.name).toLowerCase();
+      const aIndex = rootCategoryOrder.indexOf(aName);
+      const bIndex = rootCategoryOrder.indexOf(bName);
+      if (aIndex === -1 && bIndex === -1) return 0;
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+      return aIndex - bIndex;
+    });
 
   // Auto-expand parent categories when a child is selected
   useEffect(() => {
@@ -235,10 +609,11 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
   };
 
   const renderCategory = (cat: Category, level = 0) => {
-    const children = categories.filter(c => c.parentId === cat.id);
+    const children = getOrderedChildren(cat);
     const hasChildren = children.length > 0;
     const isExpanded = expandedCategories.includes(cat.id);
     const isSelected = selectedCategoryId === cat.id;
+    const displayName = renameCategory(cat.name);
 
     // Handle click: parent categories expand/collapse, leaf categories navigate
     const handleCategoryClick = () => {
@@ -274,15 +649,8 @@ function CategorySidebar({ categories, selectedCategoryId, onSelectCategory }: {
                   : 'text-bella-700 hover:text-gold'
             }`}
           >
-            {cat.name}
+            {displayName}
             <span className="text-bella-400 text-xs ml-2">({cat.totalCount || 0})</span>
-            {hasChildren && (
-              <span className="text-bella-400 text-xs ml-1">
-                <svg className="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </span>
-            )}
           </button>
         </div>
         {hasChildren && isExpanded && (
@@ -382,8 +750,8 @@ function ShopPageContent() {
         // Check if this is a parent category (has children)
         const selectedCat = cats.find(c => c.id === selectedCategoryId);
         if (selectedCat && selectedCat.childIds && selectedCat.childIds.length > 0) {
-          // Redirect to category landing page for parent categories
-          router.replace(`/category/${selectedCategoryId}`);
+          // Redirect to category landing page for parent categories using slug
+          router.replace(`/${selectedCat.slug}`);
           return;
         }
 
@@ -810,8 +1178,8 @@ function ShopPageContent() {
                 <Image src="/bella-loading.gif" alt="Loading..." width={80} height={80} unoptimized />
               </div>
             ) : !selectedCategoryId ? (
-              // Show category picker when no category is selected
-              <CategoryPicker
+              // Show all categories grid when no category is selected
+              <AllCategoriesGrid
                 categories={categories}
                 categoryImages={categoryImages}
                 onImageUpdate={handleCategoryImageUpdate}

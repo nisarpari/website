@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 
 // Translations
 const translations: Record<string, Record<string, string>> = {
@@ -326,6 +326,40 @@ interface LocaleProviderProps {
   children: ReactNode;
 }
 
+// Map of country codes from geolocation APIs to our supported countries
+const countryCodeMap: Record<string, string> = {
+  'OM': 'OM', // Oman
+  'AE': 'AE', // UAE
+  'QA': 'QA', // Qatar
+  'IN': 'IN', // India
+  // ISO 3166-1 alpha-3 variations
+  'OMN': 'OM',
+  'ARE': 'AE',
+  'QAT': 'QA',
+  'IND': 'IN',
+};
+
+// Detect user's country from IP using free geolocation API
+async function detectCountryFromIP(): Promise<string | null> {
+  try {
+    // Use ipapi.co (free, no API key needed, 1000 requests/day)
+    const response = await fetch('https://ipapi.co/json/', {
+      signal: AbortSignal.timeout(3000) // 3 second timeout
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const countryCode = data.country_code || data.country;
+      if (countryCode && countryCodeMap[countryCode]) {
+        return countryCodeMap[countryCode];
+      }
+    }
+  } catch {
+    console.log('Country detection failed, using default');
+  }
+  return null;
+}
+
 export const LocaleProvider = ({ children }: LocaleProviderProps) => {
   const [language, setLanguageState] = useState('en');
   const [country, setCountryState] = useState('OM');
@@ -334,9 +368,31 @@ export const LocaleProvider = ({ children }: LocaleProviderProps) => {
   useEffect(() => {
     setIsClient(true);
     const savedLanguage = localStorage.getItem('bella_language') || 'en';
-    const savedCountry = localStorage.getItem('bella_country') || 'OM';
+    const savedCountry = localStorage.getItem('bella_country');
+    const hasVisited = localStorage.getItem('bella_has_visited');
+
     setLanguageState(savedLanguage);
-    setCountryState(savedCountry);
+
+    // If user has already visited and selected a country, use their saved preference
+    if (savedCountry) {
+      setCountryState(savedCountry);
+    } else if (!hasVisited) {
+      // First-time visitor: detect their country from IP
+      detectCountryFromIP().then(detectedCountry => {
+        if (detectedCountry) {
+          setCountryState(detectedCountry);
+          localStorage.setItem('bella_country', detectedCountry);
+        } else {
+          // Default to Oman if detection fails
+          localStorage.setItem('bella_country', 'OM');
+        }
+        // Mark as visited so we don't auto-detect again
+        localStorage.setItem('bella_has_visited', 'true');
+      });
+    } else {
+      // Returning visitor without saved country (edge case) - default to Oman
+      setCountryState('OM');
+    }
   }, []);
 
   useEffect(() => {
@@ -359,16 +415,21 @@ export const LocaleProvider = ({ children }: LocaleProviderProps) => {
     setCountryState(c);
   };
 
-  const t = (key: string): string => translations[language]?.[key] || translations.en[key] || key;
+  const t = useCallback(
+    (key: string): string => translations[language]?.[key] || translations.en[key] || key,
+    [language]
+  );
   const countryConfig = countryConfigs[country] || countryConfigs.OM;
 
-  // Price formatter bound to current country
-  const formatPrice = (basePrice: number): string => formatPriceWithConfig(basePrice, countryConfig);
+  // Price formatter bound to current country - memoize to prevent new function on each render
+  const formatPrice = useCallback(
+    (basePrice: number): string => formatPriceWithConfig(basePrice, countryConfig),
+    [countryConfig]
+  );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const value = useMemo(() => ({
     language, setLanguage, country, setCountry, t, countryConfig, countryConfigs, formatPrice
-  }), [language, country]); // t, countryConfig, formatPrice are stable based on language/country
+  }), [language, country, t, countryConfig, formatPrice]);
 
   return (
     <LocaleContext.Provider value={value}>

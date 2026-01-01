@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
-import { useLocale, useAdmin } from '@/context';
+import { useLocale } from '@/context';
 import { OdooAPI, type Product } from '@/lib/api/odoo';
 import { ProductImage } from '@/components/ProductImage';
 
@@ -50,9 +50,6 @@ export interface CategoryShowcaseProps {
   ctaDescription?: string;
   ctaButtonText?: string;
   ctaButtonLink?: string;
-
-  // Theme
-  accentColor?: string;
 }
 
 // Animated counter component
@@ -149,8 +146,7 @@ export function CategoryShowcase({
   ctaTitle,
   ctaDescription,
   ctaButtonText = 'View All Products',
-  ctaButtonLink,
-  accentColor = 'gold'
+  ctaButtonLink
 }: CategoryShowcaseProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);

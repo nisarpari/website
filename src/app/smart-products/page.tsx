@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, useInView, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { useLocale } from '@/context';
 import { OdooAPI, type Product } from '@/lib/api/odoo';
 import { ProductImage } from '@/components/ProductImage';
@@ -148,7 +148,6 @@ export default function SmartProductsPage() {
   });
 
   const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 1.1]);
 
   useEffect(() => {
     const loadProducts = async () => {

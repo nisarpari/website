@@ -299,21 +299,46 @@ export function Navbar({ categories = [] }: NavbarProps) {
       {/* Main Navigation */}
       <nav className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? (isDark ? 'bg-navy shadow-lg' : 'bg-white shadow-lg') : (isDark ? 'bg-navy/95 backdrop-blur-md' : 'bg-white/95 backdrop-blur-md')}`}>
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between h-20">
-            {/* Logo - switches based on theme */}
+          {/* Desktop: Logo centered above nav */}
+          <div className="hidden lg:flex justify-center py-4">
             <Link href="/" className="cursor-pointer">
               <Image
                 src={isDark ? '/bella_logo_white.png' : '/bella_logo.png'}
                 alt="Bella Bathwares"
-                width={112}
-                height={56}
-                className="h-10 md:h-14 w-auto object-contain"
+                width={180}
+                height={90}
+                className="h-12 w-auto object-contain"
+                priority
+              />
+            </Link>
+          </div>
+
+          <div className="flex items-center justify-between h-16 lg:h-12 lg:pb-3 relative">
+            {/* Mobile Menu Button - Left side on mobile */}
+            <button className="lg:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              <svg className="w-6 h-6 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+
+            {/* Mobile Logo - Centered */}
+            <Link href="/" className="cursor-pointer absolute left-1/2 -translate-x-1/2 lg:hidden z-10">
+              <Image
+                src={isDark ? '/bella_logo_white.png' : '/bella_logo.png'}
+                alt="Bella Bathwares"
+                width={140}
+                height={70}
+                className="h-8 w-auto object-contain"
                 priority
               />
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center justify-center flex-1 mx-4">
+            {/* Desktop Navigation - Centered with icons on right */}
+            <div className="hidden lg:flex items-center justify-center flex-1">
               <div className="flex items-center gap-1 xl:gap-2">
                 <Link href="/" className="nav-link-anim px-3 xl:px-4 py-2 text-sm font-medium text-navy-light hover:text-gold transition-colors whitespace-nowrap">
                   {t('home')}
@@ -330,7 +355,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
 
                 {rootCategories.map(cat => {
                   const isBathroom = cat.name.toLowerCase() === 'bathroom';
-                  const hasChildren = (cat.childIds && cat.childIds.length > 0) || (isBathroom && bathEssentialsCategory);
+                  const hasChildren = (cat.childIds && cat.childIds.length > 0) || (isBathroom && !!bathEssentialsCategory);
                   const orderedChildCategories = getOrderedSubmenus(cat);
 
                   // For Bathroom, we need to insert Accessories in the right position
@@ -361,7 +386,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
                     {hasChildren && (
                       <div className="nav-dropdown absolute top-full left-0 bg-white shadow-xl rounded-lg py-4 min-w-[220px]">
                         {displaySubmenus.map(sub => {
-                          const subHasChildren = sub.childIds && sub.childIds.length > 0;
+                          const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
                           return (
                             <Link
                               key={sub.id}
@@ -458,7 +483,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
               </div>
 
               {/* Wishlist */}
-              <Link href="/wishlist" className="p-2 hover:bg-bella-100 rounded-full transition-colors hidden sm:flex relative">
+              <Link href="/wishlist" className="p-2 hover:bg-bella-100 rounded-full transition-colors relative">
                 <svg className={`w-5 h-5 ${wishlistCount > 0 ? 'text-red-500' : 'text-navy'}`} fill={wishlistCount > 0 ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
@@ -478,17 +503,6 @@ export function Navbar({ categories = [] }: NavbarProps) {
                   </span>
                 )}
               </Link>
-
-              {/* Mobile Menu Button */}
-              <button className="lg:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-                <svg className="w-6 h-6 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {mobileMenuOpen ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  )}
-                </svg>
-              </button>
             </div>
           </div>
         </div>
@@ -510,7 +524,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
             Smart Products
           </Link>
           {rootCategories.map(cat => {
-            const hasChildren = cat.childIds && cat.childIds.length > 0;
+            const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
             return (
               <Link
                 key={cat.id}

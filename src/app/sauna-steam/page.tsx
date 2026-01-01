@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, useInView, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { useLocale } from '@/context';
 import { OdooAPI, type Product } from '@/lib/api/odoo';
 import { ProductImage } from '@/components/ProductImage';
