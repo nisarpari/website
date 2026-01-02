@@ -300,59 +300,58 @@ function AllCategoriesGrid({ categories, categoryImages, onImageUpdate }: {
 
   return (
     <div className="space-y-6">
-      {/* Category Tabs with Search */}
-      <div className="sticky top-20 z-30 bg-bella-50/95 backdrop-blur-sm py-3 -mx-4 px-4 md:-mx-6 md:px-6">
-        <div className="flex items-center gap-3">
-          {/* Search Input */}
-          <div className="relative flex-shrink-0">
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-32 md:w-40 px-3 py-1.5 pl-8 bg-white border border-bella-200 rounded-full text-sm text-navy placeholder-bella-400 focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold"
-            />
-            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-bella-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-bella-400 hover:text-navy"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
-
-          {/* Category Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
+      {/* Search Input - Right Aligned Above Categories */}
+      <div className="flex justify-end">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search categories..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-48 md:w-56 px-4 py-2 pl-10 bg-white border border-bella-200 rounded-full text-sm text-navy placeholder-bella-400 focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold shadow-sm"
+          />
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-bella-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          {searchQuery && (
             <button
-              onClick={() => setActiveTab(null)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                !activeTab
-                  ? 'bg-navy text-white'
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-bella-400 hover:text-navy"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Category Pills - Wrapped Grid */}
+      <div className="sticky top-20 z-30 bg-bella-50/95 backdrop-blur-sm py-3 -mx-4 px-4 md:-mx-6 md:px-6">
+        <div className="flex flex-wrap gap-2 max-h-[7.5rem] md:max-h-[4.5rem] overflow-hidden">
+          <button
+            onClick={() => setActiveTab(null)}
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+              !activeTab
+                ? 'bg-navy text-white shadow-md'
+                : 'bg-white text-bella-600 hover:bg-bella-100 border border-bella-200'
+            }`}
+          >
+            All Categories
+          </button>
+          {rootCategories.map(root => (
+            <button
+              key={root.id}
+              onClick={() => setActiveTab(activeTab === root.id.toString() ? null : root.id.toString())}
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                activeTab === root.id.toString()
+                  ? 'bg-gold text-white shadow-md'
                   : 'bg-white text-bella-600 hover:bg-bella-100 border border-bella-200'
               }`}
             >
-              All
+              {renameCategory(root.name)}
             </button>
-            {rootCategories.map(root => (
-              <button
-                key={root.id}
-                onClick={() => setActiveTab(activeTab === root.id.toString() ? null : root.id.toString())}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                  activeTab === root.id.toString()
-                    ? 'bg-gold text-white'
-                    : 'bg-white text-bella-600 hover:bg-bella-100 border border-bella-200'
-                }`}
-              >
-                {renameCategory(root.name)}
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
       </div>
 
