@@ -97,6 +97,7 @@ function CategoryCard({ category, categoryImage, isAdmin, editMode, onImageUpdat
     >
       <Link
         href={`/shop?category=${category.id}`}
+        scroll={true}
         className="category-card group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-bella-100 hover:border-gold/30 block"
       >
       {/* Image Container */}
@@ -916,6 +917,22 @@ function ShopPageContent() {
   const [displayedCount, setDisplayedCount] = useState(PRODUCTS_PER_PAGE);
   const [loadingMore, setLoadingMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const prevCategoryRef = useRef<string | null>(null);
+
+  // Scroll to top when category changes - this is the main scroll handler
+  useEffect(() => {
+    // Only scroll if category actually changed (not on initial mount with same category)
+    if (prevCategoryRef.current !== categoryParam) {
+      // Force scroll to top immediately using 'instant' behavior
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      // Fallback for browsers that don't support 'instant'
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+
+      // Update the ref
+      prevCategoryRef.current = categoryParam;
+    }
+  }, [categoryParam]);
 
   // Sync selectedCategoryId with URL param when it changes
   useEffect(() => {
@@ -934,10 +951,15 @@ function ShopPageContent() {
 
   // Handle category selection from sidebar - updates URL
   const handleCategorySelect = (catId: number | null) => {
+    // Scroll to top immediately before navigation using 'instant' behavior
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
     if (catId === null) {
-      router.push('/shop');
+      router.push('/shop', { scroll: true });
     } else {
-      router.push(`/shop?category=${catId}`);
+      router.push(`/shop?category=${catId}`, { scroll: true });
     }
   };
 
@@ -951,13 +973,33 @@ function ShopPageContent() {
       setCategories(cats);
       setCategoryImages(catImages);
 
+      // Categories that should stay on shop page instead of redirecting to landing pages
+      // This keeps users in the shopping flow
+      const keepOnShopPage = [
+        'flushing cisterns',
+        'concealed cisterns',
+        'exposed cisterns',
+        'flush plates',
+        'wall hung toilets',
+        'tankless wc',
+        'single piece toilet',
+        'urinals',
+        'siphonic wc',
+      ];
+
       // Only fetch products when a category is selected
       if (selectedCategoryId) {
         // Check if this is a parent category (has children)
         const selectedCat = cats.find(c => c.id === selectedCategoryId);
         if (selectedCat && selectedCat.childIds && selectedCat.childIds.length > 0) {
-          // If showAll is true, fetch products from parent AND all children
-          if (showAllParam) {
+          // Check if this category should stay on shop page
+          const shouldKeepOnShop = keepOnShopPage.some(name =>
+            selectedCat.name.toLowerCase() === name.toLowerCase()
+          );
+
+          // If showAll is true OR this is a category that should stay on shop page,
+          // fetch products from parent AND all children
+          if (showAllParam || shouldKeepOnShop) {
             const allCategoryIds = [selectedCategoryId, ...selectedCat.childIds];
             const productPromises = allCategoryIds.map(catId =>
               OdooAPI.fetchProductsByPublicCategory(catId)
@@ -973,7 +1015,7 @@ function ShopPageContent() {
             return;
           }
           // Otherwise redirect to category landing page for parent categories using slug
-          router.replace(`/${selectedCat.slug}`);
+          router.replace(`/${selectedCat.slug}`, { scroll: true });
           return;
         }
 
@@ -1161,17 +1203,34 @@ function ShopPageContent() {
 
               const categoryPath = buildCategoryPath(selectedCategory);
 
+              // Check if the root category is Washroom or Washlet - if so, replace with "Basin & WC"
+              const isUnderBasinsWc = categoryPath.length > 0 &&
+                (categoryPath[0].name.toLowerCase() === 'washroom' || categoryPath[0].name.toLowerCase() === 'washlet');
+
+              // Get the root category ID for Basin & WC link (use washroom as default)
+              const basinsWcCategoryId = categoryPath.length > 0 ? categoryPath[0].id : null;
+
               return (
                 <>
+                  {isUnderBasinsWc && basinsWcCategoryId && (
+                    <span className="flex items-center">
+                      <span className="mx-2">/</span>
+                      <Link href={`/shop?category=${basinsWcCategoryId}`} scroll={true} className="hover:text-navy">Basin & WC</Link>
+                    </span>
+                  )}
                   {categoryPath.map((cat, idx) => {
                     const isLast = idx === categoryPath.length - 1;
+                    // Skip the root Washroom/Washlet category since we replaced it with Basin & WC
+                    if (idx === 0 && isUnderBasinsWc) {
+                      return null;
+                    }
                     return (
                       <span key={cat.id} className="flex items-center">
                         <span className="mx-2">/</span>
                         {isLast ? (
                           <span className="text-navy font-medium">{cat.name}</span>
                         ) : (
-                          <Link href={`/shop?category=${cat.id}`} className="hover:text-navy">{cat.name}</Link>
+                          <Link href={`/shop?category=${cat.id}`} scroll={true} className="hover:text-navy">{cat.name}</Link>
                         )}
                       </span>
                     );
