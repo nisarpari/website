@@ -1,11 +1,226 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { useLocale } from '@/context';
+import { useLocale, useAdmin } from '@/context';
 import { OdooAPI, type Product } from '@/lib/api/odoo';
 import { ProductImage } from '@/components/ProductImage';
+import { getApiUrl } from '@/lib/api/config';
+
+// Types for page content
+interface SmartProductsContent {
+  heroTitle?: string;
+  heroSubtitle?: string;
+  heroDescription?: string;
+  elevatedTitle?: string;
+  elevatedDescription?: string;
+  hygieneTitle?: string;
+  hygieneDescription?: string;
+  featuresTitle?: string;
+  ctaTitle?: string;
+  ctaDescription?: string;
+}
+
+// Content Editor Modal
+function ContentEditorModal({
+  isOpen,
+  onClose,
+  content,
+  onSave,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  content: SmartProductsContent;
+  onSave: (content: SmartProductsContent) => void;
+}) {
+  const [editedContent, setEditedContent] = useState<SmartProductsContent>(content);
+  const [activeTab, setActiveTab] = useState<'hero' | 'sections' | 'cta'>('hero');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    setEditedContent(content);
+  }, [content]);
+
+  const handleSave = () => {
+    onSave(editedContent);
+    onClose();
+  };
+
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+        {/* Header */}
+        <div className="p-6 border-b border-bella-100">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-navy">Edit Smart Products Page</h2>
+            <button onClick={onClose} className="text-bella-400 hover:text-navy">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          {/* Tabs */}
+          <div className="flex gap-4 mt-4">
+            {(['hero', 'sections', 'cta'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                  activeTab === tab ? 'bg-navy text-white' : 'bg-bella-100 text-bella-600 hover:bg-bella-200'
+                }`}
+              >
+                {tab === 'hero' ? 'Hero' : tab === 'sections' ? 'Sections' : 'CTA'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          {activeTab === 'hero' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-bella-700 mb-2">Hero Title Line 1</label>
+                <input
+                  type="text"
+                  value={editedContent.heroTitle || ''}
+                  onChange={(e) => setEditedContent({ ...editedContent, heroTitle: e.target.value })}
+                  placeholder="Experience the Difference:"
+                  className="w-full px-4 py-3 border border-bella-200 rounded-lg focus:outline-none focus:border-gold text-navy"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-bella-700 mb-2">Hero Title Line 2 (Gold)</label>
+                <input
+                  type="text"
+                  value={editedContent.heroSubtitle || ''}
+                  onChange={(e) => setEditedContent({ ...editedContent, heroSubtitle: e.target.value })}
+                  placeholder="Smart Bathroom"
+                  className="w-full px-4 py-3 border border-bella-200 rounded-lg focus:outline-none focus:border-gold text-navy"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-bella-700 mb-2">Hero Description</label>
+                <textarea
+                  value={editedContent.heroDescription || ''}
+                  onChange={(e) => setEditedContent({ ...editedContent, heroDescription: e.target.value })}
+                  placeholder="Blending modern design and advanced technology..."
+                  rows={3}
+                  className="w-full px-4 py-3 border border-bella-200 rounded-lg focus:outline-none focus:border-gold text-navy resize-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'sections' && (
+            <div className="space-y-6">
+              <div className="p-4 bg-bella-50 rounded-lg">
+                <h4 className="font-medium text-navy mb-3">Elevated Experience Section</h4>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    value={editedContent.elevatedTitle || ''}
+                    onChange={(e) => setEditedContent({ ...editedContent, elevatedTitle: e.target.value })}
+                    placeholder="Elevated Experience"
+                    className="w-full px-4 py-3 border border-bella-200 rounded-lg focus:outline-none focus:border-gold text-navy"
+                  />
+                  <textarea
+                    value={editedContent.elevatedDescription || ''}
+                    onChange={(e) => setEditedContent({ ...editedContent, elevatedDescription: e.target.value })}
+                    placeholder="A perfect harmony of innovative technology..."
+                    rows={2}
+                    className="w-full px-4 py-3 border border-bella-200 rounded-lg focus:outline-none focus:border-gold text-navy resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 bg-bella-50 rounded-lg">
+                <h4 className="font-medium text-navy mb-3">Personalized Hygiene Section</h4>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    value={editedContent.hygieneTitle || ''}
+                    onChange={(e) => setEditedContent({ ...editedContent, hygieneTitle: e.target.value })}
+                    placeholder="Personalized Hygiene"
+                    className="w-full px-4 py-3 border border-bella-200 rounded-lg focus:outline-none focus:border-gold text-navy"
+                  />
+                  <textarea
+                    value={editedContent.hygieneDescription || ''}
+                    onChange={(e) => setEditedContent({ ...editedContent, hygieneDescription: e.target.value })}
+                    placeholder="Changing routines into rituals..."
+                    rows={2}
+                    className="w-full px-4 py-3 border border-bella-200 rounded-lg focus:outline-none focus:border-gold text-navy resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 bg-bella-50 rounded-lg">
+                <h4 className="font-medium text-navy mb-3">Features Section</h4>
+                <input
+                  type="text"
+                  value={editedContent.featuresTitle || ''}
+                  onChange={(e) => setEditedContent({ ...editedContent, featuresTitle: e.target.value })}
+                  placeholder="Next-Level Smart Toilet Features"
+                  className="w-full px-4 py-3 border border-bella-200 rounded-lg focus:outline-none focus:border-gold text-navy"
+                />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'cta' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-bella-700 mb-2">CTA Title</label>
+                <input
+                  type="text"
+                  value={editedContent.ctaTitle || ''}
+                  onChange={(e) => setEditedContent({ ...editedContent, ctaTitle: e.target.value })}
+                  placeholder="Ready to Upgrade Your Bathroom?"
+                  className="w-full px-4 py-3 border border-bella-200 rounded-lg focus:outline-none focus:border-gold text-navy"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-bella-700 mb-2">CTA Description</label>
+                <textarea
+                  value={editedContent.ctaDescription || ''}
+                  onChange={(e) => setEditedContent({ ...editedContent, ctaDescription: e.target.value })}
+                  placeholder="Experience the future of bathroom technology..."
+                  rows={3}
+                  className="w-full px-4 py-3 border border-bella-200 rounded-lg focus:outline-none focus:border-gold text-navy resize-none"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t border-bella-100 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-3 bg-bella-100 text-bella-700 rounded-lg font-medium hover:bg-bella-200"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="flex-1 px-4 py-3 bg-navy text-white rounded-lg font-medium hover:bg-navy-dark"
+          >
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
 
 // Smart toilet features for comparison
 const smartToiletFeatures = [
@@ -75,7 +290,12 @@ export default function SmartProductsPage() {
   const [sensorFaucets, setSensorFaucets] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFeature, setActiveFeature] = useState(0);
+  const [pageContent, setPageContent] = useState<SmartProductsContent>({});
+  const [isEditingContent, setIsEditingContent] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
+
+  const { isAdmin, editMode, token } = useAdmin();
+  const API_BASE = getApiUrl();
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -96,16 +316,81 @@ export default function SmartProductsPage() {
         setShowcaseToilets(toilets.slice(0, 6)); // First 6 for hero and feature showcase
         setSmartToilets(toilets.slice(0, 4));    // First 4 for product grid
         setSensorFaucets(faucets);
+
+        // Fetch page content
+        try {
+          const contentRes = await fetch(`${API_BASE}/api/admin/page-content/smart-products`);
+          if (contentRes.ok) {
+            const content = await contentRes.json();
+            if (content) setPageContent(content);
+          }
+        } catch (error) {
+          console.error('Failed to fetch page content:', error);
+        }
       } catch (error) {
         console.error('Failed to load products:', error);
       }
       setLoading(false);
     };
     loadProducts();
-  }, []);
+  }, [API_BASE]);
+
+  const savePageContent = async (content: SmartProductsContent) => {
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/page-content/smart-products`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(content)
+      });
+
+      if (res.ok) {
+        setPageContent(content);
+      }
+    } catch (error) {
+      console.error('Failed to save page content:', error);
+    }
+  };
+
+  // Get display values with fallbacks
+  const heroTitle = pageContent.heroTitle || 'Experience the Difference:';
+  const heroSubtitle = pageContent.heroSubtitle || 'Smart Bathroom';
+  const heroDescription = pageContent.heroDescription || 'Blending modern design and advanced technology, our smart products transform the bathroom experience with elevated cleanliness, comfort, and convenience.';
+  const elevatedTitle = pageContent.elevatedTitle || 'Elevated Experience';
+  const elevatedDescription = pageContent.elevatedDescription || 'A perfect harmony of innovative technology, sculptural form, and premium materials, our smart toilets are designed to elevate your bathroom experience.';
+  const hygieneTitle = pageContent.hygieneTitle || 'Personalized Hygiene';
+  const hygieneDescription = pageContent.hygieneDescription || 'Changing routines into rituals, Bella smart toilets unlock new levels of personalization with customized cleansing sprays, water pressure, and temperature for your ideal comfort and cleanliness.';
+  const featuresTitle = pageContent.featuresTitle || 'Next-Level Smart Toilet Features';
+  const ctaTitle = pageContent.ctaTitle || 'Ready to Upgrade Your Bathroom?';
+  const ctaDescription = pageContent.ctaDescription || 'Experience the future of bathroom technology. Our smart products combine innovation, design, and functionality for the ultimate bathroom experience.';
 
   return (
     <div className="min-h-screen bg-white dark:bg-navy">
+      {/* Admin Edit Button */}
+      {isAdmin && editMode && (
+        <button
+          onClick={() => setIsEditingContent(true)}
+          className="fixed bottom-6 right-6 z-50 bg-navy text-white px-6 py-3 rounded-full shadow-lg hover:bg-navy-dark flex items-center gap-2 font-medium"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+          Edit Page Content
+        </button>
+      )}
+
+      {/* Content Editor Modal */}
+      <ContentEditorModal
+        isOpen={isEditingContent}
+        onClose={() => setIsEditingContent(false)}
+        content={pageContent}
+        onSave={savePageContent}
+      />
+
       {/* Hero Section */}
       <section ref={heroRef} className="relative h-[70vh] md:h-screen min-h-[500px] md:min-h-[700px] max-h-[900px] overflow-hidden bg-gradient-to-b from-gray-50 to-white dark:from-navy-light dark:to-navy">
         <motion.div style={{ opacity: heroOpacity }} className="relative h-full">
@@ -131,8 +416,8 @@ export default function SmartProductsPage() {
                   transition={{ duration: 0.8, delay: 0.1 }}
                   className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-navy dark:text-white leading-tight"
                 >
-                  Experience the Difference:
-                  <span className="text-gold block mt-2">Smart Bathroom</span>
+                  {heroTitle}
+                  <span className="text-gold block mt-2">{heroSubtitle}</span>
                 </motion.h1>
 
                 <motion.p
@@ -141,7 +426,7 @@ export default function SmartProductsPage() {
                   transition={{ duration: 0.8, delay: 0.2 }}
                   className="text-bella-600 dark:text-bella-300 text-sm md:text-xl mt-4 md:mt-6 leading-relaxed max-w-xl"
                 >
-                  Blending modern design and advanced technology, our smart products transform the bathroom experience with elevated cleanliness, comfort, and convenience.
+                  {heroDescription}
                 </motion.p>
 
                 <motion.div
@@ -227,10 +512,10 @@ export default function SmartProductsPage() {
             viewport={{ once: true }}
           >
             <h2 className="font-display text-2xl md:text-5xl font-light text-navy dark:text-white">
-              Elevated Experience
+              {elevatedTitle}
             </h2>
             <p className="text-bella-600 dark:text-bella-300 text-sm md:text-xl mt-4 md:mt-6 max-w-3xl mx-auto leading-relaxed">
-              A perfect harmony of innovative technology, sculptural form, and premium materials, our smart toilets are designed to elevate your bathroom experience.
+              {elevatedDescription}
             </p>
           </motion.div>
 
@@ -273,10 +558,10 @@ export default function SmartProductsPage() {
             viewport={{ once: true }}
           >
             <h2 className="font-display text-3xl md:text-5xl font-light text-white">
-              Personalized Hygiene
+              {hygieneTitle}
             </h2>
             <p className="text-white/70 text-lg md:text-xl mt-6 max-w-3xl mx-auto leading-relaxed">
-              Changing routines into rituals, Bella smart toilets unlock new levels of personalization with customized cleansing sprays, water pressure, and temperature for your ideal comfort and cleanliness.
+              {hygieneDescription}
             </p>
           </motion.div>
 
@@ -322,7 +607,7 @@ export default function SmartProductsPage() {
             viewport={{ once: true }}
             className="font-display text-2xl md:text-4xl font-light text-navy dark:text-white mb-8 md:mb-12"
           >
-            Next-Level Smart Toilet Features
+            {featuresTitle}
           </motion.h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-1">
@@ -528,10 +813,10 @@ export default function SmartProductsPage() {
             viewport={{ once: true }}
           >
             <h2 className="font-display text-2xl md:text-5xl font-bold text-white mb-4 md:mb-6">
-              Ready to Upgrade Your Bathroom?
+              {ctaTitle}
             </h2>
             <p className="text-white/70 text-sm md:text-xl mb-6 md:mb-10 max-w-2xl mx-auto">
-              Experience the future of bathroom technology. Our smart products combine innovation, design, and functionality for the ultimate bathroom experience.
+              {ctaDescription}
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4">
               <Link

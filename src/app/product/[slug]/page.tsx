@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useLocale, useCart, useWishlist, useVerification } from '@/context';
 import { OdooAPI, type Product, type Category, type RelatedProduct } from '@/lib/api/odoo';
 import { ProductImage } from '@/components/ProductImage';
+import { ProductDetailSkeleton } from '@/components/ProductCardSkeleton';
 
 // Related Product Card Component
 function RelatedProductCard({ product, currencySymbol, formatPrice, isVerified }: {
@@ -434,11 +435,7 @@ export default function ProductDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Image src="/bella-loading.gif" alt="Loading..." width={80} height={80} unoptimized />
-      </div>
-    );
+    return <ProductDetailSkeleton />;
   }
 
   if (!product) {

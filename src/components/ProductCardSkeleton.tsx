@@ -16,12 +16,39 @@ export function ProductCardSkeleton() {
   );
 }
 
-export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
+// Product type filter skeleton for shop page
+export function ProductTypeFilterSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-      {Array.from({ length: count }).map((_, i) => (
-        <ProductCardSkeleton key={i} />
-      ))}
+    <div className="mb-6 bg-white dark:bg-navy-light rounded-xl p-4 border border-bella-100 dark:border-bella-700">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-4 h-4 bg-bella-100 dark:bg-navy rounded animate-pulse" />
+        <div className="h-4 bg-bella-100 dark:bg-navy rounded w-36 animate-pulse" />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-7 bg-bella-100 dark:bg-navy rounded-lg animate-pulse"
+            style={{ width: `${60 + (i % 3) * 25}px` }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function ProductGridSkeleton({ count = 8, showProductTypeFilter = true }: { count?: number; showProductTypeFilter?: boolean }) {
+  return (
+    <div>
+      {/* Product Type Filter Skeleton */}
+      {showProductTypeFilter && <ProductTypeFilterSkeleton />}
+
+      {/* Products Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+        {Array.from({ length: count }).map((_, i) => (
+          <ProductCardSkeleton key={i} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -129,6 +156,114 @@ function ShopSectionHeaderSkeleton() {
         </div>
       </div>
       <div className="hidden md:block h-10 bg-bella-100 dark:bg-navy rounded-lg w-36 animate-pulse" />
+    </div>
+  );
+}
+
+// Product detail page skeleton
+export function ProductDetailSkeleton() {
+  return (
+    <div className="min-h-screen bg-bella-50 dark:bg-navy">
+      {/* Mobile Layout */}
+      <div className="md:hidden">
+        {/* Header skeleton */}
+        <div className="bg-white dark:bg-navy-light sticky top-0 z-10 px-4 py-3 flex items-center gap-3 border-b border-bella-100 dark:border-bella-700">
+          <div className="w-5 h-5 bg-bella-100 dark:bg-navy rounded animate-pulse" />
+          <div className="flex-1 h-4 bg-bella-100 dark:bg-navy rounded animate-pulse" />
+        </div>
+
+        {/* Image skeleton */}
+        <div className="relative aspect-[4/3] bg-white dark:bg-navy-light animate-pulse" />
+
+        {/* Thumbnails skeleton */}
+        <div className="bg-white dark:bg-navy-light px-4 py-2 flex gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="w-14 h-14 flex-shrink-0 rounded-lg bg-bella-100 dark:bg-navy animate-pulse" />
+          ))}
+        </div>
+
+        {/* Product info skeleton */}
+        <div className="px-4 py-4 bg-white dark:bg-navy-light">
+          <div className="h-6 bg-bella-100 dark:bg-navy rounded w-3/4 mb-2 animate-pulse" />
+          <div className="h-5 bg-bella-100 dark:bg-navy rounded w-1/2 mb-4 animate-pulse" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="h-7 bg-bella-100 dark:bg-navy rounded w-24 animate-pulse" />
+            <div className="h-5 bg-bella-100 dark:bg-navy rounded w-20 animate-pulse" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-4 bg-bella-100 dark:bg-navy rounded w-full animate-pulse" />
+            <div className="h-4 bg-bella-100 dark:bg-navy rounded w-5/6 animate-pulse" />
+            <div className="h-4 bg-bella-100 dark:bg-navy rounded w-4/6 animate-pulse" />
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden md:block">
+        {/* Breadcrumb skeleton */}
+        <div className="bg-white dark:bg-navy-light border-b border-bella-100 dark:border-bella-700">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center gap-2">
+              <div className="h-4 bg-bella-100 dark:bg-navy rounded w-12 animate-pulse" />
+              <div className="h-4 bg-bella-100 dark:bg-navy rounded w-2 animate-pulse" />
+              <div className="h-4 bg-bella-100 dark:bg-navy rounded w-12 animate-pulse" />
+              <div className="h-4 bg-bella-100 dark:bg-navy rounded w-2 animate-pulse" />
+              <div className="h-4 bg-bella-100 dark:bg-navy rounded w-24 animate-pulse" />
+            </div>
+          </div>
+        </div>
+
+        {/* Product details skeleton */}
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="grid md:grid-cols-2 gap-12">
+            {/* Images skeleton */}
+            <div>
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-bella-100 dark:bg-navy-light mb-4 animate-pulse" />
+              <div className="flex gap-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="w-20 h-20 flex-shrink-0 rounded-lg bg-bella-100 dark:bg-navy animate-pulse" />
+                ))}
+              </div>
+            </div>
+
+            {/* Info skeleton */}
+            <div>
+              <div className="h-4 bg-bella-100 dark:bg-navy rounded w-32 mb-3 animate-pulse" />
+              <div className="h-8 bg-bella-100 dark:bg-navy rounded w-3/4 mb-2 animate-pulse" />
+              <div className="h-7 bg-bella-100 dark:bg-navy rounded w-1/2 mb-6 animate-pulse" />
+              <div className="h-10 bg-bella-100 dark:bg-navy rounded w-32 mb-6 animate-pulse" />
+              <div className="h-6 bg-bella-100 dark:bg-navy rounded w-24 mb-8 animate-pulse" />
+              <div className="space-y-3 mb-8">
+                <div className="h-4 bg-bella-100 dark:bg-navy rounded w-full animate-pulse" />
+                <div className="h-4 bg-bella-100 dark:bg-navy rounded w-5/6 animate-pulse" />
+                <div className="h-4 bg-bella-100 dark:bg-navy rounded w-4/6 animate-pulse" />
+              </div>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="h-10 bg-bella-100 dark:bg-navy rounded w-32 animate-pulse" />
+              </div>
+              <div className="h-14 bg-bella-100 dark:bg-navy rounded-full w-48 animate-pulse" />
+            </div>
+          </div>
+        </div>
+
+        {/* Related products skeleton */}
+        <div className="bg-white dark:bg-navy py-6 md:py-8">
+          <div className="max-w-7xl mx-auto px-4 md:px-6">
+            <div className="h-6 bg-bella-100 dark:bg-navy rounded w-48 mb-4 animate-pulse" />
+            <div className="flex gap-4 overflow-hidden">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex-shrink-0 w-40 md:w-48 bg-white dark:bg-navy-light rounded-lg overflow-hidden border border-bella-100 dark:border-bella-700">
+                  <div className="aspect-square bg-bella-100 dark:bg-navy animate-pulse" />
+                  <div className="p-3">
+                    <div className="h-4 bg-bella-100 dark:bg-navy rounded w-full mb-1 animate-pulse" />
+                    <div className="h-4 bg-bella-100 dark:bg-navy rounded w-2/3 animate-pulse" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
