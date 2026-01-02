@@ -201,28 +201,6 @@ export default function VideoHeroSection({ categories, categoryImages }: VideoHe
             ))}
           </div>
 
-          {/* Hero Text Overlay */}
-          <div className="absolute inset-0 flex flex-col items-end justify-end text-right px-6 md:px-12 lg:px-20 pb-8 md:pb-16 lg:pb-20 z-[3]">
-            {/* Main Headline */}
-            <motion.h1
-              className="font-display text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-2 md:mb-3 drop-shadow-lg"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            >
-              Curated Luxury
-            </motion.h1>
-
-            {/* Gold Subheadline */}
-            <motion.h2
-              className="font-display text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-gold italic leading-tight drop-shadow-lg"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7, duration: 0.8 }}
-            >
-              For Your Sanctuary
-            </motion.h2>
-          </div>
         </motion.div>
       </div>
 
