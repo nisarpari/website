@@ -1,8 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+/* Fonts loaded via next/font in lib/fonts.ts for optimal performance */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* =====================================================
+   CSS CUSTOM PROPERTIES - Animation Tokens
+   ===================================================== */
+:root {
+  /* Luxury easing curves */
+  --ease-luxury: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-luxury-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Duration scale */
+  --duration-instant: 0.1s;
+  --duration-fast: 0.2s;
+  --duration-normal: 0.4s;
+  --duration-slow: 0.6s;
+  --duration-slower: 0.8s;
+  --duration-slowest: 1.2s;
+
+  /* Elevation shadows */
+  --shadow-rest: 0 4px 20px rgba(0, 0, 0, 0.06);
+  --shadow-hover: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
+  --shadow-lifted: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+  --shadow-floating: 0 30px 60px -15px rgba(0, 0, 0, 0.25);
+}
 
 @layer base {
   * {
@@ -21,7 +46,7 @@
   h4,
   h5,
   h6 {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display), Georgia, serif;
     letter-spacing: -0.02em;
     /* Tighter editorial tracking */
     font-weight: 600;
@@ -29,12 +54,12 @@
 
   /* Product names use Plus Jakarta Sans */
   .font-product {
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-family: var(--font-product), system-ui, sans-serif !important;
     letter-spacing: 0;
   }
 
   body {
-    font-family: 'Montserrat', sans-serif;
+    font-family: var(--font-body), system-ui, sans-serif;
     background: #faf9f7;
     color: #1a252f;
     -webkit-font-smoothing: antialiased;
@@ -96,14 +121,15 @@
     background: linear-gradient(135deg, #1a252f 0%, #2c3e50 50%, #34495e 100%);
   }
 
-  /* Category card animations */
+  /* Category card animations - Luxury timing */
   .category-card {
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform var(--duration-slow) var(--ease-luxury),
+                box-shadow var(--duration-slow) var(--ease-luxury);
   }
 
   .category-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.2);
+    transform: translateY(-12px);
+    box-shadow: var(--shadow-floating);
   }
 
   .category-card:hover img {
@@ -111,37 +137,40 @@
   }
 
   .category-card img {
-    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform var(--duration-slower) var(--ease-luxury);
   }
 
-  /* Product card animations */
+  /* Product card animations - Luxury timing */
   .product-card {
-    transition: all 0.4s ease;
+    transition: transform var(--duration-slow) var(--ease-luxury),
+                box-shadow var(--duration-slow) var(--ease-luxury);
   }
 
   .product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lifted);
   }
 
-  /* Navigation dropdown */
+  /* Navigation dropdown - Luxury timing */
   .nav-dropdown {
     opacity: 0;
     visibility: hidden;
-    transform: translateY(10px);
-    transition: all 0.3s ease;
+    transform: translateY(8px) scale(0.98);
+    transition: opacity var(--duration-normal) var(--ease-luxury),
+                visibility var(--duration-normal) var(--ease-luxury),
+                transform var(--duration-normal) var(--ease-luxury);
   }
 
   .nav-item:hover .nav-dropdown {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 
-  /* Navigation link animation */
+  /* Navigation link animation - Luxury underline */
   .nav-link-anim {
     position: relative;
-    transition: transform 0.2s ease;
+    transition: color var(--duration-normal) var(--ease-luxury);
   }
 
   .nav-link-anim::after {
@@ -149,19 +178,22 @@
     position: absolute;
     bottom: -4px;
     left: 0;
-    width: 0;
+    width: 100%;
     height: 2px;
     background: #b8860b;
-    transition: width 0.3s ease;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform var(--duration-normal) var(--ease-luxury);
   }
 
   .nav-link-anim:hover::after {
-    width: 100%;
+    transform: scaleX(1);
+    transform-origin: left;
   }
 
   /* Nav item hover lift effect */
   .nav-item-hover {
-    transition: transform 0.2s ease;
+    transition: transform var(--duration-fast) var(--ease-luxury);
   }
 
   .nav-item-hover:hover {
@@ -207,17 +239,17 @@
     animation: spin 1s linear infinite;
   }
 
-  /* Mobile menu */
+  /* Mobile menu - Luxury slide */
   .mobile-menu {
     transform: translateX(-100%);
-    transition: transform 0.3s ease;
+    transition: transform var(--duration-slow) var(--ease-luxury);
   }
 
   .mobile-menu.open {
     transform: translateX(0);
   }
 
-  /* Subcategory tile */
+  /* Subcategory tile - Luxury timing */
   .subcategory-tile {
     position: relative;
     overflow: hidden;
@@ -233,11 +265,11 @@
   }
 
   .subcategory-tile img {
-    transition: transform 0.6s ease;
+    transition: transform var(--duration-slower) var(--ease-luxury);
   }
 
   .subcategory-tile:hover img {
-    transform: scale(1.1);
+    transform: scale(1.08);
   }
 
   /* Thumbnail item */
@@ -268,19 +300,20 @@
     z-index: 10;
   }
 
-  /* Premium Collection Tiles */
+  /* Premium Collection Tiles - Luxury timing */
   .collection-tile {
     position: relative;
     overflow: hidden;
     border-radius: 20px;
     background: linear-gradient(145deg, #ffffff 0%, #f8f7f5 100%);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-rest);
+    transition: transform var(--duration-slow) var(--ease-luxury),
+                box-shadow var(--duration-slow) var(--ease-luxury);
   }
 
   .collection-tile:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-lifted);
   }
 
   .collection-tile::before {
@@ -290,7 +323,7 @@
     background: linear-gradient(180deg, transparent 40%, rgba(26, 37, 47, 0.85) 100%);
     z-index: 1;
     opacity: 0;
-    transition: opacity 0.5s ease;
+    transition: opacity var(--duration-slow) var(--ease-luxury);
   }
 
   .collection-tile:hover::before {
@@ -298,7 +331,7 @@
   }
 
   .collection-tile-img {
-    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), filter 0.5s ease;
+    transition: transform var(--duration-slower) var(--ease-luxury);
   }
 
   .collection-tile:hover .collection-tile-img {
@@ -314,7 +347,8 @@
     z-index: 2;
     transform: translateY(20px);
     opacity: 0;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform var(--duration-slow) var(--ease-luxury),
+                opacity var(--duration-slow) var(--ease-luxury);
   }
 
   .collection-tile:hover .collection-tile-content {
@@ -330,7 +364,7 @@
     padding: 20px;
     z-index: 2;
     background: linear-gradient(180deg, transparent 0%, rgba(26, 37, 47, 0.7) 100%);
-    transition: opacity 0.4s ease;
+    transition: opacity var(--duration-normal) var(--ease-luxury);
   }
 
   .collection-tile:hover .collection-tile-static {
@@ -582,5 +616,58 @@ html[dir="rtl"] .breadcrumb-item::after {
   /* Floating animation with delay */
   .animate-float.delay-1 {
     animation-delay: 0.5s;
+  }
+
+  /* Luxury transition utilities */
+  .transition-luxury {
+    transition-timing-function: var(--ease-luxury);
+  }
+
+  .duration-luxury {
+    transition-duration: var(--duration-slow);
+  }
+}
+
+/* =====================================================
+   REDUCED MOTION - Accessibility
+   ===================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Disable smooth scroll */
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Disable hover transforms */
+  .category-card:hover,
+  .product-card:hover,
+  .collection-tile:hover,
+  .nav-item-hover:hover {
+    transform: none !important;
+  }
+
+  /* Keep opacity changes but make them instant */
+  .nav-dropdown {
+    transition: opacity 0.01ms, visibility 0.01ms !important;
+    transform: none !important;
+  }
+
+  .nav-item:hover .nav-dropdown {
+    transform: none !important;
+  }
+
+  /* Disable image zoom effects */
+  .category-card:hover img,
+  .subcategory-tile:hover img,
+  .collection-tile:hover .collection-tile-img {
+    transform: none !important;
   }
 }

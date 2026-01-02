@@ -41,19 +41,46 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["Cormorant Garamond", "serif"],
-        body: ["Montserrat", "sans-serif"],
-        product: ["Plus Jakarta Sans", "sans-serif"],
+        display: ["var(--font-display)", "Georgia", "serif"],
+        body: ["var(--font-body)", "system-ui", "sans-serif"],
+        product: ["var(--font-product)", "system-ui", "sans-serif"],
+      },
+      // Luxury transition timing
+      transitionTimingFunction: {
+        luxury: "cubic-bezier(0.16, 1, 0.3, 1)",
+        "luxury-in-out": "cubic-bezier(0.76, 0, 0.24, 1)",
+        smooth: "cubic-bezier(0.4, 0, 0.2, 1)",
+        bounce: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+      },
+      // Luxury duration scale
+      transitionDuration: {
+        "400": "400ms",
+        "600": "600ms",
+        "800": "800ms",
+        "1200": "1200ms",
+      },
+      // Custom scale for subtle hover
+      scale: {
+        "102": "1.02",
+        "103": "1.03",
+        "108": "1.08",
       },
       animation: {
-        "fade-in": "fadeIn 0.5s ease",
-        "slide-up": "slideUp 0.8s ease forwards",
-        float: "float 3s ease-in-out infinite",
+        "fade-in": "fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+        "fade-in-up": "fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+        "slide-up": "slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        float: "float 4s ease-in-out infinite",
         spin: "spin 1s linear infinite",
-        "stagger-in": "staggerIn 0.6s ease forwards",
+        "stagger-in": "staggerIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "scale-in": "scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+        shimmer: "shimmer 2s linear infinite",
       },
       keyframes: {
         fadeIn: {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        fadeInUp: {
           from: { opacity: "0", transform: "translateY(20px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
@@ -66,10 +93,19 @@ const config: Config = {
           "50%": { transform: "translateY(-10px)" },
         },
         staggerIn: {
+          from: { opacity: "0", transform: "translateY(20px)" },
           to: { opacity: "1", transform: "translateY(0)" },
+        },
+        scaleIn: {
+          from: { opacity: "0", transform: "scale(0.95)" },
+          to: { opacity: "1", transform: "scale(1)" },
         },
         spin: {
           to: { transform: "rotate(360deg)" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
         },
       },
     },

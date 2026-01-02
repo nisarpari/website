@@ -5,6 +5,28 @@ import { useWishlist } from '@/context';
 import { ProductImage } from '@/components/ProductImage';
 import { type Product } from '@/lib/api/odoo';
 import { motion } from 'framer-motion';
+import { duration, easing } from '@/lib/animations';
+
+// Card animation variants
+const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            duration: duration.slow,
+            ease: easing.luxuryOut,
+        },
+    },
+    hover: {
+        y: -8,
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
+        transition: {
+            duration: duration.normal,
+            ease: easing.luxuryOut,
+        },
+    },
+};
 
 export default function ProductCard({ product }: { product: Product }) {
     const { toggleWishlist, isInWishlist } = useWishlist();
@@ -14,11 +36,11 @@ export default function ProductCard({ product }: { product: Product }) {
         <Link href={`/product/${product.slug}`} className="group relative block h-full">
             <motion.div
                 className="product-card h-full bg-white dark:bg-navy-light rounded-xl overflow-hidden border border-bella-100 dark:border-white/10 relative"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -5 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                variants={cardVariants}
+                initial="hidden"
+                whileInView="visible"
+                whileHover="hover"
+                viewport={{ once: true, margin: "-50px" }}
             >
                 {/* Image block - 4:5 ratio for elegant vertical look */}
                 <div className="relative aspect-[4/5] bg-white overflow-hidden">
@@ -26,15 +48,16 @@ export default function ProductCard({ product }: { product: Product }) {
                         src={product.thumbnail || product.image || '/placeholder.jpg'}
                         alt={product.name}
                         fill
-                        className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
+                        className="object-contain p-4 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-108"
                         sizes="(max-width: 768px) 160px, 180px"
                     />
 
                     {/* Wishlist Button - Top Right */}
                     <motion.div
                         className="absolute top-3 right-3 z-10"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ duration: duration.fast, ease: easing.luxuryOut }}
                     >
                         <button
                             onClick={(e) => { e.preventDefault(); toggleWishlist(product); }}
