@@ -97,7 +97,7 @@ function CategoryCard({ category, categoryImage, isAdmin, editMode, onImageUpdat
     >
       <Link
         href={`/shop?category=${category.id}`}
-        className="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-bella-100 hover:border-gold/30 block"
+        className="category-card group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-bella-100 hover:border-gold/30 block"
       >
       {/* Image Container */}
       <div className="relative aspect-[4/3] bg-white">

@@ -1,10 +1,10 @@
 // GET/PUT /api/admin/hidden-categories - Manage visible categories list and grid settings
 import { NextRequest, NextResponse } from 'next/server';
-import { readSiteConfig, writeSiteConfig, checkAdminAuth } from '@/lib/server/config';
+import { readSiteConfigAsync, writeSiteConfigAsync, checkAdminAuth } from '@/lib/server/config';
 
 export async function GET() {
   try {
-    const config = readSiteConfig();
+    const config = await readSiteConfigAsync();
     return NextResponse.json({
       visibleCategories: config.visibleCategories || [],
       categoryGridCount: config.categoryGridCount || 6
@@ -24,7 +24,7 @@ export async function PUT(request: NextRequest) {
 
     const { visibleCategories, categoryGridCount } = await request.json();
 
-    const config = readSiteConfig();
+    const config = await readSiteConfigAsync();
 
     if (visibleCategories !== undefined) {
       if (!Array.isArray(visibleCategories)) {
@@ -40,7 +40,7 @@ export async function PUT(request: NextRequest) {
       config.categoryGridCount = categoryGridCount;
     }
 
-    writeSiteConfig(config);
+    await writeSiteConfigAsync(config);
 
     return NextResponse.json({
       success: true,

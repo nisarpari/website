@@ -147,7 +147,7 @@ function MobileStatsBar() {
 function MobileProductCard({ product }: { product: Product }) {
   return (
     <Link href={`/product/${product.slug}`} className="group flex-shrink-0 w-[120px]">
-      <div className="w-[120px] bg-white rounded-xl overflow-hidden shadow-sm border border-bella-100 dark:border-white/10">
+      <div className="product-card w-[120px] bg-white rounded-xl overflow-hidden shadow-sm border border-bella-100 dark:border-white/10">
         {/* Image block */}
         <div className="relative w-[120px] h-[100px] bg-bella-50">
           <Image

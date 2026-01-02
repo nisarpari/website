@@ -13,7 +13,7 @@ export default function ProductCard({ product }: { product: Product }) {
     return (
         <Link href={`/product/${product.slug}`} className="group relative block h-full">
             <motion.div
-                className="h-full bg-white dark:bg-navy-light rounded-xl overflow-hidden border border-bella-100 dark:border-white/10 relative"
+                className="product-card h-full bg-white dark:bg-navy-light rounded-xl overflow-hidden border border-bella-100 dark:border-white/10 relative"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}

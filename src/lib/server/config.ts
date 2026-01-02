@@ -1,8 +1,13 @@
 // Server-side configuration utilities
 import fs from 'fs';
 import path from 'path';
+import { kv } from '@vercel/kv';
 
 const CONFIG_PATH = path.join(process.cwd(), 'site-config.json');
+const KV_CONFIG_KEY = 'site-config';
+
+// Check if running in Vercel production (KV available)
+const isVercelProduction = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN;
 
 export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin125!09*#';
 
@@ -61,6 +66,20 @@ export interface SiteConfig {
   [key: string]: unknown;
 }
 
+// Default config from file (used as fallback)
+function getDefaultConfig(): SiteConfig {
+  try {
+    if (fs.existsSync(CONFIG_PATH)) {
+      const data = fs.readFileSync(CONFIG_PATH, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error('Error reading default config file:', error);
+  }
+  return {};
+}
+
+// Synchronous read for local development
 export function readSiteConfig(): SiteConfig {
   try {
     if (fs.existsSync(CONFIG_PATH)) {
@@ -73,9 +92,48 @@ export function readSiteConfig(): SiteConfig {
   return {};
 }
 
+// Async read that uses KV in production
+export async function readSiteConfigAsync(): Promise<SiteConfig> {
+  if (isVercelProduction) {
+    try {
+      const config = await kv.get<SiteConfig>(KV_CONFIG_KEY);
+      if (config) {
+        return config;
+      }
+      // If KV is empty, return default config from file
+      return getDefaultConfig();
+    } catch (error) {
+      console.error('Error reading from KV:', error);
+      return getDefaultConfig();
+    }
+  }
+  return readSiteConfig();
+}
+
+// Synchronous write for local development
 export function writeSiteConfig(config: SiteConfig): void {
   config.lastUpdated = new Date().toISOString();
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+  try {
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+  } catch (error) {
+    console.error('Error writing site config to file:', error);
+  }
+}
+
+// Async write that uses KV in production
+export async function writeSiteConfigAsync(config: SiteConfig): Promise<void> {
+  config.lastUpdated = new Date().toISOString();
+
+  if (isVercelProduction) {
+    try {
+      await kv.set(KV_CONFIG_KEY, config);
+    } catch (error) {
+      console.error('Error writing to KV:', error);
+      throw error;
+    }
+  } else {
+    writeSiteConfig(config);
+  }
 }
 
 export function checkAdminAuth(authHeader: string | null): boolean {

@@ -16,7 +16,7 @@ function RelatedProductCard({ product }: {
   return (
     <Link
       href={`/product/${product.slug}`}
-      className="flex-shrink-0 w-40 md:w-48 bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow"
+      className="product-card flex-shrink-0 w-40 md:w-48 bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow"
     >
       <div className="relative aspect-square bg-white">
         <ProductImage
@@ -255,7 +255,7 @@ function EnhancedYouMightAlsoLike({
             <Link
               key={p.id}
               href={`/product/${p.slug}`}
-              className="flex-shrink-0 w-40 md:w-48 bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow"
+              className="product-card flex-shrink-0 w-40 md:w-48 bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow"
             >
               <div className="relative aspect-square bg-white">
                 <ProductImage
