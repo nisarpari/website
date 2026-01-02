@@ -544,6 +544,10 @@ export default function ProductDetailPage() {
       // Get the root category ID for Basin & WC link
       const basinsWcCategoryId = categoryPath.length > 0 ? categoryPath[0].id : null;
 
+      // Filter out the root category if under Basin & WC, and filter empty names
+      const displayPath = (isUnderBasinsWc ? categoryPath.slice(1) : categoryPath)
+        .filter(cat => cat && cat.name && cat.name.trim() !== '');
+
       return (
         <>
           {/* Show Basin & WC as virtual parent for Washroom/Washlet categories */}
@@ -558,22 +562,17 @@ export default function ProductDetailPage() {
               <span className="mx-2">/</span>
             </span>
           )}
-          {categoryPath.map((cat, idx) => {
-            const isLast = idx === categoryPath.length - 1;
-            // Skip the root Washroom/Washlet category since we replaced it with Basin & WC
-            if (idx === 0 && isUnderBasinsWc) {
-              return null;
-            }
+          {displayPath.map((cat, idx) => {
+            const isLast = idx === displayPath.length - 1;
             return (
               <span key={cat.id} className="flex items-center">
-                {/* Add separator only if not first visible item (after Basin & WC or at start) */}
-                {(idx > 0 || !isUnderBasinsWc) && idx > 0 && <span className="mx-2">/</span>}
                 <Link
                   href={`/shop?category=${cat.id}`}
                   className={isLast ? "text-navy dark:text-white hover:text-gold" : "hover:text-navy dark:hover:text-white"}
                 >
                   {cat.name}
                 </Link>
+                {!isLast && <span className="mx-2">/</span>}
               </span>
             );
           })}
