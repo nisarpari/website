@@ -1,5 +1,5 @@
 // GET /api/products/by-slug/[slug] - Fetch single product by slug
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { odooApiCall, ODOO_CONFIG } from '@/lib/server/odoo';
 import { transformProduct, TransformedProduct } from '@/lib/server/transform';
 import { getCachedOrFetch, CACHE_KEYS, CACHE_TTL } from '@/lib/server/cache';
