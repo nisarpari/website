@@ -157,15 +157,16 @@ function CategoryCard({ category, categoryImage, isAdmin, editMode, onImageUpdat
 }
 
 // All Categories Grid - Shows all categories with improved UI/UX
-function AllCategoriesGrid({ categories, categoryImages, onImageUpdate }: {
+function AllCategoriesGrid({ categories, categoryImages, onImageUpdate, searchQuery, setSearchQuery }: {
   categories: Category[];
   categoryImages: Record<string, string>;
   onImageUpdate?: (categoryId: string, imageUrl: string) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
 }) {
   const { isAdmin, editMode } = useAdmin();
   const [productFallbackImages, setProductFallbackImages] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Categories to hide from the grid
   const hiddenCategories = ['collections'];
@@ -300,32 +301,6 @@ function AllCategoriesGrid({ categories, categoryImages, onImageUpdate }: {
 
   return (
     <div className="space-y-6">
-      {/* Search Input - Right Aligned Above Categories */}
-      <div className="flex justify-end">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search categories..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-48 md:w-56 px-4 py-2 pl-10 bg-white border border-bella-200 rounded-full text-sm text-navy placeholder-bella-400 focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold shadow-sm"
-          />
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-bella-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-bella-400 hover:text-navy"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* Category Pills - Wrapped Grid */}
       <div className="sticky top-20 z-30 bg-bella-50/95 backdrop-blur-sm py-3 -mx-4 px-4 md:-mx-6 md:px-6">
         <div className="flex flex-wrap gap-2 max-h-[7.5rem] md:max-h-[4.5rem] overflow-hidden">
@@ -914,6 +889,7 @@ function ShopPageContent() {
   const [selectedProductType, setSelectedProductType] = useState<string | null>(null);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [displayedCount, setDisplayedCount] = useState(PRODUCTS_PER_PAGE);
+  const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [loadingMore, setLoadingMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const prevCategoryRef = useRef<string | null>(null);
@@ -1223,6 +1199,32 @@ function ShopPageContent() {
                 <p className="text-bella-600 dark:text-bella-300 text-sm mt-1">{filteredProducts.length} {t('productsFound')}</p>
               )}
             </div>
+            {/* Search input for category grid (when no category selected) */}
+            {!selectedCategoryId && (
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search categories..."
+                  value={categorySearchQuery}
+                  onChange={(e) => setCategorySearchQuery(e.target.value)}
+                  className="w-40 md:w-56 px-4 py-2 pl-10 bg-white border border-bella-200 rounded-full text-sm text-navy placeholder-bella-400 focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold shadow-sm"
+                />
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-bella-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                {categorySearchQuery && (
+                  <button
+                    onClick={() => setCategorySearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-bella-400 hover:text-navy"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
+            {/* Sort dropdown (when category is selected) */}
             {selectedCategoryId && (
               <select
                 value={sortBy}
@@ -1437,6 +1439,8 @@ function ShopPageContent() {
                 categories={categories}
                 categoryImages={categoryImages}
                 onImageUpdate={handleCategoryImageUpdate}
+                searchQuery={categorySearchQuery}
+                setSearchQuery={setCategorySearchQuery}
               />
             ) : filteredProducts.length === 0 ? (
               <div className="text-center py-20">
