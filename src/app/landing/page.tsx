@@ -7,7 +7,6 @@ import {
   Bath,
   ShowerHead,
   Droplets,
-  Sparkles,
   ChevronRight,
   ArrowLeft,
   Search,
@@ -15,8 +14,145 @@ import {
   Send,
   Check,
   Home,
-  Waves
+  Waves,
+  Sparkles
 } from 'lucide-react';
+
+// Animated Water Shower Icon Component
+const AnimatedShowerIcon = ({ className = "w-12 h-12" }: { className?: string }) => {
+  return (
+    <div className={`relative ${className}`}>
+      <svg
+        viewBox="0 0 64 64"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full h-full"
+      >
+        {/* Shower Head */}
+        <motion.path
+          d="M20 8H44C46.2091 8 48 9.79086 48 12V16C48 18.2091 46.2091 20 44 20H20C17.7909 20 16 18.2091 16 16V12C16 9.79086 17.7909 8 20 8Z"
+          fill="currentColor"
+          opacity="0.9"
+          initial={{ y: -2 }}
+          animate={{ y: 0 }}
+          transition={{ duration: 0.5 }}
+        />
+
+        {/* Shower holes */}
+        <circle cx="24" cy="14" r="1.5" fill="white" opacity="0.6" />
+        <circle cx="32" cy="14" r="1.5" fill="white" opacity="0.6" />
+        <circle cx="40" cy="14" r="1.5" fill="white" opacity="0.6" />
+
+        {/* Animated Water Drops - Column 1 */}
+        <motion.ellipse
+          cx="24"
+          cy="28"
+          rx="2"
+          ry="4"
+          fill="currentColor"
+          opacity="0.7"
+          initial={{ y: -8, opacity: 0, scaleY: 0.5 }}
+          animate={{ y: 32, opacity: [0, 0.7, 0.7, 0], scaleY: [0.5, 1, 1, 0.5] }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: "easeIn", delay: 0 }}
+        />
+        <motion.ellipse
+          cx="24"
+          cy="28"
+          rx="1.5"
+          ry="3"
+          fill="currentColor"
+          opacity="0.5"
+          initial={{ y: -8, opacity: 0 }}
+          animate={{ y: 28, opacity: [0, 0.5, 0.5, 0] }}
+          transition={{ duration: 1, repeat: Infinity, ease: "easeIn", delay: 0.4 }}
+        />
+
+        {/* Animated Water Drops - Column 2 */}
+        <motion.ellipse
+          cx="32"
+          cy="28"
+          rx="2.5"
+          ry="5"
+          fill="currentColor"
+          opacity="0.8"
+          initial={{ y: -8, opacity: 0, scaleY: 0.5 }}
+          animate={{ y: 30, opacity: [0, 0.8, 0.8, 0], scaleY: [0.5, 1, 1, 0.5] }}
+          transition={{ duration: 1.1, repeat: Infinity, ease: "easeIn", delay: 0.2 }}
+        />
+        <motion.ellipse
+          cx="32"
+          cy="28"
+          rx="2"
+          ry="4"
+          fill="currentColor"
+          opacity="0.6"
+          initial={{ y: -8, opacity: 0 }}
+          animate={{ y: 26, opacity: [0, 0.6, 0.6, 0] }}
+          transition={{ duration: 0.9, repeat: Infinity, ease: "easeIn", delay: 0.6 }}
+        />
+
+        {/* Animated Water Drops - Column 3 */}
+        <motion.ellipse
+          cx="40"
+          cy="28"
+          rx="2"
+          ry="4"
+          fill="currentColor"
+          opacity="0.7"
+          initial={{ y: -8, opacity: 0, scaleY: 0.5 }}
+          animate={{ y: 34, opacity: [0, 0.7, 0.7, 0], scaleY: [0.5, 1, 1, 0.5] }}
+          transition={{ duration: 1.3, repeat: Infinity, ease: "easeIn", delay: 0.1 }}
+        />
+        <motion.ellipse
+          cx="40"
+          cy="28"
+          rx="1.5"
+          ry="3"
+          fill="currentColor"
+          opacity="0.5"
+          initial={{ y: -8, opacity: 0 }}
+          animate={{ y: 24, opacity: [0, 0.5, 0.5, 0] }}
+          transition={{ duration: 0.95, repeat: Infinity, ease: "easeIn", delay: 0.5 }}
+        />
+
+        {/* Extra small droplets for detail */}
+        <motion.circle
+          cx="28"
+          cy="30"
+          r="1.5"
+          fill="currentColor"
+          opacity="0.4"
+          initial={{ y: -10, opacity: 0 }}
+          animate={{ y: 28, opacity: [0, 0.4, 0.4, 0] }}
+          transition={{ duration: 1.15, repeat: Infinity, ease: "easeIn", delay: 0.3 }}
+        />
+        <motion.circle
+          cx="36"
+          cy="30"
+          r="1.5"
+          fill="currentColor"
+          opacity="0.4"
+          initial={{ y: -10, opacity: 0 }}
+          animate={{ y: 26, opacity: [0, 0.4, 0.4, 0] }}
+          transition={{ duration: 1.05, repeat: Infinity, ease: "easeIn", delay: 0.35 }}
+        />
+
+        {/* Splash effect at bottom */}
+        <motion.path
+          d="M22 56C22 56 26 52 32 52C38 52 42 56 42 56"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          fill="none"
+          opacity="0.3"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: [0, 0.3, 0.3, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.8 }}
+        />
+      </svg>
+    </div>
+  );
+};
 import { useVerification, GCC_COUNTRIES_LIST } from '@/context/VerificationContext';
 import { ODOO_CONFIG } from '@/lib/api/config';
 
@@ -412,7 +548,7 @@ export default function LandingPage() {
                 transition={{ delay: 0.2 }}
                 className="mb-8"
               >
-                <Sparkles className="w-12 h-12 text-gold mx-auto mb-4" />
+                <AnimatedShowerIcon className="w-16 h-16 text-gold mx-auto mb-4" />
               </motion.div>
 
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-display text-navy dark:text-white mb-6 leading-tight">
