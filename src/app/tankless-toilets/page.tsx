@@ -35,6 +35,7 @@ const SleekDesignIcon = (
 export default function TanklessToiletsPage() {
   return (
     <CategoryShowcase
+      configKey="tanklessToilets"
       heroTitle="Tankless Toilets"
       heroSubtitle="The Future of Bathroom Technology"
       heroDescription="Experience the next generation of toilet design. Our tankless toilets combine cutting-edge auto-flush technology with sleek, space-saving aesthetics for the ultimate modern bathroom."

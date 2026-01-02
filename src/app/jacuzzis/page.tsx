@@ -37,6 +37,7 @@ const HeatRetentionIcon = (
 export default function JacuzzisPage() {
   return (
     <CategoryShowcase
+      configKey="jacuzzis"
       heroTitle="Jacuzzis"
       heroSubtitle="Ultimate Wellness & Luxury"
       heroDescription="Immerse yourself in pure relaxation with our premium jacuzzis. Advanced hydrotherapy, powerful massage jets, and elegant design combine to deliver the ultimate wellness experience."

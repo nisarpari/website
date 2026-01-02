@@ -36,6 +36,7 @@ const SilentFlushIcon = (
 export default function SiphonicWCPage() {
   return (
     <CategoryShowcase
+      configKey="siphonicWC"
       heroTitle="Single Piece Toilets"
       heroSubtitle="Seamless Elegance, Superior Function"
       heroDescription="Experience the beauty of unified design with our single piece toilets. The integrated tank and bowl create a sleek silhouette that's both stunning and incredibly easy to maintain."

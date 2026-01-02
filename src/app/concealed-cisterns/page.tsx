@@ -35,6 +35,7 @@ const QuietOperationIcon = (
 export default function ConcealedCisternsPage() {
   return (
     <CategoryShowcase
+      configKey="concealedCisterns"
       heroTitle="Concealed Cisterns"
       heroSubtitle="Premium In-Wall Flushing Systems"
       heroDescription="Transform your bathroom with our sleek concealed cisterns. Space-saving design meets advanced water efficiency for a clean, modern look that maximizes your bathroom space."

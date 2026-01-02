@@ -36,6 +36,7 @@ const CleanDesignIcon = (
 export default function WallHungToiletsPage() {
   return (
     <CategoryShowcase
+      configKey="wallHungToilets"
       heroTitle="Wall Hung Toilets"
       heroSubtitle="Contemporary Space-Maximizing Design"
       heroDescription="Elevate your bathroom with our stunning wall hung toilets. Floating elegance meets powerful performance, creating the perfect blend of style and functionality for modern living."

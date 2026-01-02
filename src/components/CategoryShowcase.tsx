@@ -4,9 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
-import { useLocale } from '@/context';
+import { useLocale, useAdmin } from '@/context';
 import { OdooAPI, type Product } from '@/lib/api/odoo';
 import { ProductImage } from '@/components/ProductImage';
+import { EditableImage } from '@/components/admin';
 
 // Feature item type
 export interface Feature {
@@ -50,6 +51,9 @@ export interface CategoryShowcaseProps {
   ctaDescription?: string;
   ctaButtonText?: string;
   ctaButtonLink?: string;
+
+  // Admin config key for editable images
+  configKey?: string;
 }
 
 // Animated counter component
@@ -146,11 +150,14 @@ export function CategoryShowcase({
   ctaTitle,
   ctaDescription,
   ctaButtonText = 'View All Products',
-  ctaButtonLink
+  ctaButtonLink,
+  configKey = 'categoryShowcase'
 }: CategoryShowcaseProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentHeroImage, setCurrentHeroImage] = useState(heroImage);
   const heroRef = useRef<HTMLDivElement>(null);
+  const { isAdmin, editMode } = useAdmin();
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"]
@@ -176,19 +183,31 @@ export function CategoryShowcase({
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section - Fullscreen with parallax */}
-      <section ref={heroRef} className="relative h-screen min-h-[600px] max-h-[900px] overflow-hidden">
+      <section ref={heroRef} className="relative h-[70vh] md:h-screen min-h-[500px] md:min-h-[600px] max-h-[900px] overflow-hidden">
         {/* Background Image with Parallax */}
         <motion.div
           style={{ y: heroY }}
           className="absolute inset-0"
         >
-          <Image
-            src={heroImage}
-            alt={heroImageAlt}
-            fill
-            className="object-cover"
-            priority
-          />
+          {isAdmin && editMode ? (
+            <EditableImage
+              src={currentHeroImage}
+              alt={heroImageAlt}
+              configKey={`${configKey}.heroImage`}
+              fill
+              className="object-cover"
+              priority
+              onUpdate={(newUrl) => setCurrentHeroImage(newUrl)}
+            />
+          ) : (
+            <Image
+              src={currentHeroImage}
+              alt={heroImageAlt}
+              fill
+              className="object-cover"
+              priority
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-r from-navy/90 via-navy/70 to-navy/40" />
         </motion.div>
 
@@ -197,14 +216,14 @@ export function CategoryShowcase({
           style={{ opacity: heroOpacity }}
           className="relative h-full flex items-center"
         >
-          <div className="max-w-7xl mx-auto px-6 md:px-8 w-full">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 w-full">
             <div className="max-w-2xl">
               {/* Breadcrumb */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="flex items-center text-sm text-white/60 mb-6"
+                className="flex items-center text-xs md:text-sm text-white/60 mb-4 md:mb-6"
               >
                 <Link href="/" className="hover:text-white transition-colors">Home</Link>
                 <span className="mx-2">/</span>
@@ -218,7 +237,7 @@ export function CategoryShowcase({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="text-gold font-medium tracking-wider uppercase text-sm mb-4"
+                className="text-gold font-medium tracking-wider uppercase text-xs md:text-sm mb-2 md:mb-4"
               >
                 {heroSubtitle}
               </motion.p>
@@ -228,7 +247,7 @@ export function CategoryShowcase({
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight"
+                className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 md:mb-6 leading-tight"
               >
                 {heroTitle}
               </motion.h1>
@@ -238,7 +257,7 @@ export function CategoryShowcase({
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
-                className="text-white/80 text-lg md:text-xl leading-relaxed mb-8"
+                className="text-white/80 text-sm md:text-xl leading-relaxed mb-6 md:mb-8"
               >
                 {heroDescription}
               </motion.p>
@@ -248,20 +267,20 @@ export function CategoryShowcase({
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
-                className="flex flex-wrap gap-4"
+                className="flex flex-col sm:flex-row gap-3 md:gap-4"
               >
                 <Link
                   href={ctaButtonLink || `/shop?category=${categoryId}`}
-                  className="inline-flex items-center gap-2 bg-gold hover:bg-gold-dark text-navy px-8 py-4 rounded-full font-semibold transition-all hover:scale-105 hover:shadow-lg"
+                  className="inline-flex items-center justify-center gap-2 bg-gold hover:bg-gold-dark text-navy px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold text-sm md:text-base transition-all hover:scale-105 hover:shadow-lg"
                 >
                   Explore Collection
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </Link>
                 <a
                   href="#features"
-                  className="inline-flex items-center gap-2 border-2 border-white/30 hover:border-white text-white px-8 py-4 rounded-full font-semibold transition-all hover:bg-white/10"
+                  className="inline-flex items-center justify-center gap-2 border-2 border-white/30 hover:border-white text-white px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold text-sm md:text-base transition-all hover:bg-white/10"
                 >
                   Learn More
                 </a>
@@ -289,16 +308,16 @@ export function CategoryShowcase({
 
       {/* Stats Section */}
       {stats && stats.length > 0 && (
-        <section className="relative -mt-16 z-10">
-          <div className="max-w-5xl mx-auto px-6">
+        <section className="relative -mt-12 md:-mt-16 z-10">
+          <div className="max-w-5xl mx-auto px-4 md:px-6">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="bg-white rounded-2xl shadow-2xl p-8 md:p-12"
+              className="bg-white rounded-xl md:rounded-2xl shadow-xl md:shadow-2xl p-4 md:p-12"
             >
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
                 {stats.map((stat, index) => (
                   <motion.div
                     key={index}
@@ -308,10 +327,10 @@ export function CategoryShowcase({
                     transition={{ delay: index * 0.1 }}
                     className="text-center"
                   >
-                    <div className="text-3xl md:text-4xl font-bold text-navy mb-2">
+                    <div className="text-xl md:text-4xl font-bold text-navy mb-1 md:mb-2">
                       <AnimatedCounter value={stat.value} />
                     </div>
-                    <p className="text-bella-500 text-sm">{stat.label}</p>
+                    <p className="text-bella-500 text-xs md:text-sm">{stat.label}</p>
                   </motion.div>
                 ))}
               </div>
@@ -321,21 +340,21 @@ export function CategoryShowcase({
       )}
 
       {/* Features Section */}
-      <section id="features" className="py-20 md:py-28 bg-bella-50">
-        <div className="max-w-7xl mx-auto px-6 md:px-8">
+      <section id="features" className="py-12 md:py-28 bg-bella-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-8 md:mb-16"
           >
-            <span className="text-gold font-medium tracking-wider uppercase text-sm">Why Choose Us</span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-navy mt-3">
+            <span className="text-gold font-medium tracking-wider uppercase text-xs md:text-sm">Why Choose Us</span>
+            <h2 className="font-display text-2xl md:text-4xl font-bold text-navy mt-2 md:mt-3">
               Premium Features & Benefits
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
@@ -344,15 +363,15 @@ export function CategoryShowcase({
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-shadow group"
+                className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-sm hover:shadow-xl transition-shadow group"
               >
-                <div className="w-16 h-16 bg-gradient-to-br from-gold/20 to-gold/5 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <div className="text-gold">
+                <div className="w-10 h-10 md:w-16 md:h-16 bg-gradient-to-br from-gold/20 to-gold/5 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-6 group-hover:scale-110 transition-transform">
+                  <div className="text-gold [&>svg]:w-5 [&>svg]:h-5 md:[&>svg]:w-8 md:[&>svg]:h-8">
                     {feature.icon}
                   </div>
                 </div>
-                <h3 className="font-semibold text-navy text-lg mb-3">{feature.title}</h3>
-                <p className="text-bella-500 leading-relaxed">{feature.description}</p>
+                <h3 className="font-semibold text-navy text-sm md:text-lg mb-1 md:mb-3">{feature.title}</h3>
+                <p className="text-bella-500 text-xs md:text-base leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -361,22 +380,23 @@ export function CategoryShowcase({
 
       {/* Benefits Section */}
       {benefits && benefits.length > 0 && (
-        <section className="py-20 md:py-28 bg-white">
-          <div className="max-w-7xl mx-auto px-6 md:px-8">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <section className="py-12 md:py-28 bg-white">
+          <div className="max-w-7xl mx-auto px-4 md:px-8">
+            <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
               <motion.div
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
+                className="order-2 lg:order-1"
               >
-                <span className="text-gold font-medium tracking-wider uppercase text-sm">The Bella Difference</span>
-                <h2 className="font-display text-3xl md:text-4xl font-bold text-navy mt-3 mb-6">
+                <span className="text-gold font-medium tracking-wider uppercase text-xs md:text-sm">The Bella Difference</span>
+                <h2 className="font-display text-2xl md:text-4xl font-bold text-navy mt-2 md:mt-3 mb-3 md:mb-6">
                   {benefitsTitle || 'Why Bella?'}
                 </h2>
-                <p className="text-bella-600 text-lg leading-relaxed mb-8">
+                <p className="text-bella-600 text-sm md:text-lg leading-relaxed mb-4 md:mb-8">
                   {benefitsDescription || 'Experience the perfect blend of innovation, quality, and style with our premium bathroom solutions.'}
                 </p>
-                <ul className="space-y-4">
+                <ul className="space-y-2 md:space-y-4">
                   {benefits.map((benefit, index) => (
                     <motion.li
                       key={index}
@@ -384,14 +404,14 @@ export function CategoryShowcase({
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: index * 0.1 }}
-                      className="flex items-start gap-3"
+                      className="flex items-start gap-2 md:gap-3"
                     >
-                      <div className="w-6 h-6 bg-gold/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg className="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-5 h-5 md:w-6 md:h-6 bg-gold/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 md:w-4 md:h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
-                      <span className="text-bella-700">{benefit}</span>
+                      <span className="text-bella-700 text-sm md:text-base">{benefit}</span>
                     </motion.li>
                   ))}
                 </ul>
@@ -401,18 +421,29 @@ export function CategoryShowcase({
                 initial={{ opacity: 0, x: 30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="relative"
+                className="relative order-1 lg:order-2"
               >
-                <div className="aspect-square relative rounded-3xl overflow-hidden shadow-2xl">
-                  <Image
-                    src={heroImage}
-                    alt="Benefits showcase"
-                    fill
-                    className="object-cover"
-                  />
+                <div className="aspect-[4/3] md:aspect-square relative rounded-2xl md:rounded-3xl overflow-hidden shadow-xl md:shadow-2xl">
+                  {isAdmin && editMode ? (
+                    <EditableImage
+                      src={currentHeroImage}
+                      alt="Benefits showcase"
+                      configKey={`${configKey}.benefitsImage`}
+                      fill
+                      className="object-cover"
+                      onUpdate={(newUrl) => setCurrentHeroImage(newUrl)}
+                    />
+                  ) : (
+                    <Image
+                      src={currentHeroImage}
+                      alt="Benefits showcase"
+                      fill
+                      className="object-cover"
+                    />
+                  )}
                 </div>
-                <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gold/20 rounded-full blur-3xl" />
-                <div className="absolute -top-6 -right-6 w-32 h-32 bg-navy/10 rounded-full blur-3xl" />
+                <div className="absolute -bottom-4 -left-4 md:-bottom-6 md:-left-6 w-20 h-20 md:w-32 md:h-32 bg-gold/20 rounded-full blur-2xl md:blur-3xl" />
+                <div className="absolute -top-4 -right-4 md:-top-6 md:-right-6 w-20 h-20 md:w-32 md:h-32 bg-navy/10 rounded-full blur-2xl md:blur-3xl" />
               </motion.div>
             </div>
           </div>
@@ -420,16 +451,16 @@ export function CategoryShowcase({
       )}
 
       {/* Products Section */}
-      <section className="py-20 md:py-28 bg-gradient-to-b from-bella-50 to-white">
-        <div className="max-w-7xl mx-auto px-6 md:px-8">
+      <section className="py-12 md:py-28 bg-gradient-to-b from-bella-50 to-white">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-8 md:mb-12"
           >
-            <span className="text-gold font-medium tracking-wider uppercase text-sm">Our Products</span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-navy mt-3">
+            <span className="text-gold font-medium tracking-wider uppercase text-xs md:text-sm">Our Products</span>
+            <h2 className="font-display text-2xl md:text-4xl font-bold text-navy mt-2 md:mt-3">
               {productsTitle}
             </h2>
           </motion.div>
@@ -473,40 +504,40 @@ export function CategoryShowcase({
 
       {/* CTA Section */}
       {ctaTitle && (
-        <section className="py-20 md:py-28 bg-navy relative overflow-hidden">
+        <section className="py-12 md:py-28 bg-navy relative overflow-hidden">
           {/* Background decoration */}
           <div className="absolute inset-0">
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-gold/10 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+            <div className="absolute top-0 left-1/4 w-48 md:w-96 h-48 md:h-96 bg-gold/10 rounded-full blur-2xl md:blur-3xl" />
+            <div className="absolute bottom-0 right-1/4 w-48 md:w-96 h-48 md:h-96 bg-white/5 rounded-full blur-2xl md:blur-3xl" />
           </div>
 
-          <div className="max-w-4xl mx-auto px-6 md:px-8 text-center relative">
+          <div className="max-w-4xl mx-auto px-4 md:px-8 text-center relative">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
+              <h2 className="font-display text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-4 md:mb-6">
                 {ctaTitle}
               </h2>
               {ctaDescription && (
-                <p className="text-white/70 text-lg md:text-xl mb-10 max-w-2xl mx-auto">
+                <p className="text-white/70 text-sm md:text-xl mb-6 md:mb-10 max-w-2xl mx-auto">
                   {ctaDescription}
                 </p>
               )}
-              <div className="flex flex-wrap justify-center gap-4">
+              <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4">
                 <Link
                   href={ctaButtonLink || `/shop?category=${categoryId}`}
-                  className="inline-flex items-center gap-2 bg-gold hover:bg-gold-dark text-navy px-8 py-4 rounded-full font-semibold transition-all hover:scale-105 shadow-lg shadow-gold/25"
+                  className="inline-flex items-center justify-center gap-2 bg-gold hover:bg-gold-dark text-navy px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold text-sm md:text-base transition-all hover:scale-105 shadow-lg shadow-gold/25"
                 >
                   {ctaButtonText}
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </Link>
                 <Link
                   href="/contact"
-                  className="inline-flex items-center gap-2 border-2 border-white/30 hover:border-white text-white px-8 py-4 rounded-full font-semibold transition-all hover:bg-white/10"
+                  className="inline-flex items-center justify-center gap-2 border-2 border-white/30 hover:border-white text-white px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold text-sm md:text-base transition-all hover:bg-white/10"
                 >
                   Contact Us
                 </Link>

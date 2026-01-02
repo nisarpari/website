@@ -36,6 +36,7 @@ const ErgonomicIcon = (
 export default function BathtubsPage() {
   return (
     <CategoryShowcase
+      configKey="bathtubs"
       heroTitle="Luxury Bathtubs"
       heroSubtitle="Artistic Design Meets Peak Functionality"
       heroDescription="Indulge in the ultimate bathing experience with our collection of luxury bathtubs. From elegant freestanding designs to space-efficient corner tubs, find your perfect sanctuary."
