@@ -21,7 +21,7 @@ export default function ProductCard({ product }: { product: Product }) {
                 transition={{ duration: 0.4, ease: "easeOut" }}
             >
                 {/* Image block - 4:5 ratio for elegant vertical look */}
-                <div className="relative aspect-[4/5] bg-bella-50 dark:bg-navy overflow-hidden">
+                <div className="relative aspect-[4/5] bg-white overflow-hidden">
                     <ProductImage
                         src={product.thumbnail || product.image || '/placeholder.jpg'}
                         alt={product.name}
