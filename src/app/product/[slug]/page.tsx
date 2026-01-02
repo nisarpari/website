@@ -10,11 +10,8 @@ import { ProductImage } from '@/components/ProductImage';
 import { ProductDetailSkeleton } from '@/components/ProductCardSkeleton';
 
 // Related Product Card Component
-function RelatedProductCard({ product, currencySymbol, formatPrice, isVerified }: {
+function RelatedProductCard({ product }: {
   product: RelatedProduct;
-  currencySymbol: string;
-  formatPrice: (price: number) => string;
-  isVerified: boolean;
 }) {
   return (
     <Link
@@ -132,18 +129,12 @@ function EnhancedYouMightAlsoLike({
   title,
   products,
   categories,
-  currentProduct,
-  currencySymbol,
-  formatPrice,
-  isVerified
+  currentProduct
 }: {
   title: string;
   products: RelatedProduct[];
   categories: Category[];
   currentProduct: Product;
-  currencySymbol: string;
-  formatPrice: (price: number) => string;
-  isVerified: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -738,9 +729,6 @@ export default function ProductDetailPage() {
               <RelatedProductCard
                 key={p.id}
                 product={p}
-                currencySymbol={countryConfig.currencySymbol}
-                formatPrice={formatPrice}
-                isVerified={isVerified}
               />
             ))}
           </HorizontalScrollSection>
@@ -753,9 +741,6 @@ export default function ProductDetailPage() {
             products={alternativeProducts}
             categories={categories}
             currentProduct={product}
-            currencySymbol={countryConfig.currencySymbol}
-            formatPrice={formatPrice}
-            isVerified={isVerified}
           />
         )}
 
@@ -957,9 +942,6 @@ export default function ProductDetailPage() {
               <RelatedProductCard
                 key={p.id}
                 product={p}
-                currencySymbol={countryConfig.currencySymbol}
-                formatPrice={formatPrice}
-                isVerified={isVerified}
               />
             ))}
           </HorizontalScrollSection>
@@ -972,9 +954,6 @@ export default function ProductDetailPage() {
             products={alternativeProducts}
             categories={categories}
             currentProduct={product}
-            currencySymbol={countryConfig.currencySymbol}
-            formatPrice={formatPrice}
-            isVerified={isVerified}
           />
         )}
 

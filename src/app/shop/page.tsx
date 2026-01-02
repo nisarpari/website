@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, Suspense, useRef, useCallback } from 'rea
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useLocale, useCart, useWishlist, useVerification, useAdmin } from '@/context';
+import { useLocale, useWishlist, useAdmin } from '@/context';
 import { OdooAPI, type Product, type Category } from '@/lib/api/odoo';
 import { EditableImage } from '@/components/admin';
 import { ProductImage } from '@/components/ProductImage';
@@ -39,10 +39,7 @@ function useScrollAnimation(options?: IntersectionObserverInit) {
 const PRODUCTS_PER_PAGE = 25;
 
 function ProductCard({ product }: { product: Product }) {
-  const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
-  const { countryConfig, formatPrice } = useLocale();
-  const { isVerified } = useVerification();
   const inWishlist = isInWishlist(product.id);
 
   return (
@@ -74,10 +71,9 @@ function ProductCard({ product }: { product: Product }) {
 
 
 // Category Card Component with scroll animation
-function CategoryCard({ category, categoryImage, customImage, isAdmin, editMode, onImageUpdate, index = 0 }: {
+function CategoryCard({ category, categoryImage, isAdmin, editMode, onImageUpdate, index = 0 }: {
   category: Category;
   categoryImage: string | undefined;
-  customImage: string | undefined;
   isAdmin: boolean;
   editMode: boolean;
   onImageUpdate?: (categoryId: string, imageUrl: string) => void;
@@ -411,7 +407,6 @@ function AllCategoriesGrid({ categories, categoryImages, onImageUpdate }: {
                       key={category.id}
                       category={category}
                       categoryImage={categoryImage}
-                      customImage={customImage}
                       isAdmin={isAdmin}
                       editMode={editMode}
                       onImageUpdate={onImageUpdate}

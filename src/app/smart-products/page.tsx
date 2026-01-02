@@ -252,7 +252,7 @@ const featureShowcaseData = [
 
 // Product card component
 function ProductCard({ product, index }: { product: Product; index: number }) {
-  const { countryConfig, formatPrice } = useLocale();
+  useLocale(); // Hook for locale context
 
   return (
     <motion.div

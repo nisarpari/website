@@ -89,7 +89,7 @@ function AnimatedCounter({ value, suffix = '' }: { value: string; suffix?: strin
 
 // Product card with hover effects
 function ProductCard({ product, index }: { product: Product; index: number }) {
-  const { countryConfig, formatPrice } = useLocale();
+  useLocale(); // Hook for locale context
 
   return (
     <motion.div
@@ -184,7 +184,6 @@ export function CategoryShowcase({
               configKey={`${configKey}.heroImage`}
               fill
               className="object-cover"
-              priority
               onUpdate={(newUrl) => setCurrentHeroImage(newUrl)}
             />
           ) : (
