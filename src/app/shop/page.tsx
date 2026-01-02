@@ -973,49 +973,25 @@ function ShopPageContent() {
       setCategories(cats);
       setCategoryImages(catImages);
 
-      // Categories that should stay on shop page instead of redirecting to landing pages
-      // This keeps users in the shopping flow
-      const keepOnShopPage = [
-        'flushing cisterns',
-        'concealed cisterns',
-        'exposed cisterns',
-        'flush plates',
-        'wall hung toilets',
-        'tankless wc',
-        'single piece toilet',
-        'urinals',
-        'siphonic wc',
-      ];
-
       // Only fetch products when a category is selected
       if (selectedCategoryId) {
         // Check if this is a parent category (has children)
         const selectedCat = cats.find(c => c.id === selectedCategoryId);
         if (selectedCat && selectedCat.childIds && selectedCat.childIds.length > 0) {
-          // Check if this category should stay on shop page
-          const shouldKeepOnShop = keepOnShopPage.some(name =>
-            selectedCat.name.toLowerCase() === name.toLowerCase()
+          // Always stay on shop page for parent categories to keep users in the shopping flow
+          // This shows subcategories as filter chips and loads all products from children
+          const allCategoryIds = [selectedCategoryId, ...selectedCat.childIds];
+          const productPromises = allCategoryIds.map(catId =>
+            OdooAPI.fetchProductsByPublicCategory(catId)
           );
-
-          // If showAll is true OR this is a category that should stay on shop page,
-          // fetch products from parent AND all children
-          if (showAllParam || shouldKeepOnShop) {
-            const allCategoryIds = [selectedCategoryId, ...selectedCat.childIds];
-            const productPromises = allCategoryIds.map(catId =>
-              OdooAPI.fetchProductsByPublicCategory(catId)
-            );
-            const productArrays = await Promise.all(productPromises);
-            // Flatten and dedupe by product id
-            const allProducts = productArrays.flat();
-            const uniqueProducts = Array.from(
-              new Map(allProducts.map(p => [p.id, p])).values()
-            );
-            setProducts(uniqueProducts);
-            setLoading(false);
-            return;
-          }
-          // Otherwise redirect to category landing page for parent categories using slug
-          router.replace(`/${selectedCat.slug}`, { scroll: true });
+          const productArrays = await Promise.all(productPromises);
+          // Flatten and dedupe by product id
+          const allProducts = productArrays.flat();
+          const uniqueProducts = Array.from(
+            new Map(allProducts.map(p => [p.id, p])).values()
+          );
+          setProducts(uniqueProducts);
+          setLoading(false);
           return;
         }
 
