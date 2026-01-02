@@ -30,12 +30,7 @@ function RelatedProductCard({ product, currencySymbol, formatPrice, isVerified }
         />
       </div>
       <div className="p-3">
-        <h4 className="text-sm font-medium text-navy dark:text-white line-clamp-2 mb-1">{product.name}</h4>
-        {isVerified ? (
-          <span className="text-sm font-semibold text-navy dark:text-white">{currencySymbol} {formatPrice(product.price)}</span>
-        ) : (
-          <span className="text-xs text-gold">Login to see price</span>
-        )}
+        <h4 className="font-product text-sm font-medium text-navy dark:text-white line-clamp-2 overflow-hidden">{product.name}</h4>
       </div>
     </Link>
   );
@@ -280,12 +275,7 @@ function EnhancedYouMightAlsoLike({
                 />
               </div>
               <div className="p-3">
-                <h4 className="text-sm font-medium text-navy dark:text-white line-clamp-2 mb-1">{p.name}</h4>
-                {isVerified ? (
-                  <span className="text-sm font-semibold text-navy dark:text-white">{currencySymbol} {formatPrice(p.price)}</span>
-                ) : (
-                  <span className="text-xs text-gold">Login to see price</span>
-                )}
+                <h4 className="font-product text-sm font-medium text-navy dark:text-white line-clamp-2 overflow-hidden">{p.name}</h4>
               </div>
             </Link>
           ))}
@@ -655,7 +645,7 @@ export default function ProductDetailPage() {
 
         {/* Product Info - Compact */}
         <div className="px-4 py-4 bg-white">
-          <h1 className="font-semibold text-lg text-navy leading-tight mb-2">{product.name}</h1>
+          <h1 className="font-product font-semibold text-lg text-navy leading-tight mb-2">{product.name}</h1>
 
           <div className="flex items-center justify-between mb-3">
             {/* Price */}
@@ -850,7 +840,7 @@ export default function ProductDetailPage() {
             {/* Info */}
             <div>
               <p className="text-bella-500 dark:text-bella-400 text-sm uppercase tracking-wide mb-2">{product.category}</p>
-              <h1 className="text-2xl md:text-3xl font-bold text-navy dark:text-white mb-4">{product.name}</h1>
+              <h1 className="font-product text-2xl md:text-3xl font-semibold text-navy dark:text-white mb-4">{product.name}</h1>
 
               {/* Price */}
               <div className="mb-6">

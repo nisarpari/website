@@ -21,9 +21,9 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
     >
       <Link
         href={`/product/${product.slug}`}
-        className="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500"
+        className="group block bg-white dark:bg-navy-light rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-transparent dark:border-white/10"
       >
-        <div className="relative aspect-square bg-gradient-to-br from-bella-50 to-white overflow-hidden">
+        <div className="relative aspect-square bg-gradient-to-br from-bella-50 to-white dark:from-navy dark:to-navy-light overflow-hidden">
           <ProductImage
             src={product.thumbnail || product.image || '/placeholder.jpg'}
             alt={product.name}
@@ -32,22 +32,10 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
             className="object-contain p-4 group-hover:scale-110 transition-transform duration-700"
           />
         </div>
-        <div className="p-4 md:p-5">
-          <p className="text-xs text-bella-400 uppercase tracking-wider mb-1">{product.category}</p>
-          <h3 className="font-medium text-navy text-sm md:text-base line-clamp-2 group-hover:text-gold transition-colors">
+        <div className="p-3 md:p-4">
+          <h3 className="font-product text-xs text-bella-500 dark:text-bella-300 uppercase tracking-wider line-clamp-2 overflow-hidden group-hover:text-gold transition-colors">
             {product.name}
           </h3>
-          <div className="mt-3 flex items-center justify-between">
-            <span className="font-bold text-navy">
-              {countryConfig.currencySymbol} {formatPrice(product.price)}
-            </span>
-            <span className="text-xs text-gold font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-              View Details
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </span>
-          </div>
         </div>
       </Link>
     </motion.div>
@@ -59,7 +47,7 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
   return (
     <button
       onClick={onClick}
-      className={`px-8 py-4 rounded-full font-semibold text-lg transition-all ${
+      className={`px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold text-sm md:text-lg transition-all ${
         active
           ? 'bg-gold text-navy shadow-lg shadow-gold/25'
           : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white'
@@ -91,8 +79,8 @@ export default function SaunaSteamPage() {
       try {
         // Fetch sauna and steam room products in parallel
         const [saunas, steams] = await Promise.all([
-          OdooAPI.fetchProductsByPublicCategory(48, 6), // Sauna category
-          OdooAPI.fetchProductsByPublicCategory(49, 6)  // Steam room category
+          OdooAPI.fetchProductsByPublicCategory(50, 6), // Sauna & Steam category
+          OdooAPI.fetchProductsByPublicCategory(50, 6)  // Same category for now
         ]);
         setSaunaProducts(saunas);
         setSteamProducts(steams);
@@ -166,9 +154,9 @@ export default function SaunaSteamPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-navy">
       {/* Hero Section */}
-      <section ref={heroRef} className="relative h-screen min-h-[600px] max-h-[900px] overflow-hidden">
+      <section ref={heroRef} className="relative h-[70vh] md:h-screen min-h-[500px] md:min-h-[600px] max-h-[900px] overflow-hidden">
         <motion.div style={{ y: heroY }} className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1600&q=80"
@@ -181,14 +169,14 @@ export default function SaunaSteamPage() {
         </motion.div>
 
         <motion.div style={{ opacity: heroOpacity }} className="relative h-full flex items-center">
-          <div className="max-w-7xl mx-auto px-6 md:px-8 w-full">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 w-full">
             <div className="max-w-2xl">
               {/* Breadcrumb */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="flex items-center text-sm text-white/60 mb-6"
+                className="flex items-center text-xs md:text-sm text-white/60 mb-4 md:mb-6"
               >
                 <Link href="/" className="hover:text-white transition-colors">Home</Link>
                 <span className="mx-2">/</span>
@@ -201,7 +189,7 @@ export default function SaunaSteamPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="text-gold font-medium tracking-wider uppercase text-sm mb-4"
+                className="text-gold font-medium tracking-wider uppercase text-xs md:text-sm mb-2 md:mb-4"
               >
                 Complete Wellness Solutions
               </motion.p>
@@ -210,7 +198,7 @@ export default function SaunaSteamPage() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight"
+                className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 md:mb-6 leading-tight"
               >
                 Sauna & Steam Rooms
               </motion.h1>
@@ -219,7 +207,7 @@ export default function SaunaSteamPage() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
-                className="text-white/80 text-lg md:text-xl leading-relaxed mb-8"
+                className="text-white/80 text-sm md:text-xl leading-relaxed mb-6 md:mb-8"
               >
                 Transform your home into a luxury wellness retreat. Experience the therapeutic benefits of heat therapy with our premium saunas and steam rooms.
               </motion.p>
@@ -260,31 +248,31 @@ export default function SaunaSteamPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="relative -mt-16 z-10">
-        <div className="max-w-5xl mx-auto px-6">
+      <section className="relative -mt-12 md:-mt-16 z-10">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="bg-white rounded-2xl shadow-2xl p-8 md:p-12"
+            className="bg-white dark:bg-navy-light rounded-xl md:rounded-2xl shadow-xl md:shadow-2xl p-4 md:p-12 dark:border dark:border-white/10"
           >
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 text-center">
               <div>
-                <div className="text-3xl md:text-4xl font-bold text-navy mb-2">100%</div>
-                <p className="text-bella-500 text-sm">Natural Wood</p>
+                <div className="text-xl md:text-4xl font-bold text-navy dark:text-white mb-1 md:mb-2">100%</div>
+                <p className="text-bella-500 dark:text-bella-300 text-xs md:text-sm">Natural Wood</p>
               </div>
               <div>
-                <div className="text-3xl md:text-4xl font-bold text-navy mb-2">65-85°C</div>
-                <p className="text-bella-500 text-sm">Temperature Range</p>
+                <div className="text-xl md:text-4xl font-bold text-navy dark:text-white mb-1 md:mb-2">65-85°C</div>
+                <p className="text-bella-500 dark:text-bella-300 text-xs md:text-sm">Temperature Range</p>
               </div>
               <div>
-                <div className="text-3xl md:text-4xl font-bold text-navy mb-2">1-6</div>
-                <p className="text-bella-500 text-sm">Person Capacity</p>
+                <div className="text-xl md:text-4xl font-bold text-navy dark:text-white mb-1 md:mb-2">1-6</div>
+                <p className="text-bella-500 dark:text-bella-300 text-xs md:text-sm">Person Capacity</p>
               </div>
               <div>
-                <div className="text-3xl md:text-4xl font-bold text-navy mb-2">Spa</div>
-                <p className="text-bella-500 text-sm">Quality</p>
+                <div className="text-xl md:text-4xl font-bold text-navy dark:text-white mb-1 md:mb-2">Spa</div>
+                <p className="text-bella-500 dark:text-bella-300 text-xs md:text-sm">Quality</p>
               </div>
             </div>
           </motion.div>
@@ -292,23 +280,23 @@ export default function SaunaSteamPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 md:py-28 bg-bella-50">
-        <div className="max-w-7xl mx-auto px-6 md:px-8">
+      <section className="py-12 md:py-28 bg-bella-50 dark:bg-navy-light">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-8 md:mb-16"
           >
-            <span className="text-gold font-medium tracking-wider uppercase text-sm">
+            <span className="text-gold font-medium tracking-wider uppercase text-xs md:text-sm">
               {activeTab === 'sauna' ? 'Sauna Benefits' : 'Steam Room Benefits'}
             </span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-navy mt-3">
+            <h2 className="font-display text-2xl md:text-4xl font-bold text-navy dark:text-white mt-2 md:mt-3">
               {activeTab === 'sauna' ? 'The Art of Dry Heat Therapy' : 'The Power of Steam Therapy'}
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-8">
             {(activeTab === 'sauna' ? saunaFeatures : steamFeatures).map((feature, index) => (
               <motion.div
                 key={index}
@@ -317,13 +305,13 @@ export default function SaunaSteamPage() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-shadow"
+                className="bg-white dark:bg-navy rounded-xl md:rounded-2xl p-4 md:p-8 shadow-sm hover:shadow-xl transition-shadow dark:border dark:border-white/10"
               >
-                <div className="w-16 h-16 bg-gradient-to-br from-gold/20 to-gold/5 rounded-2xl flex items-center justify-center mb-6 text-gold">
+                <div className="w-10 h-10 md:w-16 md:h-16 bg-gradient-to-br from-gold/20 to-gold/5 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-6 text-gold [&>svg]:w-5 [&>svg]:h-5 md:[&>svg]:w-8 md:[&>svg]:h-8">
                   {feature.icon}
                 </div>
-                <h3 className="font-semibold text-navy text-lg mb-3">{feature.title}</h3>
-                <p className="text-bella-500 leading-relaxed">{feature.description}</p>
+                <h3 className="font-semibold text-navy dark:text-white text-sm md:text-lg mb-1 md:mb-3">{feature.title}</h3>
+                <p className="text-bella-500 dark:text-bella-300 text-xs md:text-base leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -331,37 +319,37 @@ export default function SaunaSteamPage() {
       </section>
 
       {/* Benefits Comparison */}
-      <section className="py-20 md:py-28 bg-white">
-        <div className="max-w-7xl mx-auto px-6 md:px-8">
+      <section className="py-12 md:py-28 bg-white dark:bg-navy">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-8 md:mb-16"
           >
-            <span className="text-gold font-medium tracking-wider uppercase text-sm">Wellness Benefits</span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-navy mt-3">
+            <span className="text-gold font-medium tracking-wider uppercase text-xs md:text-sm">Wellness Benefits</span>
+            <h2 className="font-display text-2xl md:text-4xl font-bold text-navy dark:text-white mt-2 md:mt-3">
               Health & Relaxation
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-12">
+          <div className="grid md:grid-cols-2 gap-6 md:gap-12">
             {/* Sauna Benefits */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className={`p-8 rounded-2xl transition-all ${activeTab === 'sauna' ? 'bg-gradient-to-br from-amber-50 to-orange-50 ring-2 ring-gold' : 'bg-bella-50'}`}
+              className={`p-4 md:p-8 rounded-xl md:rounded-2xl transition-all ${activeTab === 'sauna' ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 ring-2 ring-gold' : 'bg-bella-50 dark:bg-navy-light'}`}
             >
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center">
-                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-amber-500/20 rounded-lg md:rounded-xl flex items-center justify-center">
+                  <svg className="w-5 h-5 md:w-6 md:h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
                   </svg>
                 </div>
-                <h3 className="font-display text-2xl font-bold text-navy">Sauna</h3>
+                <h3 className="font-display text-xl md:text-2xl font-bold text-navy dark:text-white">Sauna</h3>
               </div>
-              <ul className="space-y-3">
+              <ul className="space-y-2 md:space-y-3">
                 {[
                   'Deep muscle relaxation with dry heat',
                   'Improved circulation and cardiovascular health',
@@ -370,11 +358,11 @@ export default function SaunaSteamPage() {
                   'Better sleep quality',
                   'Skin rejuvenation and cleansing'
                 ].map((benefit, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <li key={i} className="flex items-start gap-2 md:gap-3">
+                    <svg className="w-4 h-4 md:w-5 md:h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className="text-bella-700">{benefit}</span>
+                    <span className="text-bella-700 dark:text-bella-200 text-sm md:text-base">{benefit}</span>
                   </li>
                 ))}
               </ul>
@@ -385,17 +373,17 @@ export default function SaunaSteamPage() {
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className={`p-8 rounded-2xl transition-all ${activeTab === 'steam' ? 'bg-gradient-to-br from-blue-50 to-cyan-50 ring-2 ring-gold' : 'bg-bella-50'}`}
+              className={`p-4 md:p-8 rounded-xl md:rounded-2xl transition-all ${activeTab === 'steam' ? 'bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 ring-2 ring-gold' : 'bg-bella-50 dark:bg-navy-light'}`}
             >
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-500/20 rounded-lg md:rounded-xl flex items-center justify-center">
+                  <svg className="w-5 h-5 md:w-6 md:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
                   </svg>
                 </div>
-                <h3 className="font-display text-2xl font-bold text-navy">Steam Room</h3>
+                <h3 className="font-display text-xl md:text-2xl font-bold text-navy dark:text-white">Steam Room</h3>
               </div>
-              <ul className="space-y-3">
+              <ul className="space-y-2 md:space-y-3">
                 {[
                   'Opens airways for better respiratory health',
                   'Deep hydration for skin',
@@ -404,11 +392,11 @@ export default function SaunaSteamPage() {
                   'Promotes relaxation and reduces anxiety',
                   'Boosts immune system function'
                 ].map((benefit, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <li key={i} className="flex items-start gap-2 md:gap-3">
+                    <svg className="w-4 h-4 md:w-5 md:h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className="text-bella-700">{benefit}</span>
+                    <span className="text-bella-700 dark:text-bella-200 text-sm md:text-base">{benefit}</span>
                   </li>
                 ))}
               </ul>
@@ -418,16 +406,16 @@ export default function SaunaSteamPage() {
       </section>
 
       {/* Products Section */}
-      <section className="py-20 md:py-28 bg-gradient-to-b from-bella-50 to-white">
-        <div className="max-w-7xl mx-auto px-6 md:px-8">
+      <section className="py-12 md:py-28 bg-gradient-to-b from-bella-50 to-white dark:from-navy-light dark:to-navy">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-8 md:mb-12"
           >
-            <span className="text-gold font-medium tracking-wider uppercase text-sm">Our Products</span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-navy mt-3">
+            <span className="text-gold font-medium tracking-wider uppercase text-xs md:text-sm">Our Products</span>
+            <h2 className="font-display text-2xl md:text-4xl font-bold text-navy dark:text-white mt-2 md:mt-3">
               {activeTab === 'sauna' ? 'Sauna Collection' : 'Steam Room Collection'}
             </h2>
           </motion.div>
@@ -436,7 +424,7 @@ export default function SaunaSteamPage() {
             <div className="flex justify-center py-12">
               <div className="loader"></div>
             </div>
-          ) : (
+          ) : (activeTab === 'sauna' ? saunaProducts : steamProducts).length > 0 ? (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 {(activeTab === 'sauna' ? saunaProducts : steamProducts).map((product, index) => (
@@ -451,7 +439,7 @@ export default function SaunaSteamPage() {
                 className="text-center mt-12"
               >
                 <Link
-                  href={`/shop?category=${activeTab === 'sauna' ? 48 : 49}`}
+                  href={`/shop?category=50`}
                   className="inline-flex items-center gap-2 bg-navy hover:bg-navy-dark text-white px-8 py-4 rounded-full font-semibold transition-all hover:scale-105"
                 >
                   View All {activeTab === 'sauna' ? 'Saunas' : 'Steam Rooms'}
@@ -461,42 +449,46 @@ export default function SaunaSteamPage() {
                 </Link>
               </motion.div>
             </>
+          ) : (
+            <div className="text-center py-8 text-bella-500 dark:text-bella-300">
+              {activeTab === 'sauna' ? 'Sauna' : 'Steam room'} products coming soon
+            </div>
           )}
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 md:py-28 bg-navy relative overflow-hidden">
+      <section className="py-12 md:py-28 bg-navy relative overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-gold/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+          <div className="absolute top-0 left-1/4 w-48 md:w-96 h-48 md:h-96 bg-gold/10 rounded-full blur-2xl md:blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-48 md:w-96 h-48 md:h-96 bg-white/5 rounded-full blur-2xl md:blur-3xl" />
         </div>
 
-        <div className="max-w-4xl mx-auto px-6 md:px-8 text-center relative">
+        <div className="max-w-4xl mx-auto px-4 md:px-8 text-center relative">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
+            <h2 className="font-display text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-4 md:mb-6">
               Create Your Home Wellness Sanctuary
             </h2>
-            <p className="text-white/70 text-lg md:text-xl mb-10 max-w-2xl mx-auto">
+            <p className="text-white/70 text-sm md:text-xl mb-6 md:mb-10 max-w-2xl mx-auto">
               Invest in your health and relaxation. Our expert team can help you choose the perfect sauna or steam room for your space.
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4">
               <Link
                 href="/shop?category=47"
-                className="inline-flex items-center gap-2 bg-gold hover:bg-gold-dark text-navy px-8 py-4 rounded-full font-semibold transition-all hover:scale-105 shadow-lg shadow-gold/25"
+                className="inline-flex items-center justify-center gap-2 bg-gold hover:bg-gold-dark text-navy px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold text-sm md:text-base transition-all hover:scale-105 shadow-lg shadow-gold/25"
               >
                 Explore Wellness Products
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </Link>
               <Link
                 href="/contact"
-                className="inline-flex items-center gap-2 border-2 border-white/30 hover:border-white text-white px-8 py-4 rounded-full font-semibold transition-all hover:bg-white/10"
+                className="inline-flex items-center justify-center gap-2 border-2 border-white/30 hover:border-white text-white px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold text-sm md:text-base transition-all hover:bg-white/10"
               >
                 Get Expert Advice
               </Link>

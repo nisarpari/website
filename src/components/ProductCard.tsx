@@ -63,12 +63,9 @@ export default function ProductCard({ product }: { product: Product }) {
 
                 {/* Product Info */}
                 <div className="p-4 bg-white dark:bg-navy-light relative z-20">
-                    <h3 className="text-sm font-semibold text-navy dark:text-white line-clamp-2 leading-snug group-hover:text-gold transition-colors duration-300 min-h-[40px]">
+                    <h3 className="font-product text-xs text-bella-500 dark:text-bella-300 uppercase tracking-wider line-clamp-2 leading-snug group-hover:text-gold transition-colors duration-300 overflow-hidden">
                         {product.name}
                     </h3>
-                    <div className="mt-2 flex items-center justify-between">
-                        <span className="text-xs font-medium text-bella-400 uppercase tracking-wider">Details &rarr;</span>
-                    </div>
                 </div>
             </motion.div>
         </Link>

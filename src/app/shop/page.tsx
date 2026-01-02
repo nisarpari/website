@@ -8,7 +8,7 @@ import { useLocale, useCart, useWishlist, useVerification, useAdmin } from '@/co
 import { OdooAPI, type Product, type Category } from '@/lib/api/odoo';
 import { EditableImage } from '@/components/admin';
 import { ProductImage } from '@/components/ProductImage';
-import { ProductGridSkeleton } from '@/components/ProductCardSkeleton';
+import { ProductGridSkeleton, ShopCategoryGridSkeleton } from '@/components/ProductCardSkeleton';
 
 // Custom hook for scroll animation using Intersection Observer
 function useScrollAnimation(options?: IntersectionObserverInit) {
@@ -65,23 +65,7 @@ function ProductCard({ product }: { product: Product }) {
         </button>
       </div>
       <div className="p-2 md:p-3 border-t border-bella-50 dark:border-bella-700">
-        <p className="text-bella-400 dark:text-bella-500 text-[9px] md:text-[10px] uppercase tracking-wide truncate">{product.category}</p>
-        <h3 className="text-xs md:text-sm font-medium text-navy dark:text-white mt-0.5 line-clamp-2 leading-tight min-h-[2rem] md:min-h-[2.5rem]">{product.name}</h3>
-        <div className="flex items-center justify-between mt-1.5 md:mt-2">
-          {isVerified ? (
-            <span className="text-sm md:text-base font-bold text-navy dark:text-white">{countryConfig.currencySymbol} {formatPrice(product.price)}</span>
-          ) : (
-            <span className="text-xs md:text-sm text-bella-500 dark:text-bella-400">Login to see price</span>
-          )}
-          {product.inStock !== false && isVerified && (
-            <button
-              onClick={(e) => { e.preventDefault(); addToCart(product, 1); }}
-              className="px-1.5 py-0.5 md:px-2 md:py-1 rounded text-[10px] md:text-xs font-medium bg-brand hover:bg-brand-dark text-white transition-colors"
-            >
-              Add
-            </button>
-          )}
-        </div>
+        <h3 className="font-product text-xs md:text-sm font-medium text-navy dark:text-white line-clamp-2 leading-tight overflow-hidden">{product.name}</h3>
       </div>
     </Link>
   );
@@ -101,7 +85,6 @@ function CategoryCard({ category, categoryImage, customImage, isAdmin, editMode,
 }) {
   const { ref, isVisible } = useScrollAnimation();
   const hasImage = !!categoryImage;
-  const isFallback = categoryImage && !customImage;
 
   // Staggered animation delay based on index (max 5 items per row)
   const staggerDelay = (index % 5) * 0.1;
@@ -121,7 +104,7 @@ function CategoryCard({ category, categoryImage, customImage, isAdmin, editMode,
         className="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-bella-100 hover:border-gold/30 block"
       >
       {/* Image Container */}
-      <div className={`relative aspect-[4/3] ${isFallback ? 'bg-white' : 'bg-gradient-to-br from-bella-50 to-bella-100'}`}>
+      <div className="relative aspect-[4/3] bg-bella-100 dark:bg-navy">
         {hasImage ? (
           isAdmin && editMode ? (
             <EditableImage
@@ -130,7 +113,7 @@ function CategoryCard({ category, categoryImage, customImage, isAdmin, editMode,
               configKey={`categoryImages.${category.id}`}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className={`${customImage ? 'object-cover' : 'object-contain p-4'} transition-transform duration-500 group-hover:scale-110`}
+              className="object-cover transition-transform duration-500 group-hover:scale-110"
               onUpdate={(newUrl) => onImageUpdate?.(category.id.toString(), newUrl)}
             />
           ) : (
@@ -139,7 +122,7 @@ function CategoryCard({ category, categoryImage, customImage, isAdmin, editMode,
               alt={category.name}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className={`${customImage ? 'object-cover' : 'object-contain p-4'} transition-transform duration-500 group-hover:scale-110`}
+              className="object-cover transition-transform duration-500 group-hover:scale-110"
             />
           )
         ) : (
@@ -167,18 +150,9 @@ function CategoryCard({ category, categoryImage, customImage, isAdmin, editMode,
 
       {/* Category Info */}
       <div className="p-4">
-        <h3 className="font-semibold text-navy text-sm md:text-base group-hover:text-gold transition-colors line-clamp-1">
+        <h3 className="font-display font-bold text-navy dark:text-white text-base md:text-lg group-hover:text-gold transition-colors line-clamp-1">
           {category.name}
         </h3>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-bella-500 text-xs">{category.totalCount || 0} products</span>
-          <span className="text-gold text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-            Browse
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </span>
-        </div>
       </div>
       </Link>
     </div>
@@ -1427,7 +1401,7 @@ function ShopPageContent() {
             )}
 
             {loading ? (
-              <ProductGridSkeleton count={8} />
+              selectedCategoryId ? <ProductGridSkeleton count={8} /> : <ShopCategoryGridSkeleton count={10} />
             ) : !selectedCategoryId ? (
               // Show all categories grid when no category is selected
               <AllCategoriesGrid

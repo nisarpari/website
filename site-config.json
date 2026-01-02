@@ -1,27 +1,6 @@
 {
-  "lastUpdated": "2026-01-01T15:37:39.645Z",
-  "categoryImages": {
-    "11": "/images/categories/1766923163182-WechatIMG945.jpeg",
-    "38": "/images/categories/1766922688446-WCL6002-NÌCÌÄ±aÌCÌ§Â³gÌCÌ.jpg",
-    "52": "/images/categories/1766922160194-A3102.jpeg",
-    "53": "/images/categories/1766922701329-WechatIMG928.jpeg",
-    "54": "/images/categories/1766922707962-WechatIMG926.jpeg",
-    "58": "/images/categories/1766923702365-1766923702339-Img1313.jpg",
-    "87": "/images/categories/1766922170810-4101-2.jpeg",
-    "138": "/images/categories/1766923877927-1766923877922-SU-620-Sauna--Shower-2.jpg",
-    "141": "/images/categories/1766922166108-BU102A.jpeg",
-    "205": "/images/categories/1766945721775-1766945721773-lp.jpg",
-    "253": "/images/categories/1766923169617-WechatIMG937.jpeg",
-    "254": "/images/categories/1766945712579-1766945712578-zs.jpg",
-    "255": "/images/categories/1766945717791-1766945717789-ga.jpg",
-    "256": "/images/categories/1766945641740-1766945641739-image_512-3.jpg",
-    "257": "/images/categories/1766945465233-1766945465232-image_1920.jpg",
-    "258": "/images/categories/1766923696794-1766923696791-11650.png",
-    "260": "/images/categories/1766922858251-WechatIMG942.jpeg",
-    "269": "/images/categories/1766945494173-1766945494172-image_512.jpg",
-    "270": "/images/categories/1766945527905-1766945527904-image_512-1.jpg",
-    "271": "/images/categories/1766945617110-1766945617108-image_512-2.jpg"
-  },
+  "lastUpdated": "2026-01-02T10:00:00.000Z",
+  "categoryImages": {},
   "heroImages": [
     {
       "url": "/images/hero/1766927839102-1766927839096-SU-620-Sauna--Shower-2.jpg",
@@ -76,48 +55,7 @@
     "ctaTitle": "",
     "ctaSubtitle": ""
   },
-  "categoryImageVariants": {
-    "58": {
-      "mobile": "/images/categories/1766923702365-1766923702339-Img1313-mobile.jpg",
-      "tablet": "/images/categories/1766923702365-1766923702339-Img1313-tablet.jpg",
-      "desktop": "/images/categories/1766923702365-1766923702339-Img1313.jpg"
-    },
-    "138": {
-      "mobile": "/images/categories/1766923877927-1766923877922-SU-620-Sauna--Shower-2-mobile.jpg",
-      "tablet": "/images/categories/1766923877927-1766923877922-SU-620-Sauna--Shower-2-tablet.jpg",
-      "desktop": "/images/categories/1766923877927-1766923877922-SU-620-Sauna--Shower-2.jpg"
-    },
-    "205": {
-      "desktop": "/images/categories/1766945721775-1766945721773-lp.jpg"
-    },
-    "254": {
-      "desktop": "/images/categories/1766945712579-1766945712578-zs.jpg"
-    },
-    "255": {
-      "desktop": "/images/categories/1766945717791-1766945717789-ga.jpg"
-    },
-    "256": {
-      "desktop": "/images/categories/1766945641740-1766945641739-image_512-3.jpg"
-    },
-    "257": {
-      "mobile": "/images/categories/1766945465233-1766945465232-image_1920-mobile.jpg",
-      "desktop": "/images/categories/1766945465233-1766945465232-image_1920.jpg"
-    },
-    "258": {
-      "mobile": "/images/categories/1766923696794-1766923696791-11650-mobile.png",
-      "tablet": "/images/categories/1766923696794-1766923696791-11650-tablet.png",
-      "desktop": "/images/categories/1766923696794-1766923696791-11650.png"
-    },
-    "269": {
-      "desktop": "/images/categories/1766945494173-1766945494172-image_512.jpg"
-    },
-    "270": {
-      "desktop": "/images/categories/1766945527905-1766945527904-image_512-1.jpg"
-    },
-    "271": {
-      "desktop": "/images/categories/1766945617110-1766945617108-image_512-2.jpg"
-    }
-  },
+  "categoryImageVariants": {},
   "hiddenCategories": [
     "102",
     "208",

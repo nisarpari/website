@@ -158,9 +158,9 @@ function MobileProductCard({ product }: { product: Product }) {
             className="object-contain p-2 transition-transform duration-300 group-hover:scale-105"
           />
         </div>
-        {/* Product name below image - fixed height */}
-        <div className="p-1.5 h-[40px]">
-          <h3 className="text-[10px] font-medium text-navy dark:text-white line-clamp-2 leading-tight">{product.name}</h3>
+        {/* Product name below image */}
+        <div className="p-1.5">
+          <h3 className="font-product text-[10px] text-bella-500 dark:text-bella-300 uppercase tracking-wider line-clamp-2 leading-tight overflow-hidden">{product.name}</h3>
         </div>
       </div>
     </Link>

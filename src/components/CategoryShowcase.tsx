@@ -100,9 +100,9 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
     >
       <Link
         href={`/product/${product.slug}`}
-        className="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500"
+        className="group block bg-white dark:bg-navy-light rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-transparent dark:border-white/10"
       >
-        <div className="relative aspect-square bg-gradient-to-br from-bella-50 to-white overflow-hidden">
+        <div className="relative aspect-square bg-gradient-to-br from-bella-50 to-white dark:from-navy dark:to-navy-light overflow-hidden">
           <ProductImage
             src={product.thumbnail || product.image || '/placeholder.jpg'}
             alt={product.name}
@@ -113,21 +113,9 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
           <div className="absolute inset-0 bg-gradient-to-t from-navy/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
         <div className="p-4 md:p-5">
-          <p className="text-xs text-bella-400 uppercase tracking-wider mb-1">{product.category}</p>
-          <h3 className="font-medium text-navy text-sm md:text-base line-clamp-2 group-hover:text-gold transition-colors">
+          <h3 className="font-product text-xs text-bella-500 dark:text-bella-300 uppercase tracking-wider line-clamp-2 overflow-hidden group-hover:text-gold transition-colors">
             {product.name}
           </h3>
-          <div className="mt-3 flex items-center justify-between">
-            <span className="font-bold text-navy">
-              {countryConfig.currencySymbol} {formatPrice(product.price)}
-            </span>
-            <span className="text-xs text-gold font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-              View Details
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </span>
-          </div>
         </div>
       </Link>
     </motion.div>
@@ -181,7 +169,7 @@ export function CategoryShowcase({
   }, [categoryId]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-navy">
       {/* Hero Section - Fullscreen with parallax */}
       <section ref={heroRef} className="relative h-[70vh] md:h-screen min-h-[500px] md:min-h-[600px] max-h-[900px] overflow-hidden">
         {/* Background Image with Parallax */}
@@ -315,7 +303,7 @@ export function CategoryShowcase({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="bg-white rounded-xl md:rounded-2xl shadow-xl md:shadow-2xl p-4 md:p-12"
+              className="bg-white dark:bg-navy-light rounded-xl md:rounded-2xl shadow-xl md:shadow-2xl p-4 md:p-12 dark:border dark:border-white/10"
             >
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
                 {stats.map((stat, index) => (
@@ -327,10 +315,10 @@ export function CategoryShowcase({
                     transition={{ delay: index * 0.1 }}
                     className="text-center"
                   >
-                    <div className="text-xl md:text-4xl font-bold text-navy mb-1 md:mb-2">
+                    <div className="text-xl md:text-4xl font-bold text-navy dark:text-white mb-1 md:mb-2">
                       <AnimatedCounter value={stat.value} />
                     </div>
-                    <p className="text-bella-500 text-xs md:text-sm">{stat.label}</p>
+                    <p className="text-bella-500 dark:text-bella-300 text-xs md:text-sm">{stat.label}</p>
                   </motion.div>
                 ))}
               </div>
@@ -340,7 +328,7 @@ export function CategoryShowcase({
       )}
 
       {/* Features Section */}
-      <section id="features" className="py-12 md:py-28 bg-bella-50">
+      <section id="features" className="py-12 md:py-28 bg-bella-50 dark:bg-navy-light">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -349,7 +337,7 @@ export function CategoryShowcase({
             className="text-center mb-8 md:mb-16"
           >
             <span className="text-gold font-medium tracking-wider uppercase text-xs md:text-sm">Why Choose Us</span>
-            <h2 className="font-display text-2xl md:text-4xl font-bold text-navy mt-2 md:mt-3">
+            <h2 className="font-display text-2xl md:text-4xl font-bold text-navy dark:text-white mt-2 md:mt-3">
               Premium Features & Benefits
             </h2>
           </motion.div>
@@ -363,15 +351,15 @@ export function CategoryShowcase({
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-sm hover:shadow-xl transition-shadow group"
+                className="bg-white dark:bg-navy rounded-xl md:rounded-2xl p-4 md:p-8 shadow-sm hover:shadow-xl transition-shadow group dark:border dark:border-white/10"
               >
                 <div className="w-10 h-10 md:w-16 md:h-16 bg-gradient-to-br from-gold/20 to-gold/5 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-6 group-hover:scale-110 transition-transform">
                   <div className="text-gold [&>svg]:w-5 [&>svg]:h-5 md:[&>svg]:w-8 md:[&>svg]:h-8">
                     {feature.icon}
                   </div>
                 </div>
-                <h3 className="font-semibold text-navy text-sm md:text-lg mb-1 md:mb-3">{feature.title}</h3>
-                <p className="text-bella-500 text-xs md:text-base leading-relaxed">{feature.description}</p>
+                <h3 className="font-semibold text-navy dark:text-white text-sm md:text-lg mb-1 md:mb-3">{feature.title}</h3>
+                <p className="text-bella-500 dark:text-bella-300 text-xs md:text-base leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -380,7 +368,7 @@ export function CategoryShowcase({
 
       {/* Benefits Section */}
       {benefits && benefits.length > 0 && (
-        <section className="py-12 md:py-28 bg-white">
+        <section className="py-12 md:py-28 bg-white dark:bg-navy">
           <div className="max-w-7xl mx-auto px-4 md:px-8">
             <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
               <motion.div
@@ -390,10 +378,10 @@ export function CategoryShowcase({
                 className="order-2 lg:order-1"
               >
                 <span className="text-gold font-medium tracking-wider uppercase text-xs md:text-sm">The Bella Difference</span>
-                <h2 className="font-display text-2xl md:text-4xl font-bold text-navy mt-2 md:mt-3 mb-3 md:mb-6">
+                <h2 className="font-display text-2xl md:text-4xl font-bold text-navy dark:text-white mt-2 md:mt-3 mb-3 md:mb-6">
                   {benefitsTitle || 'Why Bella?'}
                 </h2>
-                <p className="text-bella-600 text-sm md:text-lg leading-relaxed mb-4 md:mb-8">
+                <p className="text-bella-600 dark:text-bella-300 text-sm md:text-lg leading-relaxed mb-4 md:mb-8">
                   {benefitsDescription || 'Experience the perfect blend of innovation, quality, and style with our premium bathroom solutions.'}
                 </p>
                 <ul className="space-y-2 md:space-y-4">
@@ -411,7 +399,7 @@ export function CategoryShowcase({
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
-                      <span className="text-bella-700 text-sm md:text-base">{benefit}</span>
+                      <span className="text-bella-700 dark:text-bella-200 text-sm md:text-base">{benefit}</span>
                     </motion.li>
                   ))}
                 </ul>
@@ -451,7 +439,7 @@ export function CategoryShowcase({
       )}
 
       {/* Products Section */}
-      <section className="py-12 md:py-28 bg-gradient-to-b from-bella-50 to-white">
+      <section className="py-12 md:py-28 bg-gradient-to-b from-bella-50 to-white dark:from-navy-light dark:to-navy">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -460,7 +448,7 @@ export function CategoryShowcase({
             className="text-center mb-8 md:mb-12"
           >
             <span className="text-gold font-medium tracking-wider uppercase text-xs md:text-sm">Our Products</span>
-            <h2 className="font-display text-2xl md:text-4xl font-bold text-navy mt-2 md:mt-3">
+            <h2 className="font-display text-2xl md:text-4xl font-bold text-navy dark:text-white mt-2 md:mt-3">
               {productsTitle}
             </h2>
           </motion.div>
@@ -496,7 +484,7 @@ export function CategoryShowcase({
             </>
           ) : (
             <div className="text-center py-12">
-              <p className="text-bella-500">No products found in this category.</p>
+              <p className="text-bella-500 dark:text-bella-300">No products found in this category.</p>
             </div>
           )}
         </div>

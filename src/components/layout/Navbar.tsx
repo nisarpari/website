@@ -115,7 +115,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
   }, [searchQuery, categories]);
 
   // Categories to hide from main nav (Washroom and Washlet merged into "Basins & WC", Bath Accessories under Showers)
-  const hiddenFromMainNav = ['collections', 'bath assist', 'kitchen', 'water heaters', 'washroom', 'washlet', 'bath accessories'];
+  const hiddenFromMainNav = ['collections', 'bath assist', 'kitchen', 'water heaters', 'washroom', 'washlet', 'bath accessories', 'smart toilets'];
 
   // Rename mappings for display (database name -> display name)
   const renameCategory = (name: string) => {
@@ -207,6 +207,11 @@ export function Navbar({ categories = [] }: NavbarProps) {
   // Find Bath Accessories to add under Showers menu
   const bathAccessoriesCategory = categories.find(c =>
     c.parentId === null && c.name.toLowerCase() === 'bath accessories'
+  );
+
+  // Find Smart Toilets to add under Toilets & Cisterns in Basins & WC menu
+  const smartToiletsCategory = categories.find(c =>
+    c.parentId === null && c.name.toLowerCase() === 'smart toilets'
   );
 
   // Build final nav categories: Showers (bathroom), Basins & WC (merged), Wellness, Switches
@@ -754,6 +759,15 @@ export function Navbar({ categories = [] }: NavbarProps) {
                                     </Link>
                                   );
                                 })}
+                                {/* Smart Toilets - added manually since it's a root category */}
+                                {smartToiletsCategory && (
+                                  <Link
+                                    href={`/shop?category=${smartToiletsCategory.id}`}
+                                    className="block w-full text-left px-5 py-2 text-sm text-navy-light hover:bg-bella-50 hover:text-gold transition-colors"
+                                  >
+                                    Smart Toilets
+                                  </Link>
+                                )}
                               </>
                             )}
                           </div>
@@ -910,6 +924,16 @@ export function Navbar({ categories = [] }: NavbarProps) {
                           </Link>
                         );
                       })}
+                      {/* Smart Toilets - added manually since it's a root category */}
+                      {smartToiletsCategory && (
+                        <Link
+                          href={`/shop?category=${smartToiletsCategory.id}`}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block py-3 text-base text-navy-light dark:text-gray-300 hover:text-gold dark:hover:text-gold transition-colors"
+                        >
+                          Smart Toilets
+                        </Link>
+                      )}
                     </>
                   )}
                 </div>

@@ -43,6 +43,7 @@ const config: Config = {
       fontFamily: {
         display: ["Cormorant Garamond", "serif"],
         body: ["Montserrat", "sans-serif"],
+        product: ["Plus Jakarta Sans", "sans-serif"],
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease",
