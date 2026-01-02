@@ -18,7 +18,7 @@ function RelatedProductCard({ product }: {
       href={`/product/${product.slug}`}
       className="flex-shrink-0 w-40 md:w-48 bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow"
     >
-      <div className="relative aspect-square bg-white dark:bg-navy-light">
+      <div className="relative aspect-square bg-white">
         <ProductImage
           src={product.thumbnail || '/placeholder.jpg'}
           alt={product.name}
@@ -257,7 +257,7 @@ function EnhancedYouMightAlsoLike({
               href={`/product/${p.slug}`}
               className="flex-shrink-0 w-40 md:w-48 bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow"
             >
-              <div className="relative aspect-square bg-white dark:bg-navy-light">
+              <div className="relative aspect-square bg-white">
                 <ProductImage
                   src={p.thumbnail || '/placeholder.jpg'}
                   alt={p.name}
@@ -784,7 +784,7 @@ export default function ProductDetailPage() {
           <div className="grid md:grid-cols-2 gap-12">
             {/* Images */}
             <div>
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-white dark:bg-navy-light mb-4 product-detail-image">
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-white mb-4 product-detail-image">
                 <ProductImage
                   src={images[selectedImage] || '/placeholder.jpg'}
                   alt={product.name}

@@ -44,7 +44,7 @@ function ProductCard({ product }: { product: Product }) {
 
   return (
     <Link href={`/product/${product.slug}`} className="product-card bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow">
-      <div className="relative aspect-[4/5] bg-white dark:bg-navy-light p-1">
+      <div className="relative aspect-[4/5] bg-white p-1">
         <ProductImage
           src={product.thumbnail || product.image || '/placeholder.jpg'}
           alt={product.name}

@@ -2,7 +2,7 @@ export function ProductCardSkeleton() {
   return (
     <div className="bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700">
       {/* Image skeleton - matches 4:5 aspect ratio with p-1 padding like actual card */}
-      <div className="relative aspect-[4/5] bg-white dark:bg-navy-light p-1">
+      <div className="relative aspect-[4/5] bg-white p-1">
         <div className="w-full h-full bg-bella-100 dark:bg-navy animate-pulse rounded" />
       </div>
 
@@ -175,7 +175,7 @@ export function ProductDetailSkeleton() {
         </div>
 
         {/* Image skeleton - fixed to show visible animation */}
-        <div className="relative aspect-[4/3] bg-white dark:bg-navy-light">
+        <div className="relative aspect-[4/3] bg-white">
           <div className="absolute inset-4 bg-bella-100 dark:bg-navy rounded-lg animate-pulse" />
           {/* Wishlist button placeholder */}
           <div className="absolute top-3 right-3 w-10 h-10 rounded-full bg-bella-100 dark:bg-navy animate-pulse" />

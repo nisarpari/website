@@ -218,7 +218,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
         href={`/product/${product.slug}`}
         className="group block bg-white dark:bg-navy-light rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-transparent dark:border-white/10"
       >
-        <div className="relative aspect-square bg-gradient-to-br from-bella-50 to-white dark:from-navy dark:to-navy-light overflow-hidden">
+        <div className="relative aspect-square bg-gradient-to-br from-bella-50 to-white overflow-hidden">
           <ProductImage
             src={product.thumbnail || product.image || '/placeholder.jpg'}
             alt={product.name}

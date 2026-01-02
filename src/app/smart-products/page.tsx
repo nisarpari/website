@@ -467,7 +467,7 @@ export default function SmartProductsPage() {
                       className="text-center"
                     >
                       <Link href={`/product/${product.slug}`} className="block group">
-                        <div className="aspect-square rounded-xl md:rounded-2xl bg-white dark:bg-navy-light shadow-lg p-2 md:p-4 flex items-center justify-center overflow-hidden">
+                        <div className="aspect-square rounded-xl md:rounded-2xl bg-white shadow-lg p-2 md:p-4 flex items-center justify-center overflow-hidden">
                           <ProductImage
                             src={product.thumbnail || product.image || '/placeholder.jpg'}
                             alt={product.name}
