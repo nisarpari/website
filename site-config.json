@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-01-02T10:00:00.000Z",
+  "lastUpdated": "2026-01-02T11:29:26.054Z",
   "categoryImages": {},
   "heroImages": [
     {
@@ -60,6 +60,27 @@
     "102",
     "208",
     "263",
-    "253"
+    "253",
+    "switches & sockets",
+    "kitchen",
+    "bath accessories",
+    "bathroom",
+    "bath spouts",
+    "concealed shower",
+    "shower accessories",
+    "shower mixer column",
+    "shower mixer",
+    "shower panels"
+  ],
+  "categoryGridCount": 8,
+  "visibleCategories": [
+    "concealed shower",
+    "shower mixer column",
+    "faucets",
+    "shattaf mixer",
+    "basins",
+    "smart toilets",
+    "switches & sockets",
+    "jacuzzi"
   ]
 }
