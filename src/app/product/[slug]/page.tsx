@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -16,6 +16,7 @@ function RelatedProductCard({ product }: {
   return (
     <Link
       href={`/product/${product.slug}`}
+      scroll={true}
       className="product-card flex-shrink-0 w-40 md:w-48 bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow"
       onMouseEnter={() => OdooAPI.prefetchProduct(product.slug)}
       onTouchStart={() => OdooAPI.prefetchProduct(product.slug)}
@@ -257,6 +258,7 @@ function EnhancedYouMightAlsoLike({
             <Link
               key={p.id}
               href={`/product/${p.slug}`}
+              scroll={true}
               className="product-card flex-shrink-0 w-40 md:w-48 bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow"
               onMouseEnter={() => OdooAPI.prefetchProduct(p.slug)}
               onTouchStart={() => OdooAPI.prefetchProduct(p.slug)}
@@ -395,7 +397,8 @@ export default function ProductDetailPage() {
   const [fallbackProducts, setFallbackProducts] = useState<RelatedProduct[]>([]);
 
   // Scroll to top when slug changes (navigating to a new product)
-  useEffect(() => {
+  // Using useLayoutEffect to scroll before paint for smoother UX
+  useLayoutEffect(() => {
     // Force scroll to top immediately when product changes
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     // Fallback for browsers that don't support 'instant'
