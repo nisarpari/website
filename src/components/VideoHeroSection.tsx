@@ -146,32 +146,65 @@ export default function VideoHeroSection({ categories, categoryImages }: VideoHe
             )}
           </AnimatePresence>
 
-          {/* Gradient overlays for smooth transition and text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/30 to-transparent z-[1]" />
-          <div className="absolute inset-0 bg-gradient-to-b from-navy/40 via-transparent to-transparent z-[1]" />
-          <div className="absolute inset-0 bg-navy/20 z-[1]" />
+          {/* Vignette blur effect - only outside the focus frame */}
+          {/* Top edge blur */}
+          <div
+            className="absolute top-0 left-0 right-0 h-6 md:h-8 z-[1]"
+            style={{
+              background: 'linear-gradient(to bottom, rgba(10,25,47,0.7), transparent)',
+              backdropFilter: 'blur(4px)',
+              WebkitBackdropFilter: 'blur(4px)'
+            }}
+          />
+          {/* Bottom edge blur */}
+          <div
+            className="absolute bottom-0 left-0 right-0 h-6 md:h-8 z-[1]"
+            style={{
+              background: 'linear-gradient(to top, rgba(10,25,47,0.7), transparent)',
+              backdropFilter: 'blur(4px)',
+              WebkitBackdropFilter: 'blur(4px)'
+            }}
+          />
+          {/* Left edge blur */}
+          <div
+            className="absolute top-6 md:top-8 bottom-6 md:bottom-8 left-0 w-6 md:w-8 z-[1]"
+            style={{
+              background: 'linear-gradient(to right, rgba(10,25,47,0.7), transparent)',
+              backdropFilter: 'blur(4px)',
+              WebkitBackdropFilter: 'blur(4px)'
+            }}
+          />
+          {/* Right edge blur */}
+          <div
+            className="absolute top-6 md:top-8 bottom-6 md:bottom-8 right-0 w-6 md:w-8 z-[1]"
+            style={{
+              background: 'linear-gradient(to left, rgba(10,25,47,0.7), transparent)',
+              backdropFilter: 'blur(4px)',
+              WebkitBackdropFilter: 'blur(4px)'
+            }}
+          />
 
-          {/* Animated corner accents */}
+          {/* Animated corner accents - focus frame */}
           <motion.div
-            className="absolute top-4 left-4 w-16 h-16 md:w-24 md:h-24 border-l-2 border-t-2 border-gold/50 z-[2]"
+            className="absolute top-6 left-6 md:top-8 md:left-8 w-12 h-12 md:w-20 md:h-20 border-l-2 border-t-2 border-gold/70 z-[2]"
             initial={{ opacity: 0, x: -20, y: -20 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
           />
           <motion.div
-            className="absolute top-4 right-4 w-16 h-16 md:w-24 md:h-24 border-r-2 border-t-2 border-gold/50 z-[2]"
+            className="absolute top-6 right-6 md:top-8 md:right-8 w-12 h-12 md:w-20 md:h-20 border-r-2 border-t-2 border-gold/70 z-[2]"
             initial={{ opacity: 0, x: 20, y: -20 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
           />
           <motion.div
-            className="absolute bottom-4 left-4 w-16 h-16 md:w-24 md:h-24 border-l-2 border-b-2 border-gold/50 z-[2]"
+            className="absolute bottom-6 left-6 md:bottom-8 md:left-8 w-12 h-12 md:w-20 md:h-20 border-l-2 border-b-2 border-gold/70 z-[2]"
             initial={{ opacity: 0, x: -20, y: 20 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
           />
           <motion.div
-            className="absolute bottom-4 right-4 w-16 h-16 md:w-24 md:h-24 border-r-2 border-b-2 border-gold/50 z-[2]"
+            className="absolute bottom-6 right-6 md:bottom-8 md:right-8 w-12 h-12 md:w-20 md:h-20 border-r-2 border-b-2 border-gold/70 z-[2]"
             initial={{ opacity: 0, x: 20, y: 20 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
