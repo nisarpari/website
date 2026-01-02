@@ -149,7 +149,18 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
 
   // Save settings to admin
   const saveSettings = async (visible: string[], gridCount?: 6 | 8) => {
-    if (!token) return;
+    // Optimistic update - update UI immediately
+    setVisibleCategories(visible);
+    if (gridCount !== undefined) {
+      setCategoryGridCount(gridCount);
+    }
+
+    // If no token, just keep local state (will reset on refresh)
+    if (!token) {
+      console.warn('No admin token - changes will not persist');
+      return;
+    }
+
     try {
       const body: { visibleCategories: string[]; categoryGridCount?: number } = { visibleCategories: visible };
       if (gridCount !== undefined) {
@@ -163,12 +174,7 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
         },
         body: JSON.stringify(body)
       });
-      if (res.ok) {
-        setVisibleCategories(visible);
-        if (gridCount !== undefined) {
-          setCategoryGridCount(gridCount);
-        }
-      } else {
+      if (!res.ok) {
         console.error('Failed to save settings:', await res.text());
       }
     } catch (error) {
@@ -186,9 +192,10 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
   };
 
   // Toggle grid count
-  const toggleGridCount = () => {
-    const newCount = categoryGridCount === 6 ? 8 : 6;
-    saveSettings(visibleCategories, newCount);
+  const toggleGridCount = (count: 6 | 8) => {
+    if (count !== categoryGridCount) {
+      saveSettings(visibleCategories, count);
+    }
   };
 
   // Get children of a category
@@ -536,7 +543,7 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
                 <span className="text-sm font-medium text-navy">Grid Layout:</span>
                 <div className="flex rounded-lg overflow-hidden border border-bella-200">
                   <button
-                    onClick={() => toggleGridCount()}
+                    onClick={() => toggleGridCount(6)}
                     className={`px-4 py-2 text-sm font-medium transition-colors ${
                       categoryGridCount === 6 ? 'bg-navy text-white' : 'bg-white text-bella-600 hover:bg-bella-50'
                     }`}
@@ -544,7 +551,7 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
                     6 Categories (3x2)
                   </button>
                   <button
-                    onClick={() => toggleGridCount()}
+                    onClick={() => toggleGridCount(8)}
                     className={`px-4 py-2 text-sm font-medium transition-colors ${
                       categoryGridCount === 8 ? 'bg-navy text-white' : 'bg-white text-bella-600 hover:bg-bella-50'
                     }`}
