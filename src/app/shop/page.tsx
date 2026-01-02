@@ -1161,6 +1161,9 @@ function ShopPageContent() {
               // Get the root category ID for Basin & WC link (use washroom as default)
               const basinsWcCategoryId = categoryPath.length > 0 ? categoryPath[0].id : null;
 
+              // Filter out the root category if it's under Basin & WC
+              const displayPath = isUnderBasinsWc ? categoryPath.slice(1) : categoryPath;
+
               return (
                 <>
                   {isUnderBasinsWc && basinsWcCategoryId && (
@@ -1169,12 +1172,8 @@ function ShopPageContent() {
                       <Link href={`/shop?category=${basinsWcCategoryId}`} scroll={true} className="hover:text-navy">Basin & WC</Link>
                     </span>
                   )}
-                  {categoryPath.map((cat, idx) => {
-                    const isLast = idx === categoryPath.length - 1;
-                    // Skip the root Washroom/Washlet category since we replaced it with Basin & WC
-                    if (idx === 0 && isUnderBasinsWc) {
-                      return null;
-                    }
+                  {displayPath.map((cat, idx) => {
+                    const isLast = idx === displayPath.length - 1;
                     return (
                       <span key={cat.id} className="flex items-center">
                         <span className="mx-2">/</span>
