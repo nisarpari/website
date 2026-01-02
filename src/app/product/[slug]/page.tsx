@@ -21,7 +21,7 @@ function RelatedProductCard({ product }: {
       onMouseEnter={() => OdooAPI.prefetchProduct(product.slug)}
       onTouchStart={() => OdooAPI.prefetchProduct(product.slug)}
     >
-      <div className="relative aspect-square bg-white">
+      <div className="relative aspect-square">
         <ProductImage
           src={product.thumbnail || '/placeholder.jpg'}
           alt={product.name}
@@ -263,7 +263,7 @@ function EnhancedYouMightAlsoLike({
               onMouseEnter={() => OdooAPI.prefetchProduct(p.slug)}
               onTouchStart={() => OdooAPI.prefetchProduct(p.slug)}
             >
-              <div className="relative aspect-square bg-white">
+              <div className="relative aspect-square">
                 <ProductImage
                   src={p.thumbnail || '/placeholder.jpg'}
                   alt={p.name}
@@ -836,7 +836,7 @@ export default function ProductDetailPage() {
           <div className="grid md:grid-cols-2 gap-12">
             {/* Images */}
             <div>
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-white dark:bg-white mb-4 product-detail-image">
+              <div className="relative aspect-square rounded-2xl overflow-hidden mb-4 product-detail-image">
                 <ProductImage
                   src={images[selectedImage] || '/placeholder.jpg'}
                   alt={product.name}
@@ -862,7 +862,7 @@ export default function ProductDetailPage() {
                     <button
                       key={i}
                       onClick={() => setSelectedImage(i)}
-                      className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-colors bg-white dark:bg-white ${selectedImage === i ? 'border-gold' : 'border-transparent hover:border-bella-300'}`}
+                      className={`product-detail-thumbnail relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === i ? 'border-gold' : 'border-transparent hover:border-bella-300'}`}
                     >
                       <Image src={img || ''} alt="" fill className="object-cover" />
                     </button>

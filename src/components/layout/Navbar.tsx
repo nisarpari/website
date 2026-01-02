@@ -138,7 +138,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
   };
 
   // Get the correct URL for a category - dedicated page or default
-  const getCategoryUrl = (cat: Category, hasChildren: boolean) => {
+  const getCategoryUrl = (cat: Category) => {
     // Check if category has a dedicated page
     if (dedicatedPages[cat.slug]) {
       return dedicatedPages[cat.slug];
@@ -388,12 +388,10 @@ export function Navbar({ categories = [] }: NavbarProps) {
                             <div className="px-3 py-2 bg-bella-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                               Categories
                             </div>
-                            {categoryResults.map(cat => {
-                              const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
-                              return (
+                            {categoryResults.map(cat => (
                                 <Link
                                   key={cat.id}
-                                  href={getCategoryUrl(cat, hasChildren)}
+                                  href={getCategoryUrl(cat)}
                                   onClick={() => { setShowSearch(false); setSearchQuery(''); }}
                                   className="flex items-center gap-3 px-3 py-2.5 hover:bg-bella-50 cursor-pointer border-b border-bella-50"
                                 >
@@ -407,8 +405,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                   </svg>
                                 </Link>
-                              );
-                            })}
+                              ))}
                           </>
                         )}
 
@@ -559,12 +556,10 @@ export function Navbar({ categories = [] }: NavbarProps) {
                             <div className="px-3 py-2 bg-bella-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                               Categories
                             </div>
-                            {categoryResults.map(cat => {
-                              const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
-                              return (
+                            {categoryResults.map(cat => (
                                 <Link
                                   key={cat.id}
-                                  href={getCategoryUrl(cat, hasChildren)}
+                                  href={getCategoryUrl(cat)}
                                   onClick={() => { setShowSearch(false); setSearchQuery(''); }}
                                   className="flex items-center gap-3 px-3 py-2.5 hover:bg-bella-50 cursor-pointer border-b border-bella-50"
                                 >
@@ -578,8 +573,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                   </svg>
                                 </Link>
-                              );
-                            })}
+                              ))}
                           </>
                         )}
 
@@ -690,18 +684,15 @@ export function Navbar({ categories = [] }: NavbarProps) {
                         {/* Dropdown for subcategories */}
                         {hasChildren && (
                           <div className="nav-dropdown absolute top-full left-0 bg-white shadow-xl rounded-lg py-4 min-w-[220px]">
-                            {displaySubmenus.map(sub => {
-                              const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
-                              return (
+                            {displaySubmenus.map(sub => (
                                 <Link
                                   key={sub.id}
-                                  href={getCategoryUrl(sub, subHasChildren)}
+                                  href={getCategoryUrl(sub)}
                                   className="block w-full text-left px-5 py-2 text-sm text-navy-light hover:bg-bella-50 hover:text-gold transition-colors"
                                 >
                                   {renameCategory(sub.name)}
                                 </Link>
-                              );
-                            })}
+                              ))}
                             {/* Add Bath Accessories under Showers */}
                             {isShowers && bathAccessoriesCategory && (
                               <Link
@@ -729,36 +720,30 @@ export function Navbar({ categories = [] }: NavbarProps) {
                             {washroomCategory && (
                               <>
                                 <div className="px-5 py-1.5 text-xs font-semibold text-bella-400 uppercase tracking-wider">Basins & Faucets</div>
-                                {getOrderedSubmenus(washroomCategory).map(sub => {
-                                  const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
-                                  return (
+                                {getOrderedSubmenus(washroomCategory).map(sub => (
                                     <Link
                                       key={sub.id}
-                                      href={getCategoryUrl(sub, subHasChildren)}
+                                      href={getCategoryUrl(sub)}
                                       className="block w-full text-left px-5 py-2 text-sm text-navy-light hover:bg-bella-50 hover:text-gold transition-colors"
                                     >
                                       {renameCategory(sub.name)}
                                     </Link>
-                                  );
-                                })}
+                                  ))}
                               </>
                             )}
                             {/* Toilets items */}
                             {toiletsCategory && (
                               <>
                                 <div className="px-5 py-1.5 text-xs font-semibold text-bella-400 uppercase tracking-wider mt-2 border-t border-bella-100 pt-3">Toilets & Cisterns</div>
-                                {getOrderedSubmenus(toiletsCategory).map(sub => {
-                                  const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
-                                  return (
+                                {getOrderedSubmenus(toiletsCategory).map(sub => (
                                     <Link
                                       key={sub.id}
-                                      href={getCategoryUrl(sub, subHasChildren)}
+                                      href={getCategoryUrl(sub)}
                                       className="block w-full text-left px-5 py-2 text-sm text-navy-light hover:bg-bella-50 hover:text-gold transition-colors"
                                     >
                                       {renameCategory(sub.name)}
                                     </Link>
-                                  );
-                                })}
+                                  ))}
                                 {/* Smart Toilets - added manually since it's a root category */}
                                 {smartToiletsCategory && (
                                   <Link
@@ -839,19 +824,16 @@ export function Navbar({ categories = [] }: NavbarProps) {
                 {/* Submenu */}
                 {isExpanded && (
                   <div className="pl-4 pb-4">
-                    {displaySubmenus.map(sub => {
-                      const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
-                      return (
+                    {displaySubmenus.map(sub => (
                         <Link
                           key={sub.id}
-                          href={getCategoryUrl(sub, subHasChildren)}
+                          href={getCategoryUrl(sub)}
                           onClick={() => setMobileMenuOpen(false)}
                           className="block py-3 text-base text-navy dark:text-white hover:text-gold dark:hover:text-gold transition-colors"
                         >
                           {renameCategory(sub.name)}
                         </Link>
-                      );
-                    })}
+                      ))}
 
                     {isShowers && bathAccessoriesCategory && (
                       <Link
@@ -893,37 +875,31 @@ export function Navbar({ categories = [] }: NavbarProps) {
                   {washroomCategory && (
                     <>
                       <div className="py-2 text-xs font-semibold text-gold dark:text-gold uppercase tracking-wider">Basins & Faucets</div>
-                      {getOrderedSubmenus(washroomCategory).map(sub => {
-                        const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
-                        return (
+                      {getOrderedSubmenus(washroomCategory).map(sub => (
                           <Link
                             key={sub.id}
-                            href={getCategoryUrl(sub, subHasChildren)}
+                            href={getCategoryUrl(sub)}
                             onClick={() => setMobileMenuOpen(false)}
                             className="block py-3 text-base text-navy dark:text-white hover:text-gold dark:hover:text-gold transition-colors"
                           >
                             {renameCategory(sub.name)}
                           </Link>
-                        );
-                      })}
+                        ))}
                     </>
                   )}
                   {toiletsCategory && (
                     <>
                       <div className="py-2 text-xs font-semibold text-gold dark:text-gold uppercase tracking-wider mt-2 border-t border-bella-100 dark:border-white/10 pt-3">Toilets & Cisterns</div>
-                      {getOrderedSubmenus(toiletsCategory).map(sub => {
-                        const subHasChildren = !!(sub.childIds && sub.childIds.length > 0);
-                        return (
+                      {getOrderedSubmenus(toiletsCategory).map(sub => (
                           <Link
                             key={sub.id}
-                            href={getCategoryUrl(sub, subHasChildren)}
+                            href={getCategoryUrl(sub)}
                             onClick={() => setMobileMenuOpen(false)}
                             className="block py-3 text-base text-navy-light dark:text-gray-300 hover:text-gold dark:hover:text-gold transition-colors"
                           >
                             {renameCategory(sub.name)}
                           </Link>
-                        );
-                      })}
+                        ))}
                       {/* Smart Toilets - added manually since it's a root category */}
                       {smartToiletsCategory && (
                         <Link

@@ -796,7 +796,6 @@ export default function CategoryLandingPage() {
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {childCategories.map((subCat) => {
-                  const hasGrandchildren = subCat.childIds && subCat.childIds.length > 0;
                   const subCatProducts = categoryProducts[subCat.id] || [];
 
                   return (
