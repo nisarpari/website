@@ -517,6 +517,15 @@ export default function CategoryLandingPageClient({ categoryId }: CategoryLandin
 
   const API_BASE = getApiUrl();
 
+  // Scroll to top when categoryId changes (navigating to a new category)
+  useEffect(() => {
+    // Force scroll to top immediately when category changes
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    // Fallback for browsers that don't support 'instant'
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [categoryId]);
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -716,7 +725,24 @@ export default function CategoryLandingPageClient({ categoryId }: CategoryLandin
               <span className="mx-2">/</span>
               <Link href="/shop" className="hover:text-white">Shop</Link>
               <span className="mx-2">/</span>
-              <span className="text-white">{category.name}</span>
+              {/* Show Basin & WC for Washroom/Washlet categories */}
+              {(category.name.toLowerCase() === 'washroom' || category.name.toLowerCase() === 'washlet') ? (
+                <span className="text-white">Basin & WC</span>
+              ) : (category.parentId && (() => {
+                const parentCat = categories.find(c => c.id === category.parentId);
+                if (parentCat && (parentCat.name.toLowerCase() === 'washroom' || parentCat.name.toLowerCase() === 'washlet')) {
+                  return (
+                    <>
+                      <Link href={`/shop?category=${parentCat.id}`} className="hover:text-white">Basin & WC</Link>
+                      <span className="mx-2">/</span>
+                      <span className="text-white">{category.name}</span>
+                    </>
+                  );
+                }
+                return <span className="text-white">{category.name}</span>;
+              })()) || (
+                <span className="text-white">{category.name}</span>
+              )}
             </div>
             <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-2">{heroTitle}</h1>
             {heroSubtitle && (

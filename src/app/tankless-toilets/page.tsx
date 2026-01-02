@@ -84,6 +84,7 @@ export default function TanklessToiletsPage() {
       ctaTitle="Step Into the Future"
       ctaDescription="Upgrade to a smarter, sleeker bathroom experience. Our tankless toilets bring tomorrow's technology to your home today."
       ctaButtonText="Shop Tankless Toilets"
+      breadcrumbParent={{ name: "Basin & WC", href: "/washlet" }}
     />
   );
 }

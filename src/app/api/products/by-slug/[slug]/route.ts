@@ -193,7 +193,10 @@ export async function GET(
     // Extract product ID from slug (last segment after final hyphen)
     const match = slug.match(/-(\d+)$/);
     if (!match) {
-      return NextResponse.json({ error: 'Invalid product slug format' }, { status: 400 });
+      return new Response(JSON.stringify({ error: 'Invalid product slug format' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
     const productId = parseInt(match[1]);
 
@@ -207,12 +210,24 @@ export async function GET(
     );
 
     if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return new Response(JSON.stringify({ error: 'Product not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
-    return NextResponse.json(product);
+    // Return with cache headers - product data is cached in Redis for 7 days
+    return new Response(JSON.stringify(product), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error('Error fetching product by slug:', error);
-    return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 });
+    return new Response(JSON.stringify({ error: 'Failed to fetch product' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

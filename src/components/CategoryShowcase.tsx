@@ -54,6 +54,12 @@ export interface CategoryShowcaseProps {
 
   // Admin config key for editable images
   configKey?: string;
+
+  // Breadcrumb parent (e.g., "Basin & WC" for toilet/basin categories)
+  breadcrumbParent?: {
+    name: string;
+    href: string;
+  };
 }
 
 // Animated counter component
@@ -139,7 +145,8 @@ export function CategoryShowcase({
   ctaDescription,
   ctaButtonText = 'View All Products',
   ctaButtonLink,
-  configKey = 'categoryShowcase'
+  configKey = 'categoryShowcase',
+  breadcrumbParent
 }: CategoryShowcaseProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,6 +160,15 @@ export function CategoryShowcase({
 
   const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
+  // Scroll to top when categoryId changes (navigating to a new category page)
+  useEffect(() => {
+    // Force scroll to top immediately when category changes
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    // Fallback for browsers that don't support 'instant'
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [categoryId]);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -216,6 +232,12 @@ export function CategoryShowcase({
                 <span className="mx-2">/</span>
                 <Link href="/shop" className="hover:text-white transition-colors">Shop</Link>
                 <span className="mx-2">/</span>
+                {breadcrumbParent && (
+                  <>
+                    <Link href={breadcrumbParent.href} className="hover:text-white transition-colors">{breadcrumbParent.name}</Link>
+                    <span className="mx-2">/</span>
+                  </>
+                )}
                 <span className="text-white">{heroTitle}</span>
               </motion.div>
 

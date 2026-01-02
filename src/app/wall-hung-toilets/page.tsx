@@ -85,6 +85,7 @@ export default function WallHungToiletsPage() {
       ctaTitle="Transform Your Bathroom Today"
       ctaDescription="Experience the perfect fusion of modern design and innovative technology. Our wall hung toilets redefine bathroom elegance."
       ctaButtonText="Explore Wall Hung Toilets"
+      breadcrumbParent={{ name: "Basin & WC", href: "/washlet" }}
     />
   );
 }

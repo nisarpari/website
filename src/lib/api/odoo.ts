@@ -1,5 +1,10 @@
 import { ODOO_CONFIG, MOCK_CATEGORIES } from './config';
 
+// Client-side cache for instant product navigation
+const productCache = new Map<string, { data: Product; timestamp: number }>();
+const categoriesCache: { data: Category[] | null; timestamp: number } = { data: null, timestamp: 0 };
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 export interface RelatedProduct {
   id: number;
   name: string;
@@ -75,10 +80,21 @@ export const OdooAPI = {
 
   async fetchPublicCategories(): Promise<Category[]> {
     if (!ODOO_CONFIG.useOdoo) return MOCK_CATEGORIES;
+
+    // Check client-side cache first
+    if (categoriesCache.data && Date.now() - categoriesCache.timestamp < CACHE_TTL) {
+      return categoriesCache.data;
+    }
+
     try {
       const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/public-categories`, { next: { revalidate: 3600, tags: ['categories'] } });
       const categories = await response.json();
       if (categories.error) throw new Error(categories.error);
+
+      // Cache the categories
+      categoriesCache.data = categories;
+      categoriesCache.timestamp = Date.now();
+
       return categories;
     } catch (error) {
       console.error('Failed to fetch public categories:', error);
@@ -108,15 +124,38 @@ export const OdooAPI = {
     if (!ODOO_CONFIG.useOdoo) {
       return null;
     }
+
+    // Check client-side cache first for instant navigation
+    const cached = productCache.get(slug);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return cached.data;
+    }
+
     try {
       const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/products/by-slug/${slug}`, { next: { revalidate: 3600, tags: [`product-${slug}`] } });
       const product = await response.json();
       if (product.error) throw new Error(product.error);
+
+      // Cache the product
+      productCache.set(slug, { data: product, timestamp: Date.now() });
+
       return product;
     } catch (error) {
       console.error('Failed to fetch product:', error);
       return null;
     }
+  },
+
+  // Prefetch a product (for hover prefetching)
+  prefetchProduct(slug: string): void {
+    // Don't prefetch if already cached
+    const cached = productCache.get(slug);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return;
+    }
+
+    // Prefetch in background
+    this.fetchProductBySlug(slug).catch(() => {});
   },
 
   async fetchRibbons() {

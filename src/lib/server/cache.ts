@@ -221,6 +221,29 @@ export async function getCachedOrFetch<T>(
   return data;
 }
 
+/**
+ * Create a cached JSON response with proper Cache-Control headers
+ * This ensures browsers cache API responses
+ */
+export function cachedJsonResponse<T>(data: T, maxAgeSeconds: number = 3600): Response {
+  return new Response(JSON.stringify(data), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': `public, s-maxage=${maxAgeSeconds}, stale-while-revalidate=${maxAgeSeconds * 2}`,
+    },
+  });
+}
+
+/**
+ * HTTP Cache durations (in seconds) for browser/CDN caching
+ */
+export const HTTP_CACHE_TTL = {
+  SHORT: 60,           // 1 minute - for frequently changing data
+  MEDIUM: 300,         // 5 minutes - for moderately stable data
+  LONG: 3600,          // 1 hour - for stable data
+  VERY_LONG: 86400,    // 1 day - for rarely changing data
+};
+
 // ========================================
 // Legacy in-memory cache (kept for backwards compatibility)
 // ========================================

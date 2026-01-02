@@ -85,6 +85,7 @@ export default function SiphonicWCPage() {
       ctaTitle="Simplify Your Bathroom"
       ctaDescription="Upgrade to the elegance of one-piece design. Our single piece toilets combine beauty with effortless maintenance."
       ctaButtonText="Shop Single Piece Toilets"
+      breadcrumbParent={{ name: "Basin & WC", href: "/washlet" }}
     />
   );
 }

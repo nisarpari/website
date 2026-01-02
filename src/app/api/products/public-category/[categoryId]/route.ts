@@ -1,8 +1,8 @@
 // GET /api/products/public-category/[categoryId] - Fetch products by public category
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { odooApiCall } from '@/lib/server/odoo';
 import { transformProduct } from '@/lib/server/transform';
-import { getCachedOrFetch, CACHE_KEYS, CACHE_TTL } from '@/lib/server/cache';
+import { getCachedOrFetch, CACHE_KEYS, CACHE_TTL, cachedJsonResponse, HTTP_CACHE_TTL } from '@/lib/server/cache';
 
 export async function GET(
   request: NextRequest,
@@ -41,9 +41,12 @@ export async function GET(
       }
     );
 
-    return NextResponse.json(products);
+    return cachedJsonResponse(products, HTTP_CACHE_TTL.MEDIUM);
   } catch (error) {
     console.error('Error fetching products by public category:', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    return new Response(JSON.stringify({ error: 'Failed to fetch products' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

@@ -84,6 +84,7 @@ export default function ConcealedCisternsPage() {
       ctaTitle="Ready to Upgrade Your Bathroom?"
       ctaDescription="Explore our complete range of concealed cisterns and matching flush plates. Expert installation support available."
       ctaButtonText="Shop Concealed Cisterns"
+      breadcrumbParent={{ name: "Basin & WC", href: "/washlet" }}
     />
   );
 }

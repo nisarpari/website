@@ -17,6 +17,8 @@ function RelatedProductCard({ product }: {
     <Link
       href={`/product/${product.slug}`}
       className="product-card flex-shrink-0 w-40 md:w-48 bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow"
+      onMouseEnter={() => OdooAPI.prefetchProduct(product.slug)}
+      onTouchStart={() => OdooAPI.prefetchProduct(product.slug)}
     >
       <div className="relative aspect-square bg-white">
         <ProductImage
@@ -256,6 +258,8 @@ function EnhancedYouMightAlsoLike({
               key={p.id}
               href={`/product/${p.slug}`}
               className="product-card flex-shrink-0 w-40 md:w-48 bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow"
+              onMouseEnter={() => OdooAPI.prefetchProduct(p.slug)}
+              onTouchStart={() => OdooAPI.prefetchProduct(p.slug)}
             >
               <div className="relative aspect-square bg-white">
                 <ProductImage
@@ -384,15 +388,35 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false); // For smooth navigation between products
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [fallbackProducts, setFallbackProducts] = useState<RelatedProduct[]>([]);
 
+  // Scroll to top when slug changes (navigating to a new product)
+  useEffect(() => {
+    // Force scroll to top immediately when product changes
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    // Fallback for browsers that don't support 'instant'
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [slug]);
+
   useEffect(() => {
     const loadData = async () => {
-      setLoading(true);
+      // Only show full skeleton on initial load (no product yet)
+      // For subsequent navigations, show a subtle transition
+      if (!product) {
+        setLoading(true);
+      } else {
+        setIsTransitioning(true);
+      }
+
       setSelectedImage(0);
+      setQuantity(1); // Reset quantity for new product
+      setFallbackProducts([]); // Clear old fallback products
+
       const [prod, cats] = await Promise.all([
         OdooAPI.fetchProductBySlug(slug),
         OdooAPI.fetchPublicCategories()
@@ -410,8 +434,10 @@ export default function ProductDetailPage() {
       }
 
       setLoading(false);
+      setIsTransitioning(false);
     };
     loadData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   const handleAddToCart = () => {
@@ -508,13 +534,37 @@ export default function ProductDetailPage() {
     if (productCategory) {
       const categoryPath = buildCategoryPath(productCategory);
 
+      // Check if the root category is Washroom or Washlet - if so, show "Basin & WC" instead
+      const isUnderBasinsWc = categoryPath.length > 0 &&
+        (categoryPath[0].name.toLowerCase() === 'washroom' || categoryPath[0].name.toLowerCase() === 'washlet');
+
+      // Get the root category ID for Basin & WC link
+      const basinsWcCategoryId = categoryPath.length > 0 ? categoryPath[0].id : null;
+
       return (
         <>
+          {/* Show Basin & WC as virtual parent for Washroom/Washlet categories */}
+          {isUnderBasinsWc && basinsWcCategoryId && (
+            <span className="flex items-center">
+              <Link
+                href={`/shop?category=${basinsWcCategoryId}`}
+                className="hover:text-navy dark:hover:text-white"
+              >
+                Basin & WC
+              </Link>
+              <span className="mx-2">/</span>
+            </span>
+          )}
           {categoryPath.map((cat, idx) => {
             const isLast = idx === categoryPath.length - 1;
+            // Skip the root Washroom/Washlet category since we replaced it with Basin & WC
+            if (idx === 0 && isUnderBasinsWc) {
+              return null;
+            }
             return (
               <span key={cat.id} className="flex items-center">
-                {idx > 0 && <span className="mx-2">/</span>}
+                {/* Add separator only if not first visible item (after Basin & WC or at start) */}
+                {(idx > 0 || !isUnderBasinsWc) && idx > 0 && <span className="mx-2">/</span>}
                 <Link
                   href={`/shop?category=${cat.id}`}
                   className={isLast ? "text-navy dark:text-white hover:text-gold" : "hover:text-navy dark:hover:text-white"}
@@ -569,7 +619,7 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-bella-50 pb-20 md:pb-0">
+    <div className={`min-h-screen bg-bella-50 pb-20 md:pb-0 ${isTransitioning ? 'opacity-90' : ''} transition-opacity duration-150`}>
       {/* Mobile Layout */}
       <div className="md:hidden">
         {/* Compact Header with Back Button */}
