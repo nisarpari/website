@@ -386,7 +386,7 @@ function AllCategoriesGrid({ categories, categoryImages, onImageUpdate }: {
                   </div>
                 </div>
                 <Link
-                  href={`/${group.root.slug}`}
+                  href={`/shop?category=${group.root.id}`}
                   className="hidden md:flex items-center gap-2 px-4 py-2 bg-navy/5 hover:bg-navy/10 rounded-lg text-navy font-medium text-sm transition-colors"
                 >
                   View All {displayName}
@@ -420,7 +420,7 @@ function AllCategoriesGrid({ categories, categoryImages, onImageUpdate }: {
               {/* Mobile View All Link */}
               <div className="md:hidden">
                 <Link
-                  href={`/${group.root.slug}`}
+                  href={`/shop?category=${group.root.id}`}
                   className="flex items-center justify-center gap-2 w-full py-3 bg-navy/5 hover:bg-navy/10 rounded-xl text-navy font-medium text-sm transition-colors"
                 >
                   View All {displayName}

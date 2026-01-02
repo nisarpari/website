@@ -89,7 +89,7 @@ export function Footer({ categories = [] }: FooterProps) {
                   <>
                     <li key={cat.id}>
                       <Link
-                        href={cat.childIds && cat.childIds.length > 0 ? `/${cat.slug}` : `/shop?category=${cat.id}`}
+                        href={`/shop?category=${cat.id}`}
                         className="hover:text-gold transition-colors text-left"
                       >
                         {renameCategory(cat.name)}

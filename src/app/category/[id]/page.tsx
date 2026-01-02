@@ -802,7 +802,7 @@ export default function CategoryLandingPage() {
                   return (
                     <Link
                       key={subCat.id}
-                      href={hasGrandchildren ? `/${subCat.slug}` : `/shop?category=${subCat.id}`}
+                      href={`/shop?category=${subCat.id}`}
                       className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all"
                     >
                       {/* Product Image Grid or Single Image */}

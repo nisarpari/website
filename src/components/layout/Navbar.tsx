@@ -143,8 +143,8 @@ export function Navbar({ categories = [] }: NavbarProps) {
     if (dedicatedPages[cat.slug]) {
       return dedicatedPages[cat.slug];
     }
-    // Default: category landing page if has children, shop page otherwise
-    return hasChildren ? `/${cat.slug}` : `/shop?category=${cat.id}`;
+    // Default: always use shop page with category filter
+    return `/shop?category=${cat.id}`;
   };
 
   // Custom submenu order for specific categories (matching bellabathwares.com)
@@ -705,7 +705,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
                             {/* Add Bath Accessories under Showers */}
                             {isShowers && bathAccessoriesCategory && (
                               <Link
-                                href={`/${bathAccessoriesCategory.slug}`}
+                                href={`/shop?category=${bathAccessoriesCategory.id}`}
                                 className="block w-full text-left px-5 py-2 text-sm text-navy-light hover:bg-bella-50 hover:text-gold transition-colors border-t border-bella-100 mt-2 pt-2"
                               >
                                 Bath Accessories
@@ -855,7 +855,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
 
                     {isShowers && bathAccessoriesCategory && (
                       <Link
-                        href={`/${bathAccessoriesCategory.slug}`}
+                        href={`/shop?category=${bathAccessoriesCategory.id}`}
                         onClick={() => setMobileMenuOpen(false)}
                         className="block py-3 text-base text-navy dark:text-white border-t border-bella-100 dark:border-white/10 mt-2 pt-2"
                       >
