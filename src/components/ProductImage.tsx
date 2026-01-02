@@ -5,6 +5,24 @@ import Image from 'next/image';
 
 const PLACEHOLDER_IMAGE = '/placeholder-product.jpg';
 
+// Odoo image domains that have auth/CORS issues with Next.js optimization
+const UNOPTIMIZED_DOMAINS = [
+  'bellagcc-production-13616817.dev.odoo.com',
+  'erp.bellastore.in',
+  '.odoo.com', // Catch all Odoo domains
+];
+
+// Check if image URL should skip optimization (external Odoo images)
+function shouldSkipOptimization(src: string): boolean {
+  if (!src || src.startsWith('/')) return false; // Local images are optimized
+  try {
+    const url = new URL(src);
+    return UNOPTIMIZED_DOMAINS.some(domain => url.hostname.includes(domain));
+  } catch {
+    return false;
+  }
+}
+
 interface ProductImageProps {
   src: string;
   alt: string;
@@ -16,8 +34,12 @@ interface ProductImageProps {
   priority?: boolean;
 }
 
-// Wrapper around Next.js Image with fallback handling
-// Shows placeholder if Odoo image fails to load
+/**
+ * Product Image wrapper with:
+ * - Fallback to placeholder on error
+ * - Skip optimization for external Odoo images (auth/CORS issues)
+ * - Full Next.js optimization for local images
+ */
 export function ProductImage({
   src,
   alt,
@@ -30,6 +52,7 @@ export function ProductImage({
 }: ProductImageProps) {
   const [error, setError] = useState(false);
   const imageSrc = error || !src ? PLACEHOLDER_IMAGE : src;
+  const skipOptimization = shouldSkipOptimization(imageSrc);
 
   if (fill) {
     return (
@@ -40,6 +63,7 @@ export function ProductImage({
         sizes={sizes}
         className={className}
         priority={priority}
+        unoptimized={skipOptimization}
         onError={() => setError(true)}
       />
     );
@@ -54,6 +78,7 @@ export function ProductImage({
       sizes={sizes}
       className={className}
       priority={priority}
+      unoptimized={skipOptimization}
       onError={() => setError(true)}
     />
   );

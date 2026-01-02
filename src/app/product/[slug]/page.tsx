@@ -3,7 +3,6 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useLocale, useCart, useWishlist, useVerification } from '@/context';
 import { OdooAPI, type Product, type Category, type RelatedProduct } from '@/lib/api/odoo';
 import { ProductImage } from '@/components/ProductImage';
@@ -639,7 +638,7 @@ export default function ProductDetailPage() {
 
         {/* Image Gallery */}
         <div className="relative aspect-[4/3] bg-white">
-          <Image
+          <ProductImage
             src={images[selectedImage] || '/placeholder.jpg'}
             alt={product.name}
             fill
@@ -678,7 +677,7 @@ export default function ProductDetailPage() {
                 onClick={() => setSelectedImage(i)}
                 className={`relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === i ? 'border-gold' : 'border-bella-200'}`}
               >
-                <Image src={img || ''} alt="" fill className="object-cover" />
+                <ProductImage src={img || '/placeholder.jpg'} alt="" fill className="object-cover" />
               </button>
             ))}
           </div>
@@ -865,7 +864,7 @@ export default function ProductDetailPage() {
                       onClick={() => setSelectedImage(i)}
                       className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === i ? 'border-gold' : 'border-transparent hover:border-bella-300'}`}
                     >
-                      <Image src={img || ''} alt="" fill className="object-cover" />
+                      <ProductImage src={img || '/placeholder.jpg'} alt="" fill className="object-cover" />
                     </button>
                   ))}
                 </div>

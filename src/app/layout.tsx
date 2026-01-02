@@ -3,6 +3,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { LayoutWrapper } from "@/components/layout";
 import SmoothScroll from "@/components/SmoothScroll";
+import { fontVariables } from "@/lib/fonts";
 
 export const metadata: Metadata = {
   title: {
@@ -58,7 +59,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={fontVariables} suppressHydrationWarning>
       <head>
         <link id="favicon" rel="icon" href="/favicon-light.ico" />
       </head>
