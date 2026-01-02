@@ -100,7 +100,7 @@ function CategoryCard({ category, categoryImage, isAdmin, editMode, onImageUpdat
         className="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-bella-100 hover:border-gold/30 block"
       >
       {/* Image Container */}
-      <div className="relative aspect-[4/3] bg-bella-100 dark:bg-navy">
+      <div className="relative aspect-[4/3] bg-white">
         {hasImage ? (
           isAdmin && editMode ? (
             <EditableImage
