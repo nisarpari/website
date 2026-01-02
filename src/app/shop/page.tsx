@@ -1161,8 +1161,9 @@ function ShopPageContent() {
               // Get the root category ID for Basin & WC link (use washroom as default)
               const basinsWcCategoryId = categoryPath.length > 0 ? categoryPath[0].id : null;
 
-              // Filter out the root category if it's under Basin & WC
-              const displayPath = isUnderBasinsWc ? categoryPath.slice(1) : categoryPath;
+              // Filter out the root category if it's under Basin & WC, and filter any empty names
+              const displayPath = (isUnderBasinsWc ? categoryPath.slice(1) : categoryPath)
+                .filter(cat => cat && cat.name && cat.name.trim() !== '');
 
               return (
                 <>
