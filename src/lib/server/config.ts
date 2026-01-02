@@ -1,13 +1,19 @@
 // Server-side configuration utilities
 import fs from 'fs';
 import path from 'path';
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
 
 const CONFIG_PATH = path.join(process.cwd(), 'site-config.json');
 const KV_CONFIG_KEY = 'site-config';
 
-// Check if running in Vercel production (KV available)
-const isVercelProduction = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN;
+// Initialize Upstash Redis if env vars are available
+let redis: Redis | null = null;
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+}
 
 export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin125!09*#';
 
@@ -92,18 +98,18 @@ export function readSiteConfig(): SiteConfig {
   return {};
 }
 
-// Async read that uses KV in production
+// Async read that uses Redis in production
 export async function readSiteConfigAsync(): Promise<SiteConfig> {
-  if (isVercelProduction) {
+  if (redis) {
     try {
-      const config = await kv.get<SiteConfig>(KV_CONFIG_KEY);
+      const config = await redis.get<SiteConfig>(KV_CONFIG_KEY);
       if (config) {
         return config;
       }
-      // If KV is empty, return default config from file
+      // If Redis is empty, return default config from file
       return getDefaultConfig();
     } catch (error) {
-      console.error('Error reading from KV:', error);
+      console.error('Error reading from Redis:', error);
       return getDefaultConfig();
     }
   }
@@ -120,15 +126,15 @@ export function writeSiteConfig(config: SiteConfig): void {
   }
 }
 
-// Async write that uses KV in production
+// Async write that uses Redis in production
 export async function writeSiteConfigAsync(config: SiteConfig): Promise<void> {
   config.lastUpdated = new Date().toISOString();
 
-  if (isVercelProduction) {
+  if (redis) {
     try {
-      await kv.set(KV_CONFIG_KEY, config);
+      await redis.set(KV_CONFIG_KEY, config);
     } catch (error) {
-      console.error('Error writing to KV:', error);
+      console.error('Error writing to Redis:', error);
       throw error;
     }
   } else {

@@ -12,7 +12,7 @@
     "server:dev": "nodemon server/index.js"
   },
   "dependencies": {
-    "@vercel/kv": "^3.0.0",
+    "@upstash/redis": "^1.36.0",
     "axios": "^1.6.0",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
