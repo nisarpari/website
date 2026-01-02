@@ -11,6 +11,7 @@ import CustomerReviews from '@/components/CustomerReviews';
 import ProductCard from '@/components/ProductCard';
 import TrustMarquee from '@/components/TrustMarquee';
 import { ProductCarouselSkeleton, MobileProductCarouselSkeleton } from '@/components/ProductCardSkeleton';
+import { useIsDesktop } from '@/hooks';
 
 // Default Hero Images for carousel
 const DEFAULT_HERO_IMAGES: Array<{ url: string; alt: string; link?: string }> = [
@@ -499,6 +500,7 @@ export default function HomePage() {
   const [bestsellers, setBestsellers] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const isDesktop = useIsDesktop();
 
   useEffect(() => {
     async function loadData() {
@@ -536,51 +538,59 @@ export default function HomePage() {
     });
   };
 
+  // During SSR/initial render, show a minimal loading state to avoid hydration mismatch
+  if (isDesktop === null) {
+    return (
+      <div className="min-h-screen bg-bella-50 dark:bg-navy animate-pulse">
+        <div className="h-screen bg-bella-100 dark:bg-navy-light" />
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* Mobile Version */}
-      <div className="lg:hidden">
-        <style jsx global>{`
-          .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-          .scrollbar-hide::-webkit-scrollbar { display: none; }
-        `}</style>
+      <style jsx global>{`
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+      `}</style>
 
-        {/* VIDEO HERO SECTION - First block */}
-        <VideoHeroSection categories={categories} categoryImages={categoryImages} isLoading={isLoading} />
+      {/* VIDEO HERO SECTION - Shared between mobile and desktop */}
+      <VideoHeroSection categories={categories} categoryImages={categoryImages} isLoading={isLoading} />
 
-        <MobileHero heroImages={heroImages} onImageUpdate={handleHeroImageUpdate} />
-        <MobileStatsBar />
-        <MobileProductSection products={bestsellers} title="Trending This Week" badge="Hot" isLoading={isLoading} />
-        <CustomerReviews />
-        <MobileProductSection products={newArrivals} title="New Arrivals" badge="New" isLoading={isLoading} />
-        <MobileCTA />
-      </div>
-
-      {/* Desktop Version */}
-      <div className="hidden lg:block">
-        {/* VIDEO HERO SECTION - First block */}
-        <VideoHeroSection categories={categories} categoryImages={categoryImages} isLoading={isLoading} />
-
-        <Hero heroImages={heroImages} onImageUpdate={handleHeroImageUpdate} />
-        <TrustMarquee />
-
-        <DynamicProductSection
-          products={bestsellers}
-          title="Trending This Week"
-          subtitle="Most popular products our customers are loving right now"
-          badge="Hot"
-          isLoading={isLoading}
-        />
-        <CustomerReviews />
-        <DynamicProductSection
-          products={newArrivals}
-          title="New Arrivals"
-          subtitle="Fresh additions to our premium bathroom collection"
-          badge="New"
-          isLoading={isLoading}
-        />
-        <CTASection />
-      </div>
+      {/* Conditionally render only mobile OR desktop version to avoid duplicate content */}
+      {!isDesktop ? (
+        <>
+          {/* Mobile Version */}
+          <MobileHero heroImages={heroImages} onImageUpdate={handleHeroImageUpdate} />
+          <MobileStatsBar />
+          <MobileProductSection products={bestsellers} title="Trending This Week" badge="Hot" isLoading={isLoading} />
+          <CustomerReviews />
+          <MobileProductSection products={newArrivals} title="New Arrivals" badge="New" isLoading={isLoading} />
+          <MobileCTA />
+        </>
+      ) : (
+        <>
+          {/* Desktop Version */}
+          <Hero heroImages={heroImages} onImageUpdate={handleHeroImageUpdate} />
+          <TrustMarquee />
+          <DynamicProductSection
+            products={bestsellers}
+            title="Trending This Week"
+            subtitle="Most popular products our customers are loving right now"
+            badge="Hot"
+            isLoading={isLoading}
+          />
+          <CustomerReviews />
+          <DynamicProductSection
+            products={newArrivals}
+            title="New Arrivals"
+            subtitle="Fresh additions to our premium bathroom collection"
+            badge="New"
+            isLoading={isLoading}
+          />
+          <CTASection />
+        </>
+      )}
     </>
   );
 }
