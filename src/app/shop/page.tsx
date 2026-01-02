@@ -302,14 +302,14 @@ function AllCategoriesGrid({ categories, categoryImages, onImageUpdate, searchQu
   return (
     <div className="space-y-6">
       {/* Category Pills - Wrapped Grid */}
-      <div className="sticky top-20 z-30 bg-bella-50/95 backdrop-blur-sm py-3 -mx-4 px-4 md:-mx-6 md:px-6">
-        <div className="flex flex-wrap gap-2 max-h-[7.5rem] md:max-h-[4.5rem] overflow-hidden">
+      <div className="sticky top-20 z-30 bg-bella-50/95 dark:bg-navy/95 backdrop-blur-sm py-4 -mx-4 px-4 md:-mx-6 md:px-6">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setActiveTab(null)}
             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
               !activeTab
-                ? 'bg-navy text-white shadow-md'
-                : 'bg-white text-bella-600 hover:bg-bella-100 border border-bella-200'
+                ? 'bg-navy dark:bg-gold text-white shadow-md'
+                : 'bg-white dark:bg-bella-800 text-bella-600 dark:text-bella-300 hover:bg-bella-100 dark:hover:bg-bella-700 border border-bella-200 dark:border-bella-600'
             }`}
           >
             All Categories
@@ -321,7 +321,7 @@ function AllCategoriesGrid({ categories, categoryImages, onImageUpdate, searchQu
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                 activeTab === root.id.toString()
                   ? 'bg-gold text-white shadow-md'
-                  : 'bg-white text-bella-600 hover:bg-bella-100 border border-bella-200'
+                  : 'bg-white dark:bg-bella-800 text-bella-600 dark:text-bella-300 hover:bg-bella-100 dark:hover:bg-bella-700 border border-bella-200 dark:border-bella-600'
               }`}
             >
               {renameCategory(root.name)}
