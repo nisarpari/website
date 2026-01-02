@@ -10,6 +10,7 @@ import VideoHeroSection from '@/components/VideoHeroSection';
 import CustomerReviews from '@/components/CustomerReviews';
 import ProductCard from '@/components/ProductCard';
 import TrustMarquee from '@/components/TrustMarquee';
+import { ProductCarouselSkeleton, MobileProductCarouselSkeleton } from '@/components/ProductCardSkeleton';
 
 // Default Hero Images for carousel
 const DEFAULT_HERO_IMAGES: Array<{ url: string; alt: string; link?: string }> = [
@@ -167,7 +168,7 @@ function MobileProductCard({ product }: { product: Product }) {
 }
 
 // Mobile Product Section
-function MobileProductSection({ products, title, badge }: { products: Product[]; title: string; badge: string; }) {
+function MobileProductSection({ products, title, badge, isLoading = false }: { products: Product[]; title: string; badge: string; isLoading?: boolean; }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { t } = useLocale();
 
@@ -176,7 +177,8 @@ function MobileProductSection({ products, title, badge }: { products: Product[];
     .filter(p => p.thumbnail || p.image)
     .slice(0, 8);
 
-  if (filteredProducts.length === 0) return null;
+  // Show skeleton while loading, hide section only if loaded with no products
+  if (!isLoading && filteredProducts.length === 0) return null;
 
   return (
     <section className="py-6 bg-bella-50 dark:bg-navy">
@@ -192,13 +194,17 @@ function MobileProductSection({ products, title, badge }: { products: Product[];
           </svg>
         </Link>
       </div>
-      <div ref={scrollRef} className="flex gap-3 overflow-x-auto px-4 pb-4 scrollbar-hide" style={{ scrollSnapType: 'x mandatory' }}>
-        {filteredProducts.map(product => (
-          <div key={product.id} style={{ scrollSnapAlign: 'start' }}>
-            <MobileProductCard product={product} />
-          </div>
-        ))}
-      </div>
+      {isLoading ? (
+        <MobileProductCarouselSkeleton count={8} />
+      ) : (
+        <div ref={scrollRef} className="flex gap-3 overflow-x-auto px-4 pb-4 scrollbar-hide" style={{ scrollSnapType: 'x mandatory' }}>
+          {filteredProducts.map(product => (
+            <div key={product.id} style={{ scrollSnapAlign: 'start' }}>
+              <MobileProductCard product={product} />
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -360,11 +366,12 @@ function Hero({ heroImages, onImageUpdate }: {
 
 
 // Dynamic Product Section - Single line carousel
-function DynamicProductSection({ products, title, subtitle, badge }: {
+function DynamicProductSection({ products, title, subtitle, badge, isLoading = false }: {
   products: Product[];
   title: string;
   subtitle: string;
   badge?: string;
+  isLoading?: boolean;
 }) {
   const { t } = useLocale();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -374,7 +381,8 @@ function DynamicProductSection({ products, title, subtitle, badge }: {
     .filter(p => p.thumbnail || p.image)
     .slice(0, 8);
 
-  if (filteredProducts.length === 0) return null;
+  // Show skeleton while loading, hide section only if loaded with no products
+  if (!isLoading && filteredProducts.length === 0) return null;
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -432,17 +440,21 @@ function DynamicProductSection({ products, title, subtitle, badge }: {
           </div>
         </div>
         {/* Single line carousel - Compact cards */}
-        <div
-          ref={scrollRef}
-          className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
-          style={{ scrollSnapType: 'x mandatory' }}
-        >
-          {filteredProducts.map(product => (
-            <div key={product.id} className="flex-shrink-0 w-[150px] lg:w-[180px]" style={{ scrollSnapAlign: 'start' }}>
-              <ProductCard product={product} />
-            </div>
-          ))}
-        </div>
+        {isLoading ? (
+          <ProductCarouselSkeleton count={8} />
+        ) : (
+          <div
+            ref={scrollRef}
+            className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
+            style={{ scrollSnapType: 'x mandatory' }}
+          >
+            {filteredProducts.map(product => (
+              <div key={product.id} className="flex-shrink-0 w-[150px] lg:w-[180px]" style={{ scrollSnapAlign: 'start' }}>
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        )}
         <div className="mt-6 text-center md:hidden">
           <Link href="/shop" className="inline-flex items-center gap-2 text-gold hover:text-gold-dark font-medium">
             {t('viewAll')}
@@ -486,6 +498,7 @@ export default function HomePage() {
   const [heroImages, setHeroImages] = useState<Array<{ url: string; alt: string; link?: string }>>([]);
   const [bestsellers, setBestsellers] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
@@ -508,6 +521,8 @@ export default function HomePage() {
         }
       } catch (error) {
         console.error('Failed to load data:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
     loadData();
@@ -531,20 +546,20 @@ export default function HomePage() {
         `}</style>
 
         {/* VIDEO HERO SECTION - First block */}
-        <VideoHeroSection categories={categories} categoryImages={categoryImages} />
+        <VideoHeroSection categories={categories} categoryImages={categoryImages} isLoading={isLoading} />
 
         <MobileHero heroImages={heroImages} onImageUpdate={handleHeroImageUpdate} />
         <MobileStatsBar />
-        <MobileProductSection products={bestsellers} title="Trending This Week" badge="Hot" />
+        <MobileProductSection products={bestsellers} title="Trending This Week" badge="Hot" isLoading={isLoading} />
         <CustomerReviews />
-        <MobileProductSection products={newArrivals} title="New Arrivals" badge="New" />
+        <MobileProductSection products={newArrivals} title="New Arrivals" badge="New" isLoading={isLoading} />
         <MobileCTA />
       </div>
 
       {/* Desktop Version */}
       <div className="hidden lg:block">
         {/* VIDEO HERO SECTION - First block */}
-        <VideoHeroSection categories={categories} categoryImages={categoryImages} />
+        <VideoHeroSection categories={categories} categoryImages={categoryImages} isLoading={isLoading} />
 
         <Hero heroImages={heroImages} onImageUpdate={handleHeroImageUpdate} />
         <TrustMarquee />
@@ -554,6 +569,7 @@ export default function HomePage() {
           title="Trending This Week"
           subtitle="Most popular products our customers are loving right now"
           badge="Hot"
+          isLoading={isLoading}
         />
         <CustomerReviews />
         <DynamicProductSection
@@ -561,6 +577,7 @@ export default function HomePage() {
           title="New Arrivals"
           subtitle="Fresh additions to our premium bathroom collection"
           badge="New"
+          isLoading={isLoading}
         />
         <CTASection />
       </div>

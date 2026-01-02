@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Category } from '@/lib/api/odoo';
 import { useAdmin } from '@/context';
 import { EditableImage } from '@/components/admin';
+import { CategoryGridSkeleton } from '@/components/ProductCardSkeleton';
 
 // Hero media items - video first, then images
 const heroMedia = [
@@ -21,9 +22,10 @@ const heroMedia = [
 interface VideoHeroSectionProps {
   categories: Category[];
   categoryImages: Record<string, string>;
+  isLoading?: boolean;
 }
 
-export default function VideoHeroSection({ categories, categoryImages }: VideoHeroSectionProps) {
+export default function VideoHeroSection({ categories, categoryImages, isLoading = false }: VideoHeroSectionProps) {
   const [isInView, setIsInView] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const sectionRef = useRef<HTMLDivElement | null>(null);
@@ -254,50 +256,54 @@ export default function VideoHeroSection({ categories, categoryImages }: VideoHe
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
-            {rootCategories.map((cat, index) => {
-              const hasChildren = cat.childIds && cat.childIds.length > 0;
-              return (
-                <motion.div key={cat.id} variants={itemVariants}>
-                  <Link
-                    href={hasChildren ? `/category/${cat.id}` : `/shop?category=${cat.id}`}
-                    className="group relative rounded-xl overflow-hidden aspect-[4/3] block"
-                  >
-                    {isAdmin && editMode ? (
-                      <EditableImage
-                        src={getCategoryImage(cat, index)}
-                        alt={cat.name}
-                        configKey={`categoryImages.${cat.id}`}
-                        fill
-                        sizes="(max-width: 768px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
-                      />
-                    ) : (
-                      <Image
-                        src={getCategoryImage(cat, index)}
-                        alt={cat.name}
-                        fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
-                      />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 group-hover:from-black/90" />
+          {isLoading || rootCategories.length === 0 ? (
+            <CategoryGridSkeleton count={6} />
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
+              {rootCategories.map((cat, index) => {
+                const hasChildren = cat.childIds && cat.childIds.length > 0;
+                return (
+                  <motion.div key={cat.id} variants={itemVariants}>
+                    <Link
+                      href={hasChildren ? `/category/${cat.id}` : `/shop?category=${cat.id}`}
+                      className="group relative rounded-xl overflow-hidden aspect-[4/3] block"
+                    >
+                      {isAdmin && editMode ? (
+                        <EditableImage
+                          src={getCategoryImage(cat, index)}
+                          alt={cat.name}
+                          configKey={`categoryImages.${cat.id}`}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                      ) : (
+                        <Image
+                          src={getCategoryImage(cat, index)}
+                          alt={cat.name}
+                          fill
+                          className="object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 group-hover:from-black/90" />
 
-                    {/* Hover border effect */}
-                    <div className="absolute inset-0 border-2 border-transparent group-hover:border-gold/50 transition-colors duration-300 rounded-xl" />
+                      {/* Hover border effect */}
+                      <div className="absolute inset-0 border-2 border-transparent group-hover:border-gold/50 transition-colors duration-300 rounded-xl" />
 
-                    <div className="absolute bottom-0 left-0 right-0 p-3 md:p-6">
-                      <h3 className="text-white font-display text-base md:text-2xl font-bold mb-0.5 md:mb-1 group-hover:text-gold transition-colors duration-300">
-                        {cat.name}
-                      </h3>
-                      <span className="text-white/70 text-[10px] md:text-sm">
-                        {cat.totalCount || 0}+ Products
-                      </span>
-                    </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
+                      <div className="absolute bottom-0 left-0 right-0 p-3 md:p-6">
+                        <h3 className="text-white font-display text-base md:text-2xl font-bold mb-0.5 md:mb-1 group-hover:text-gold transition-colors duration-300">
+                          {cat.name}
+                        </h3>
+                        <span className="text-white/70 text-[10px] md:text-sm">
+                          {cat.totalCount || 0}+ Products
+                        </span>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
 
           <motion.div className="text-center mt-8 md:mt-12" variants={itemVariants}>
             <Link
