@@ -122,9 +122,14 @@ export function CategoryCardSkeleton() {
 }
 
 // Category grid skeleton for VideoHeroSection
-export function CategoryGridSkeleton({ count = 6 }: { count?: number }) {
+export function CategoryGridSkeleton({ count = 6 }: { count?: 6 | 8 }) {
+  // Use 4 columns for 8 categories, 3 columns for 6
+  const gridClass = count === 8
+    ? 'grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6'
+    : 'grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6';
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
+    <div className={gridClass}>
       {Array.from({ length: count }).map((_, i) => (
         <CategoryCardSkeleton key={i} />
       ))}

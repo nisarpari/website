@@ -115,7 +115,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
   }, [searchQuery, categories]);
 
   // Categories to hide from main nav (Washroom and Washlet merged into "Basins & WC", Bath Accessories under Showers)
-  const hiddenFromMainNav = ['collections', 'bath assist', 'kitchen', 'water heaters', 'washroom', 'washlet', 'bath accessories', 'smart toilets'];
+  const hiddenFromMainNav = ['collections', 'bath assist', 'kitchen', 'water heaters', 'washroom', 'washlet', 'bath accessories', 'smart toilets', 'misc'];
 
   // Rename mappings for display (database name -> display name)
   const renameCategory = (name: string) => {

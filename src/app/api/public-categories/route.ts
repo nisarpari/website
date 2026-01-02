@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 import { odooApiCall } from '@/lib/server/odoo';
 import { publicCategoryCache, isCacheValid } from '@/lib/server/cache';
-import { readSiteConfig } from '@/lib/server/config';
 
 interface OdooPublicCategory {
   id: number;
@@ -30,10 +29,6 @@ export async function GET() {
     if (isCacheValid(publicCategoryCache)) {
       return NextResponse.json(publicCategoryCache.data);
     }
-
-    // Read hidden categories from config
-    const siteConfig = readSiteConfig();
-    const hiddenCategories = siteConfig.hiddenCategories || [];
 
     const categories = await odooApiCall<OdooPublicCategory[]>(
       'product.public.category',
@@ -91,9 +86,9 @@ export async function GET() {
       cat.totalCount = calculateTotalCount(cat.id);
     });
 
-    // Filter categories that have products and are not hidden
+    // Filter categories that have products (visibleCategories is for homepage only)
     const filteredCategories = categoriesWithCount
-      .filter(cat => cat.totalCount > 0 && !hiddenCategories.includes(cat.id.toString()))
+      .filter(cat => cat.totalCount > 0)
       .sort((a, b) => a.sequence - b.sequence);
 
     // Update cache

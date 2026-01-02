@@ -55,7 +55,8 @@ export interface SiteConfig {
   categoryImages?: Record<string, string>;
   categoryImageVariants?: Record<string, Record<string, string>>;
   categoryLandingContent?: Record<string, CategoryLandingContent>;
-  hiddenCategories?: string[];
+  visibleCategories?: string[];
+  categoryGridCount?: 6 | 8;
   lastUpdated?: string;
   [key: string]: unknown;
 }

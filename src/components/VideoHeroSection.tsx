@@ -8,6 +8,7 @@ import { Category } from '@/lib/api/odoo';
 import { useAdmin } from '@/context';
 import { EditableImage } from '@/components/admin';
 import { CategoryGridSkeleton } from '@/components/ProductCardSkeleton';
+import { getApiUrl } from '@/lib/api/config';
 
 // Hero media items - video first, then images
 const heroMedia = [
@@ -19,17 +20,65 @@ const heroMedia = [
   { type: 'image', src: '/hero-images/Bella_HI_5.jpg' },
 ];
 
+// Category display configuration - maps database names to display names
+const categoryDisplayNames: Record<string, string> = {
+  'bathroom': 'Showers',
+  'washroom': 'Basins & Faucets',
+  'washlet': 'Toilets & Cisterns',
+  'wellness': 'Wellness',
+  'bath accessories': 'Bath Accessories',
+  'switches & sockets': 'Switches & Sockets',
+};
+
+// Get display name for a category
+const getDisplayName = (name: string): string => {
+  return categoryDisplayNames[name.toLowerCase()] || name;
+};
+
+// Dedicated pages mapping - categories with custom landing pages
+const dedicatedPages: Record<string, string> = {
+  'concealed-cisterns': '/concealed-cisterns',
+  'wall-hung-toilets': '/wall-hung-toilets',
+  'single-piece-toilets': '/siphonicwc',
+  'bathtubs': '/bathtubs',
+  'jacuzzi': '/jacuzzis',
+  'steam-sauna': '/sauna-steam',
+};
+
+// Get the correct URL for a category
+const getCategoryUrl = (cat: Category, hasChildren: boolean): string => {
+  if (dedicatedPages[cat.slug]) {
+    return dedicatedPages[cat.slug];
+  }
+  return hasChildren ? `/category/${cat.id}` : `/shop?category=${cat.id}`;
+};
+
 interface VideoHeroSectionProps {
   categories: Category[];
   categoryImages: Record<string, string>;
   isLoading?: boolean;
 }
 
+// Default category order for homepage display
+const defaultCategoryOrder = [
+  'bathroom',      // Showers
+  'washroom',      // Basins & Faucets
+  'washlet',       // Toilets & Cisterns
+  'wellness',      // Wellness
+  'bath accessories', // Bath Accessories
+  'switches & sockets', // Switches & Sockets
+];
+
 export default function VideoHeroSection({ categories, categoryImages, isLoading = false }: VideoHeroSectionProps) {
   const [isInView, setIsInView] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [visibleCategories, setVisibleCategories] = useState<string[]>([]);
+  const [categoryGridCount, setCategoryGridCount] = useState<6 | 8>(6);
+  const [showCategoryEditor, setShowCategoryEditor] = useState(false);
+  const [expandedParents, setExpandedParents] = useState<number[]>([]);
   const sectionRef = useRef<HTMLDivElement | null>(null);
-  const { isAdmin, editMode } = useAdmin();
+  const { isAdmin, editMode, token } = useAdmin();
+  const API_BASE = getApiUrl();
 
   // Auto-advance carousel
   useEffect(() => {
@@ -40,12 +89,131 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
     return () => clearInterval(interval);
   }, []);
 
+  // Fetch visible categories config from admin settings
+  useEffect(() => {
+    async function fetchConfig() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/hidden-categories`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.visibleCategories) {
+            setVisibleCategories(data.visibleCategories);
+          }
+          if (data?.categoryGridCount) {
+            setCategoryGridCount(data.categoryGridCount);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch category config:', error);
+      }
+    }
+    fetchConfig();
+  }, [API_BASE]);
+
   const currentMedia = heroMedia[currentIndex];
 
-  // Get root categories for display
-  const rootCategories = categories
+  // Get all categories that are explicitly marked as visible, sorted by order
+  const getDisplayCategories = () => {
+    const visible: Category[] = [];
+
+    // Sort root categories by predefined order
+    const sortedRoots = categories
+      .filter(c => c.parentId === null)
+      .sort((a, b) => {
+        const aIndex = defaultCategoryOrder.indexOf(a.name.toLowerCase());
+        const bIndex = defaultCategoryOrder.indexOf(b.name.toLowerCase());
+        if (aIndex === -1 && bIndex === -1) return 0;
+        if (aIndex === -1) return 1;
+        if (bIndex === -1) return -1;
+        return aIndex - bIndex;
+      });
+
+    // Add only categories that are in the visibleCategories list
+    for (const root of sortedRoots) {
+      if (visibleCategories.includes(root.name.toLowerCase())) {
+        visible.push(root);
+      }
+      // Check subcategories
+      const children = categories.filter(c => c.parentId === root.id);
+      for (const child of children) {
+        if (visibleCategories.includes(child.name.toLowerCase())) {
+          visible.push(child);
+        }
+      }
+    }
+
+    return visible.slice(0, categoryGridCount);
+  };
+
+  const displayCategories = getDisplayCategories();
+
+  // Save settings to admin
+  const saveSettings = async (visible: string[], gridCount?: 6 | 8) => {
+    if (!token) return;
+    try {
+      const body: { visibleCategories: string[]; categoryGridCount?: number } = { visibleCategories: visible };
+      if (gridCount !== undefined) {
+        body.categoryGridCount = gridCount;
+      }
+      const res = await fetch(`${API_BASE}/api/admin/hidden-categories`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) {
+        setVisibleCategories(visible);
+        if (gridCount !== undefined) {
+          setCategoryGridCount(gridCount);
+        }
+      } else {
+        console.error('Failed to save settings:', await res.text());
+      }
+    } catch (error) {
+      console.error('Failed to save category config:', error);
+    }
+  };
+
+  // Toggle category visibility
+  const toggleCategoryVisibility = (categoryName: string) => {
+    const normalizedName = categoryName.toLowerCase();
+    const newVisible = visibleCategories.includes(normalizedName)
+      ? visibleCategories.filter(c => c !== normalizedName)
+      : [...visibleCategories, normalizedName];
+    saveSettings(newVisible);
+  };
+
+  // Toggle grid count
+  const toggleGridCount = () => {
+    const newCount = categoryGridCount === 6 ? 8 : 6;
+    saveSettings(visibleCategories, newCount);
+  };
+
+  // Get children of a category
+  const getChildren = (parentId: number) => {
+    return categories.filter(c => c.parentId === parentId);
+  };
+
+  // Get all categories for the editor organized by parent
+  const allRootCategories = categories
     .filter(c => c.parentId === null)
-    .slice(0, 6);
+    .sort((a, b) => {
+      const aIndex = defaultCategoryOrder.indexOf(a.name.toLowerCase());
+      const bIndex = defaultCategoryOrder.indexOf(b.name.toLowerCase());
+      if (aIndex === -1 && bIndex === -1) return 0;
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+      return aIndex - bIndex;
+    });
+
+  // Toggle expanded state for a parent category
+  const toggleExpanded = (catId: number) => {
+    setExpandedParents(prev =>
+      prev.includes(catId) ? prev.filter(id => id !== catId) : [...prev, catId]
+    );
+  };
 
   // Default fallback images
   const defaultImages = [
@@ -247,31 +415,53 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
         animate={isInView ? 'visible' : 'hidden'}
       >
         <div className="max-w-7xl mx-auto">
-          <motion.div className="text-center mb-6 md:mb-12" variants={itemVariants}>
-            <h2 className="font-display text-2xl md:text-4xl font-bold text-white mb-2 md:mb-3">
-              Shop by Category
+          <motion.div className="text-center mb-8 md:mb-14 mt-6 md:mt-10" variants={itemVariants}>
+            {/* Decorative line */}
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="h-px w-12 md:w-20 bg-gradient-to-r from-transparent to-gold/60" />
+              <svg className="w-5 h-5 md:w-6 md:h-6 text-gold" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z" />
+              </svg>
+              <div className="h-px w-12 md:w-20 bg-gradient-to-l from-transparent to-gold/60" />
+            </div>
+            <h2 className="font-display text-xl md:text-3xl font-light text-white/90 tracking-wide">
+              Explore our <span className="text-gold font-medium">premium</span> bathroom collections
             </h2>
-            <p className="text-white/70 text-sm md:text-base max-w-2xl mx-auto">
-              Explore our premium bathroom collections
+            <p className="text-white/50 text-xs md:text-sm mt-2 max-w-md mx-auto">
+              Curated selections for your perfect space
             </p>
+            {/* Admin Edit Button */}
+            {isAdmin && editMode && (
+              <button
+                onClick={() => setShowCategoryEditor(true)}
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full text-sm font-medium transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Manage Categories
+              </button>
+            )}
           </motion.div>
 
-          {isLoading || rootCategories.length === 0 ? (
-            <CategoryGridSkeleton count={6} />
+          {isLoading || displayCategories.length === 0 ? (
+            <CategoryGridSkeleton count={categoryGridCount} />
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
-              {rootCategories.map((cat, index) => {
-                const hasChildren = cat.childIds && cat.childIds.length > 0;
+            <div className={`grid grid-cols-2 ${categoryGridCount === 8 ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-3 md:gap-6`}>
+              {displayCategories.map((cat, index) => {
+                const hasChildren = !!(cat.childIds && cat.childIds.length > 0);
+                const displayName = getDisplayName(cat.name);
                 return (
                   <motion.div key={cat.id} variants={itemVariants}>
                     <Link
-                      href={hasChildren ? `/category/${cat.id}` : `/shop?category=${cat.id}`}
+                      href={getCategoryUrl(cat, hasChildren)}
                       className="group relative rounded-xl overflow-hidden aspect-[4/3] block"
                     >
                       {isAdmin && editMode ? (
                         <EditableImage
                           src={getCategoryImage(cat, index)}
-                          alt={cat.name}
+                          alt={displayName}
                           configKey={`categoryImages.${cat.id}`}
                           fill
                           sizes="(max-width: 768px) 50vw, 33vw"
@@ -280,7 +470,7 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
                       ) : (
                         <Image
                           src={getCategoryImage(cat, index)}
-                          alt={cat.name}
+                          alt={displayName}
                           fill
                           className="object-cover transition-transform duration-700 group-hover:scale-110"
                         />
@@ -292,7 +482,7 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
 
                       <div className="absolute bottom-0 left-0 right-0 p-3 md:p-6">
                         <h3 className="text-white font-display text-base md:text-2xl font-bold mb-0.5 md:mb-1 group-hover:text-gold transition-colors duration-300">
-                          {cat.name}
+                          {displayName}
                         </h3>
                         <span className="text-white/70 text-[10px] md:text-sm">
                           {cat.totalCount || 0}+ Products
@@ -325,6 +515,141 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
           </motion.div>
         </div>
       </motion.section>
+
+      {/* Category Editor Modal */}
+      {showCategoryEditor && (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-bella-100">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-navy">Manage Homepage Categories</h2>
+                <button onClick={() => setShowCategoryEditor(false)} className="text-bella-400 hover:text-navy">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p className="text-sm text-bella-500 mt-2">Toggle categories to show or hide them. First {categoryGridCount} visible categories will be displayed.</p>
+
+              {/* Grid Count Toggle */}
+              <div className="mt-4 flex items-center gap-3">
+                <span className="text-sm font-medium text-navy">Grid Layout:</span>
+                <div className="flex rounded-lg overflow-hidden border border-bella-200">
+                  <button
+                    onClick={() => toggleGridCount()}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                      categoryGridCount === 6 ? 'bg-navy text-white' : 'bg-white text-bella-600 hover:bg-bella-50'
+                    }`}
+                  >
+                    6 Categories (3x2)
+                  </button>
+                  <button
+                    onClick={() => toggleGridCount()}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                      categoryGridCount === 8 ? 'bg-navy text-white' : 'bg-white text-bella-600 hover:bg-bella-50'
+                    }`}
+                  >
+                    8 Categories (4x2)
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[55vh]">
+              <div className="space-y-2">
+                {allRootCategories.map((cat) => {
+                  const isVisible = visibleCategories.includes(cat.name.toLowerCase());
+                  const displayName = getDisplayName(cat.name);
+                  const children = getChildren(cat.id);
+                  const isExpanded = expandedParents.includes(cat.id);
+
+                  return (
+                    <div key={cat.id}>
+                      {/* Parent Category */}
+                      <div
+                        className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
+                          isVisible ? 'bg-green-50 border-green-200' : 'bg-bella-50 border-bella-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {children.length > 0 && (
+                            <button
+                              onClick={() => toggleExpanded(cat.id)}
+                              className="p-1 hover:bg-black/10 rounded transition-colors"
+                            >
+                              <svg
+                                className={`w-4 h-4 text-bella-500 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </button>
+                          )}
+                          <div>
+                            <p className="font-medium text-navy">{displayName}</p>
+                            <p className="text-xs text-bella-500">{cat.name} • {cat.totalCount || 0} products</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => toggleCategoryVisibility(cat.name)}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                            isVisible
+                              ? 'bg-green-500 text-white hover:bg-green-600'
+                              : 'bg-bella-200 text-bella-600 hover:bg-bella-300'
+                          }`}
+                        >
+                          {isVisible ? 'Visible' : 'Hidden'}
+                        </button>
+                      </div>
+
+                      {/* Subcategories */}
+                      {isExpanded && children.length > 0 && (
+                        <div className="ml-6 mt-1 space-y-1">
+                          {children.map((child) => {
+                            const childVisible = visibleCategories.includes(child.name.toLowerCase());
+                            return (
+                              <div
+                                key={child.id}
+                                className={`flex items-center justify-between p-2 pl-4 rounded-lg border-l-2 transition-colors ${
+                                  childVisible ? 'bg-green-50/50 border-green-400' : 'bg-bella-50/50 border-bella-300'
+                                }`}
+                              >
+                                <div>
+                                  <p className="text-sm font-medium text-navy">{child.name}</p>
+                                  <p className="text-xs text-bella-400">{child.totalCount || 0} products</p>
+                                </div>
+                                <button
+                                  onClick={() => toggleCategoryVisibility(child.name)}
+                                  className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${
+                                    childVisible
+                                      ? 'bg-green-500 text-white hover:bg-green-600'
+                                      : 'bg-bella-200 text-bella-600 hover:bg-bella-300'
+                                  }`}
+                                >
+                                  {childVisible ? 'Visible' : 'Hidden'}
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="p-6 border-t border-bella-100">
+              <button
+                onClick={() => setShowCategoryEditor(false)}
+                className="w-full px-4 py-3 bg-navy text-white rounded-lg font-medium hover:bg-navy-dark"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
