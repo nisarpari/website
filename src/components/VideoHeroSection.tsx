@@ -10,14 +10,14 @@ import { EditableImage } from '@/components/admin';
 import { CategoryGridSkeleton } from '@/components/ProductCardSkeleton';
 import { getApiUrl } from '@/lib/api/config';
 
-// Hero media items - video first, then images
+// Hero media items - video first, then images (WebP for better performance)
 const heroMedia = [
   { type: 'video', src: '/hero-video.mp4' },
-  { type: 'image', src: '/hero-images/Bella_HI_1.jpg' },
-  { type: 'image', src: '/hero-images/Bella_HI_2.jpg' },
-  { type: 'image', src: '/hero-images/Bella_HI_3.jpg' },
-  { type: 'image', src: '/hero-images/Bella_HI_4.jpg' },
-  { type: 'image', src: '/hero-images/Bella_HI_5.jpg' },
+  { type: 'image', src: '/hero-images/Bella_HI_1.webp' },
+  { type: 'image', src: '/hero-images/Bella_HI_2.webp' },
+  { type: 'image', src: '/hero-images/Bella_HI_3.webp' },
+  { type: 'image', src: '/hero-images/Bella_HI_4.webp' },
+  { type: 'image', src: '/hero-images/Bella_HI_5.webp' },
 ];
 
 // Category display configuration - maps database names to display names
@@ -291,7 +291,7 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
               <motion.video
                 key="video"
                 src={currentMedia.src}
-                poster="/hero-images/Bella_HI_1.jpg"
+                poster="/hero-images/Bella_HI_1.webp"
                 autoPlay
                 muted
                 loop
