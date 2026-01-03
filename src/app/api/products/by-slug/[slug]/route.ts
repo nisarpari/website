@@ -1,6 +1,6 @@
 // GET /api/products/by-slug/[slug] - Fetch single product by slug
 import { NextRequest } from 'next/server';
-import { odooApiCall, ODOO_CONFIG } from '@/lib/server/odoo';
+import { odooApiCall, ODOO_CONFIG, getOptimizedImageUrl } from '@/lib/server/odoo';
 import { transformProduct, TransformedProduct } from '@/lib/server/transform';
 import { getCachedOrFetch, CACHE_KEYS, CACHE_TTL } from '@/lib/server/cache';
 
@@ -55,7 +55,10 @@ async function fetchProductDetails(productId: number): Promise<ProductWithDetail
       product.additionalImages = images.map(img => ({
         id: img.id,
         name: img.name,
-        url: `${ODOO_CONFIG.imageBaseUrl}/web/image/product.image/${img.id}/image_1920`
+        url: getOptimizedImageUrl(
+          `${ODOO_CONFIG.imageBaseUrl}/web/image/product.image/${img.id}/image_1920`,
+          { width: 1920 }
+        )
       }));
     } catch {
       product.additionalImages = [];
@@ -77,7 +80,10 @@ async function fetchProductDetails(productId: number): Promise<ProductWithDetail
         id: p.id,
         name: p.name,
         price: p.list_price,
-        thumbnail: `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${p.id}/image_512`,
+        thumbnail: getOptimizedImageUrl(
+          `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${p.id}/image_512`,
+          { width: 512 }
+        ),
         slug: p.website_url ? p.website_url.replace('/shop/', '') : `${p.name.toLowerCase().replace(/\s+/g, '-')}-${p.id}`
       }));
     } catch {
@@ -100,7 +106,10 @@ async function fetchProductDetails(productId: number): Promise<ProductWithDetail
         id: p.id,
         name: p.name,
         price: p.list_price,
-        thumbnail: `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${p.id}/image_512`,
+        thumbnail: getOptimizedImageUrl(
+          `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${p.id}/image_512`,
+          { width: 512 }
+        ),
         slug: p.website_url ? p.website_url.replace('/shop/', '') : `${p.name.toLowerCase().replace(/\s+/g, '-')}-${p.id}`
       }));
     } catch {

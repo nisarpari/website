@@ -1,5 +1,5 @@
 // Transform Odoo data to website format
-import { ODOO_CONFIG } from './odoo';
+import { ODOO_CONFIG, getOptimizedImageUrl } from './odoo';
 
 interface OdooProduct {
   id: number;
@@ -73,9 +73,15 @@ export function transformProduct(product: OdooProduct): TransformedProduct {
     categoryId: product.categ_id ? product.categ_id[0] : null,
     // eCommerce public categories
     publicCategoryIds: product.public_categ_ids || [],
-    // Images (use CDN URL for caching via Cloudflare)
-    image: `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${product.id}/image_1920`,
-    thumbnail: `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${product.id}/image_512`,
+    // Images (use Cloudflare Image Transformations for WebP conversion)
+    image: getOptimizedImageUrl(
+      `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${product.id}/image_1920`,
+      { width: 1920 }
+    ),
+    thumbnail: getOptimizedImageUrl(
+      `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${product.id}/image_512`,
+      { width: 512 }
+    ),
     additionalImageIds: product.product_template_image_ids || [],
     // Description
     description: product.description_sale || '',

@@ -1,6 +1,6 @@
 // GET /api/products/random-from-category/[categoryId] - Fetch random products from category
 import { NextRequest, NextResponse } from 'next/server';
-import { odooApiCall, ODOO_CONFIG } from '@/lib/server/odoo';
+import { odooApiCall, ODOO_CONFIG, getOptimizedImageUrl } from '@/lib/server/odoo';
 
 export async function GET(
   request: NextRequest,
@@ -41,7 +41,10 @@ export async function GET(
       id: p.id,
       name: p.name,
       price: p.list_price,
-      thumbnail: `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${p.id}/image_512`,
+      thumbnail: getOptimizedImageUrl(
+        `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${p.id}/image_512`,
+        { width: 512 }
+      ),
       slug: p.website_url ? p.website_url.replace('/shop/', '') : `${p.name.toLowerCase().replace(/\s+/g, '-')}-${p.id}`
     }));
 
