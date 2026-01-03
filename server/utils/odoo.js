@@ -1,33 +1,27 @@
 const axios = require('axios');
 const { ODOO_CONFIG } = require('../config');
 
-// Helper function for Odoo JSON-RPC API calls
+// Helper function for Odoo API calls using /web/dataset/call_kw (Odoo 20+ compatible)
 async function odooApiCall(model, method, args = [], kwargs = {}) {
     try {
-        const url = `${ODOO_CONFIG.baseUrl}/jsonrpc`;
+        const url = `${ODOO_CONFIG.baseUrl}/web/dataset/call_kw/${model}/${method}`;
 
         const body = {
             jsonrpc: '2.0',
             method: 'call',
             params: {
-                service: 'object',
-                method: 'execute_kw',
-                args: [
-                    ODOO_CONFIG.database,
-                    2, // User ID (2 is typically admin)
-                    ODOO_CONFIG.apiKey,
-                    model,
-                    method,
-                    args,
-                    kwargs
-                ]
+                model: model,
+                method: method,
+                args: args,
+                kwargs: kwargs
             },
             id: Date.now()
         };
 
         const response = await axios.post(url, body, {
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'api-key': ODOO_CONFIG.apiKey
             }
         });
 

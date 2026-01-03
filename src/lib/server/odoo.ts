@@ -1,4 +1,5 @@
-// Odoo JSON-RPC API client for Next.js API routes
+// Odoo API client for Next.js API routes
+// Uses /web/dataset/call_kw endpoint (Odoo 20+ compatible)
 
 const ODOO_CONFIG = {
   baseUrl: process.env.ODOO_URL || 'https://bellagcc-production-13616817.dev.odoo.com',
@@ -18,30 +19,23 @@ interface OdooKwargs {
   [key: string]: unknown;
 }
 
-// Helper function for Odoo JSON-RPC API calls
+// Helper function for Odoo API calls using /web/dataset/call_kw (Odoo 20+ compatible)
 export async function odooApiCall<T = unknown>(
   model: string,
   method: string,
   args: unknown[] = [],
   kwargs: OdooKwargs = {}
 ): Promise<T> {
-  const url = `${ODOO_CONFIG.baseUrl}/jsonrpc`;
+  const url = `${ODOO_CONFIG.baseUrl}/web/dataset/call_kw/${model}/${method}`;
 
   const body = {
     jsonrpc: '2.0',
     method: 'call',
     params: {
-      service: 'object',
-      method: 'execute_kw',
-      args: [
-        ODOO_CONFIG.database,
-        2, // User ID (2 is typically admin)
-        ODOO_CONFIG.apiKey,
-        model,
-        method,
-        args,
-        kwargs
-      ]
+      model: model,
+      method: method,
+      args: args,
+      kwargs: kwargs
     },
     id: Date.now()
   };
@@ -49,7 +43,8 @@ export async function odooApiCall<T = unknown>(
   const response = await fetch(url, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'api-key': ODOO_CONFIG.apiKey
     },
     body: JSON.stringify(body)
   });
