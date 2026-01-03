@@ -1,75 +1,34 @@
-// Client-side image optimization utilities
-// Uses Cloudflare Image Transformations for image optimization
-// Note: format=auto serves WebP to browsers that request it via Accept header.
-// Safari/iOS doesn't send Accept: image/webp, so they get JPEG (but resized).
+// Client-side image utilities
+// Images served directly from Cloudflare CDN (erp.bellastore.in)
 
-const CF_IMAGE_TRANSFORM_URL = process.env.NEXT_PUBLIC_CF_IMAGE_TRANSFORM_URL || '';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://web.bellastore.in';
 
 /**
- * Get optimized image URL using Cloudflare Image Transformations
- * Resizes and optimizes images with specified quality and size
- *
- * @param originalUrl - The original image URL (can be from any source)
- * @param options - Optimization options (width, quality, format)
- * @returns Optimized image URL through Cloudflare, or original URL if CF not configured
+ * Get image URL - returns URL as-is
+ * Odoo's live server already optimizes images, Cloudflare caches them
  */
 export function getOptimizedImageUrl(
   originalUrl: string,
-  options: { width?: number; quality?: number; format?: 'auto' | 'webp' | 'avif' } = {}
+  _options: { width?: number; quality?: number } = {}
 ): string {
-  // Skip if already a WebP or if it's a local static file
-  if (!originalUrl || originalUrl.startsWith('/')) {
-    return originalUrl;
-  }
-
-  // Skip if Cloudflare transforms not configured
-  if (!CF_IMAGE_TRANSFORM_URL) {
-    return originalUrl;
-  }
-
-  const { width, quality = 85, format = 'auto' } = options;
-
-  // Build Cloudflare transformation options
-  const cfOptions: string[] = [`format=${format}`, `quality=${quality}`];
-  if (width) {
-    cfOptions.push(`width=${width}`);
-  }
-
-  // Cloudflare Image Transformation URL format:
-  // https://your-domain.com/cdn-cgi/image/format=auto,quality=85/https://origin-url/path
-  return `${CF_IMAGE_TRANSFORM_URL}/cdn-cgi/image/${cfOptions.join(',')}/${originalUrl}`;
+  if (!originalUrl) return originalUrl;
+  return originalUrl;
 }
 
 /**
- * Check if an image URL is already optimized (WebP/AVIF format)
+ * Get responsive image URL
+ * Returns URL as-is - no transformation needed
  */
-export function isOptimizedImage(url: string): boolean {
-  if (!url) return false;
-  const lowerUrl = url.toLowerCase();
-  return lowerUrl.endsWith('.webp') || lowerUrl.endsWith('.avif') || lowerUrl.includes('/cdn-cgi/image/');
-}
-
-/**
- * Get the best image format for a URL, preferring WebP
- * For external URLs, routes through Cloudflare for conversion
- * For local files, assumes they're already optimized
- */
-export function ensureOptimizedImage(
+export function getResponsiveImageUrl(
   url: string,
-  options: { width?: number; quality?: number } = {}
+  _screenType: 'mobile' | 'tablet' | 'desktop'
 ): string {
   if (!url) return '/placeholder.webp';
 
-  // Local files - assume already optimized
+  // For local paths, return as-is
   if (url.startsWith('/')) {
     return url;
   }
 
-  // Already optimized
-  if (isOptimizedImage(url)) {
-    return url;
-  }
-
-  // Route through Cloudflare for optimization
-  return getOptimizedImageUrl(url, { ...options, format: 'auto' });
+  return url;
 }

@@ -4,37 +4,18 @@ const ODOO_CONFIG = {
   baseUrl: process.env.ODOO_URL || 'https://bellagcc-production-13616817.dev.odoo.com',
   // Use Cloudflare CDN for images (erp.bellastore.in proxies to Odoo with caching)
   imageBaseUrl: process.env.ODOO_IMAGE_URL || 'https://erp.bellastore.in',
-  // Cloudinary cloud name for image optimization
-  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || 'doksvu65b',
   database: process.env.ODOO_DATABASE || 'bellagcc-production-13616817',
   apiKey: process.env.ODOO_API_KEY || '',
 };
 
-// Generate optimized image URL using Cloudinary fetch
-// Automatically converts to WebP/AVIF based on browser support
+// Return image URL directly from Cloudflare CDN (no transformation)
+// Odoo's live server already optimizes images
 export function getOptimizedImageUrl(
   originalUrl: string,
-  options: { width?: number; quality?: number } = {}
+  _options: { width?: number; quality?: number } = {}
 ): string {
-  const { width, quality = 85 } = options;
-
-  // If Cloudinary not configured, return original URL
-  if (!ODOO_CONFIG.cloudinaryCloudName) {
-    return originalUrl;
-  }
-
-  // Build Cloudinary transformation options
-  // f_webp = force WebP format (Safari/iOS supports WebP since iOS 14)
-  // q_auto or q_XX = quality
-  const transforms: string[] = ['f_webp'];
-  transforms.push(quality === 85 ? 'q_auto' : `q_${quality}`);
-  if (width) {
-    transforms.push(`w_${width}`);
-  }
-
-  // Cloudinary fetch URL format:
-  // https://res.cloudinary.com/CLOUD_NAME/image/fetch/f_auto,q_auto,w_512/https://original-url
-  return `https://res.cloudinary.com/${ODOO_CONFIG.cloudinaryCloudName}/image/fetch/${transforms.join(',')}/${originalUrl}`;
+  // Return URL as-is - Cloudflare caches, Odoo serves optimized images
+  return originalUrl;
 }
 
 export { ODOO_CONFIG };
