@@ -56,7 +56,7 @@ async function fetchProductDetails(productId: number): Promise<ProductWithDetail
         id: img.id,
         name: img.name,
         url: getOptimizedImageUrl(
-          `${ODOO_CONFIG.imageBaseUrl}/web/image/product.image/${img.id}/image_1920`
+          `${ODOO_CONFIG.imageBaseUrl}/web/image/product.image/${img.id}/image_1024`
         )
       }));
     } catch {
