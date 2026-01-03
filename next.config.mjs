@@ -43,6 +43,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "web.bellastore.in",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
     ],
   },
   // Add caching headers for static assets

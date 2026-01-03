@@ -4,35 +4,37 @@ const ODOO_CONFIG = {
   baseUrl: process.env.ODOO_URL || 'https://bellagcc-production-13616817.dev.odoo.com',
   // Use Cloudflare CDN for images (erp.bellastore.in proxies to Odoo with caching)
   imageBaseUrl: process.env.ODOO_IMAGE_URL || 'https://erp.bellastore.in',
-  // Cloudflare Image Transformations base URL (set to your domain with Cloudflare)
-  cfImageTransformUrl: process.env.CF_IMAGE_TRANSFORM_URL || '',
+  // Cloudinary cloud name for image optimization
+  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || 'doksvu65b',
   database: process.env.ODOO_DATABASE || 'bellagcc-production-13616817',
   apiKey: process.env.ODOO_API_KEY || '',
 };
 
-// Generate optimized image URL using Cloudflare Image Transformations
-// Falls back to direct URL if CF transforms not configured
-// Force WebP format for all browsers (iOS Safari supports WebP since iOS 14)
+// Generate optimized image URL using Cloudinary fetch
+// Automatically converts to WebP/AVIF based on browser support
 export function getOptimizedImageUrl(
   originalUrl: string,
-  options: { width?: number; quality?: number; format?: 'auto' | 'webp' | 'avif' } = {}
+  options: { width?: number; quality?: number } = {}
 ): string {
-  const { width, quality = 85, format = 'webp' } = options;
+  const { width, quality = 85 } = options;
 
-  // If Cloudflare transforms not configured, return original URL
-  if (!ODOO_CONFIG.cfImageTransformUrl) {
+  // If Cloudinary not configured, return original URL
+  if (!ODOO_CONFIG.cloudinaryCloudName) {
     return originalUrl;
   }
 
-  // Build Cloudflare transformation options
-  const cfOptions: string[] = [`format=${format}`, `quality=${quality}`];
+  // Build Cloudinary transformation options
+  // f_webp = force WebP format (Safari/iOS supports WebP since iOS 14)
+  // q_auto or q_XX = quality
+  const transforms: string[] = ['f_webp'];
+  transforms.push(quality === 85 ? 'q_auto' : `q_${quality}`);
   if (width) {
-    cfOptions.push(`width=${width}`);
+    transforms.push(`w_${width}`);
   }
 
-  // Cloudflare Image Transformation URL format:
-  // https://your-domain.com/cdn-cgi/image/format=auto,quality=85/https://origin-url/path
-  return `${ODOO_CONFIG.cfImageTransformUrl}/cdn-cgi/image/${cfOptions.join(',')}/${originalUrl}`;
+  // Cloudinary fetch URL format:
+  // https://res.cloudinary.com/CLOUD_NAME/image/fetch/f_auto,q_auto,w_512/https://original-url
+  return `https://res.cloudinary.com/${ODOO_CONFIG.cloudinaryCloudName}/image/fetch/${transforms.join(',')}/${originalUrl}`;
 }
 
 export { ODOO_CONFIG };
