@@ -2,8 +2,8 @@
 
 const ODOO_CONFIG = {
   baseUrl: process.env.ODOO_URL || 'https://bellagcc-production-13616817.dev.odoo.com',
-  // Use Cloudflare CDN for images (erp.bellastore.in proxies to Odoo with caching)
-  imageBaseUrl: process.env.ODOO_IMAGE_URL || 'https://erp.bellastore.in',
+  // Use Odoo.com directly for images (they auto-optimize to ~220KB)
+  imageBaseUrl: process.env.ODOO_IMAGE_URL || 'https://bellagcc.odoo.com',
   database: process.env.ODOO_DATABASE || 'bellagcc-production-13616817',
   apiKey: process.env.ODOO_API_KEY || '',
 };
