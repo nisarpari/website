@@ -12,6 +12,9 @@ const ODOO_CONFIG = {
 
 // Generate optimized image URL using Cloudflare Image Transformations
 // Falls back to direct URL if CF transforms not configured
+// Note: format=auto serves WebP to browsers that request it via Accept header.
+// Safari/iOS doesn't send Accept: image/webp, so they get JPEG (but resized).
+// To force WebP for all, you need Cloudflare Pro+ with format conversion enabled.
 export function getOptimizedImageUrl(
   originalUrl: string,
   options: { width?: number; quality?: number; format?: 'auto' | 'webp' | 'avif' } = {}

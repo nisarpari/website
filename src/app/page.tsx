@@ -21,7 +21,7 @@ const DEFAULT_HERO_IMAGES: Array<{ url: string; alt: string; link?: string }> = 
 
 // Mobile Hero Component
 function MobileHero({ heroImages, onImageUpdate }: {
-  heroImages: Array<{ url: string; alt: string; link?: string }>;
+  heroImages: Array<{ url: string; mobileUrl?: string; tabletUrl?: string; alt: string; link?: string }>;
   onImageUpdate?: (index: number, newUrl: string, newLink?: string) => void;
 }) {
   const { t } = useLocale();
@@ -29,6 +29,11 @@ function MobileHero({ heroImages, onImageUpdate }: {
   const { isDark } = useTheme();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = heroImages.length > 0 ? heroImages : DEFAULT_HERO_IMAGES;
+
+  // Use mobile-optimized images when available
+  const getMobileImageUrl = (image: { url: string; mobileUrl?: string }) => {
+    return image.mobileUrl || image.url;
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -60,7 +65,7 @@ function MobileHero({ heroImages, onImageUpdate }: {
               ) : image.link ? (
                 <Link href={image.link} className="block w-full h-full relative cursor-pointer">
                   <Image
-                    src={image.url}
+                    src={getMobileImageUrl(image)}
                     alt={image.alt}
                     fill
                     sizes="100vw"
@@ -77,7 +82,7 @@ function MobileHero({ heroImages, onImageUpdate }: {
                 </Link>
               ) : (
                 <Image
-                  src={image.url}
+                  src={getMobileImageUrl(image)}
                   alt={image.alt}
                   fill
                   sizes="100vw"
@@ -235,7 +240,7 @@ function MobileCTA() {
 
 // Desktop Hero
 function Hero({ heroImages, onImageUpdate }: {
-  heroImages: Array<{ url: string; alt: string; link?: string }>;
+  heroImages: Array<{ url: string; mobileUrl?: string; tabletUrl?: string; alt: string; link?: string }>;
   onImageUpdate?: (index: number, newUrl: string, newLink?: string) => void;
 }) {
   const { t } = useLocale();

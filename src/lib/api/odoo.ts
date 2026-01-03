@@ -206,7 +206,7 @@ export const OdooAPI = {
     }
   },
 
-  async fetchHeroImages(): Promise<Array<{ url: string; alt: string }>> {
+  async fetchHeroImages(): Promise<Array<{ url: string; mobileUrl?: string; tabletUrl?: string; alt: string; link?: string }>> {
     try {
       const response = await fetch(`${ODOO_CONFIG.baseUrl}/api/admin/config`, { next: { revalidate: 3600 } });
       const config = await response.json();

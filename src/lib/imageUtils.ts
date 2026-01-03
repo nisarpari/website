@@ -1,11 +1,13 @@
 // Client-side image optimization utilities
-// Uses Cloudflare Image Transformations for automatic WebP conversion
+// Uses Cloudflare Image Transformations for image optimization
+// Note: format=auto serves WebP to browsers that request it via Accept header.
+// Safari/iOS doesn't send Accept: image/webp, so they get JPEG (but resized).
 
 const CF_IMAGE_TRANSFORM_URL = process.env.NEXT_PUBLIC_CF_IMAGE_TRANSFORM_URL || '';
 
 /**
  * Get optimized image URL using Cloudflare Image Transformations
- * Automatically converts images to WebP format with specified quality and size
+ * Resizes and optimizes images with specified quality and size
  *
  * @param originalUrl - The original image URL (can be from any source)
  * @param options - Optimization options (width, quality, format)

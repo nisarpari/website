@@ -11,13 +11,14 @@ import { CategoryGridSkeleton } from '@/components/ProductCardSkeleton';
 import { getApiUrl } from '@/lib/api/config';
 
 // Hero media items - video first, then images (WebP for better performance)
+// Mobile/tablet variants for responsive loading
 const heroMedia = [
   { type: 'video', src: '/hero-video.mp4' },
-  { type: 'image', src: '/hero-images/Bella_HI_1.webp' },
-  { type: 'image', src: '/hero-images/Bella_HI_2.webp' },
-  { type: 'image', src: '/hero-images/Bella_HI_3.webp' },
-  { type: 'image', src: '/hero-images/Bella_HI_4.webp' },
-  { type: 'image', src: '/hero-images/Bella_HI_5.webp' },
+  { type: 'image', src: '/hero-images/Bella_HI_1.webp', mobileSrc: '/hero-images/Bella_HI_1-mobile.webp', tabletSrc: '/hero-images/Bella_HI_1-tablet.webp' },
+  { type: 'image', src: '/hero-images/Bella_HI_2.webp', mobileSrc: '/hero-images/Bella_HI_2-mobile.webp', tabletSrc: '/hero-images/Bella_HI_2-tablet.webp' },
+  { type: 'image', src: '/hero-images/Bella_HI_3.webp', mobileSrc: '/hero-images/Bella_HI_3-mobile.webp', tabletSrc: '/hero-images/Bella_HI_3-tablet.webp' },
+  { type: 'image', src: '/hero-images/Bella_HI_4.webp', mobileSrc: '/hero-images/Bella_HI_4-mobile.webp', tabletSrc: '/hero-images/Bella_HI_4-tablet.webp' },
+  { type: 'image', src: '/hero-images/Bella_HI_5.webp', mobileSrc: '/hero-images/Bella_HI_5-mobile.webp', tabletSrc: '/hero-images/Bella_HI_5-tablet.webp' },
 ];
 
 // Category display configuration - maps database names to display names
@@ -76,9 +77,30 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
   const [categoryGridCount, setCategoryGridCount] = useState<6 | 8>(6);
   const [showCategoryEditor, setShowCategoryEditor] = useState(false);
   const [expandedParents, setExpandedParents] = useState<number[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const { isAdmin, editMode, token } = useAdmin();
   const API_BASE = getApiUrl();
+
+  // Detect screen size for responsive images
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 640);
+      setIsTablet(window.innerWidth >= 640 && window.innerWidth < 1024);
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  // Get responsive image source
+  const getResponsiveImageSrc = (media: typeof heroMedia[number]) => {
+    if (media.type === 'video') return media.src;
+    if (isMobile && media.mobileSrc) return media.mobileSrc;
+    if (isTablet && media.tabletSrc) return media.tabletSrc;
+    return media.src;
+  };
 
   // Auto-advance carousel
   useEffect(() => {
@@ -291,7 +313,7 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
               <motion.video
                 key="video"
                 src={currentMedia.src}
-                poster="/hero-images/Bella_HI_1.webp"
+                poster={isMobile ? '/hero-images/Bella_HI_1-mobile.webp' : isTablet ? '/hero-images/Bella_HI_1-tablet.webp' : '/hero-images/Bella_HI_1.webp'}
                 autoPlay
                 muted
                 loop
@@ -305,7 +327,7 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
               />
             ) : (
               <motion.div
-                key={currentMedia.src}
+                key={getResponsiveImageSrc(currentMedia)}
                 className="absolute inset-0"
                 initial={{ opacity: 0, scale: 1.1 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -313,9 +335,10 @@ export default function VideoHeroSection({ categories, categoryImages, isLoading
                 transition={{ duration: 1 }}
               >
                 <Image
-                  src={currentMedia.src}
+                  src={getResponsiveImageSrc(currentMedia)}
                   alt="Bella Bathwares"
                   fill
+                  sizes="100vw"
                   className="object-cover"
                   priority={currentIndex === 0}
                 />
