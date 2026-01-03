@@ -10,11 +10,7 @@ const ODOO_CONFIG = {
 
 // Return image URL directly from Cloudflare CDN (no transformation)
 // Odoo's live server already optimizes images
-export function getOptimizedImageUrl(
-  originalUrl: string,
-  _options: { width?: number; quality?: number } = {}
-): string {
-  // Return URL as-is - Cloudflare caches, Odoo serves optimized images
+export function getOptimizedImageUrl(originalUrl: string): string {
   return originalUrl;
 }
 
