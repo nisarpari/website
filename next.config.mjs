@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Expose CF transform URL to client-side for image optimization
+  env: {
+    NEXT_PUBLIC_CF_IMAGE_TRANSFORM_URL: process.env.CF_IMAGE_TRANSFORM_URL || '',
+  },
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -35,6 +39,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "erp.bellastore.in",
       },
+      {
+        protocol: "https",
+        hostname: "web.bellastore.in",
+      },
     ],
   },
   // Add caching headers for static assets
@@ -53,6 +61,16 @@ const nextConfig = {
       {
         // Cache images for 1 year
         source: '/images/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // Cache WebP images for 1 year
+        source: '/:path*.webp',
         headers: [
           {
             key: 'Cache-Control',
