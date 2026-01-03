@@ -498,7 +498,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
           <div className="hidden lg:flex justify-center py-4">
             <Link href="/" className="cursor-pointer">
               <Image
-                src={isDark ? '/bella_logo_white.png' : '/bella_logo.png'}
+                src={isDark ? '/bella_logo_white.webp' : '/bella_logo.webp'}
                 alt="Bella Bathwares"
                 width={180}
                 height={90}
@@ -629,7 +629,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
             {/* Mobile Logo - Right side */}
             <Link href="/" className="cursor-pointer lg:hidden">
               <Image
-                src={isDark ? '/bella_logo_white.png' : '/bella_logo.png'}
+                src={isDark ? '/bella_logo_white.webp' : '/bella_logo.webp'}
                 alt="Bella Bathwares"
                 width={140}
                 height={70}

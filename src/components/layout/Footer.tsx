@@ -49,7 +49,7 @@ export function Footer({ categories = [] }: FooterProps) {
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="inline-block mb-4">
               <Image
-                src={isDark ? '/bella_logo_white.png' : '/bella_logo.png'}
+                src={isDark ? '/bella_logo_white.webp' : '/bella_logo.webp'}
                 alt="Bella Bathwares"
                 width={160}
                 height={80}
