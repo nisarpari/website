@@ -102,7 +102,7 @@ function SeriesLogoBar() {
               {/* Product Image */}
               <div className="relative w-12 h-16 md:w-14 md:h-20 flex-shrink-0">
                 <Image
-                  src={ensureOptimizedImage(collection.image, { width: 112 })}
+                  src={ensureOptimizedImage(collection.image)}
                   alt={`${collection.name} Series`}
                   fill
                   className="object-contain"
@@ -162,7 +162,7 @@ function CollectionSection({
           >
             <div className="relative aspect-square md:aspect-[4/5] max-w-md mx-auto">
               <Image
-                src={ensureOptimizedImage(collection.image, { width: 800 })}
+                src={ensureOptimizedImage(collection.image)}
                 alt={`${collection.name} ${collection.subtitle}`}
                 fill
                 className="object-contain drop-shadow-2xl"
