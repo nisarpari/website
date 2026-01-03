@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 
-const PLACEHOLDER_IMAGE = '/placeholder-product.webp';
+const PLACEHOLDER_IMAGE = '/placeholder.webp';
 
 interface ProductImageProps {
   src: string;

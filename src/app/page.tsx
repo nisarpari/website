@@ -151,7 +151,7 @@ function MobileProductCard({ product }: { product: Product }) {
         {/* Image block */}
         <div className="relative w-[120px] h-[100px] bg-bella-50">
           <Image
-            src={product.thumbnail || product.image || '/placeholder.jpg'}
+            src={product.thumbnail || product.image || '/placeholder.webp'}
             alt={product.name}
             fill
             sizes="120px"

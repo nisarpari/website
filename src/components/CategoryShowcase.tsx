@@ -110,7 +110,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
       >
         <div className="relative aspect-square bg-gradient-to-br from-bella-50 to-white overflow-hidden">
           <ProductImage
-            src={product.thumbnail || product.image || '/placeholder.jpg'}
+            src={product.thumbnail || product.image || '/placeholder.webp'}
             alt={product.name}
             fill
             sizes="(max-width: 768px) 50vw, 25vw"

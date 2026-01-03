@@ -32,7 +32,7 @@ export const metadata: Metadata = {
       "Premium Italian-designed sanitaryware. Jacuzzis, faucets, basins & more.",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/og-image.webp",
         width: 1200,
         height: 630,
         alt: "Bella Bathwares",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     title: "Bella Bathwares | Luxury Bathroom Solutions",
     description:
       "Premium Italian-designed sanitaryware. Jacuzzis, faucets, basins & more.",
-    images: ["/og-image.jpg"],
+    images: ["/og-image.webp"],
   },
   robots: {
     index: true,

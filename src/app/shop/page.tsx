@@ -46,7 +46,7 @@ function ProductCard({ product }: { product: Product }) {
     <Link href={`/product/${product.slug}`} className="product-card bg-white dark:bg-navy-light rounded-lg overflow-hidden shadow-sm border border-bella-100 dark:border-bella-700 hover:shadow-md transition-shadow">
       <div className="relative aspect-[4/5] bg-white p-1">
         <ProductImage
-          src={product.thumbnail || product.image || '/placeholder.jpg'}
+          src={product.thumbnail || product.image || '/placeholder.webp'}
           alt={product.name}
           fill
           sizes="(max-width: 768px) 50vw, 25vw"
@@ -126,7 +126,7 @@ function CategoryCard({ category, categoryImage, isAdmin, editMode, onImageUpdat
           <div className="absolute inset-0 flex items-center justify-center">
             {isAdmin && editMode ? (
               <EditableImage
-                src="/placeholder.jpg"
+                src="/placeholder.webp"
                 alt={category.name}
                 configKey={`categoryImages.${category.id}`}
                 fill

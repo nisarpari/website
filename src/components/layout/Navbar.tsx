@@ -423,7 +423,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
                                 className="flex items-center gap-3 p-3 hover:bg-bella-50 cursor-pointer border-b border-bella-50 last:border-0"
                               >
                                 <Image
-                                  src={product.thumbnail || product.image || '/placeholder.jpg'}
+                                  src={product.thumbnail || product.image || '/placeholder.webp'}
                                   alt={product.name}
                                   width={48}
                                   height={48}
@@ -591,7 +591,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
                                 className="flex items-center gap-2 px-3 py-2 hover:bg-bella-50 cursor-pointer border-b border-bella-50 last:border-0"
                               >
                                 <Image
-                                  src={product.thumbnail || product.image || '/placeholder.jpg'}
+                                  src={product.thumbnail || product.image || '/placeholder.webp'}
                                   alt={product.name}
                                   width={40}
                                   height={40}

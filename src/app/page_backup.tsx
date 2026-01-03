@@ -140,7 +140,7 @@ function MobileProductCard({ product }: { product: Product }) {
       {/* Product Image - Fixed size container */}
       <div className="relative w-[140px] h-[140px] bg-white rounded-xl overflow-hidden shadow-sm border border-bella-100 dark:border-white/10 mb-2">
         <Image
-          src={product.thumbnail || product.image || '/placeholder.jpg'}
+          src={product.thumbnail || product.image || '/placeholder.webp'}
           alt={product.name}
           fill
           sizes="140px"
@@ -702,7 +702,7 @@ function ProductCard({ product }: { product: Product }) {
     <Link href={`/product/${product.slug}`} className="product-card bg-white dark:bg-navy-light rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       <div className="relative aspect-square bg-bella-100 dark:bg-navy-light">
         <ProductImage
-          src={product.thumbnail || product.image || '/placeholder.jpg'}
+          src={product.thumbnail || product.image || '/placeholder.webp'}
           alt={product.name}
           fill
           className="object-contain p-2"

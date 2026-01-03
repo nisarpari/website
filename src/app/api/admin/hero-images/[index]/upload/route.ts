@@ -1,7 +1,8 @@
-// POST /api/admin/hero-images/[index]/upload - Upload hero image
+// POST /api/admin/hero-images/[index]/upload - Upload hero image (converts to WebP)
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import sharp from 'sharp';
 import { readSiteConfig, writeSiteConfig, checkAdminAuth, DEFAULT_HERO_IMAGES } from '@/lib/server/config';
 
 export async function POST(
@@ -26,16 +27,25 @@ export async function POST(
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create filename with timestamp
-    const ext = path.extname(file.name) || '.jpg';
-    const filename = `hero-${index}-${Date.now()}${ext}`;
+    // Create filename with timestamp - always use .webp extension
+    const filename = `hero-${index}-${Date.now()}.webp`;
 
     // Ensure directory exists
     const uploadDir = path.join(process.cwd(), 'public', 'images', 'hero');
     await mkdir(uploadDir, { recursive: true });
 
     const filePath = path.join(uploadDir, filename);
-    await writeFile(filePath, buffer);
+
+    // Convert to WebP using Sharp
+    const originalExt = path.extname(file.name).toLowerCase();
+    const isPng = originalExt === '.png';
+
+    // For PNG, preserve transparency; for others, use standard WebP conversion
+    const webpBuffer = await sharp(buffer)
+      .webp({ quality: 85, lossless: isPng })
+      .toBuffer();
+
+    await writeFile(filePath, webpBuffer);
 
     // Build URL (relative to public folder)
     const imageUrl = `/images/hero/${filename}`;

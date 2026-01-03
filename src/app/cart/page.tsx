@@ -45,7 +45,7 @@ export default function CartPage() {
               <div key={item.id} className="bg-white rounded-2xl p-4 flex gap-4">
                 <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
                   <Image
-                    src={item.image || item.thumbnail || '/placeholder.jpg'}
+                    src={item.image || item.thumbnail || '/placeholder.webp'}
                     alt={item.name}
                     fill
                     className="object-cover"

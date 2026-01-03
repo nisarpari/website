@@ -23,7 +23,7 @@ export default function ProductCard({ product }: { product: Product }) {
                 {/* Image block - 4:5 ratio for elegant vertical look */}
                 <div className="relative aspect-[4/5] bg-white overflow-hidden">
                     <ProductImage
-                        src={product.thumbnail || product.image || '/placeholder.jpg'}
+                        src={product.thumbnail || product.image || '/placeholder.webp'}
                         alt={product.name}
                         fill
                         className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"

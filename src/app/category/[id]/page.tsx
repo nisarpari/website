@@ -126,7 +126,7 @@ function CategoryGridWithEditor({
         {products.slice(0, 4).map((product, idx) => (
           <div key={idx} className="relative">
             <Image
-              src={product.thumbnail || '/placeholder.jpg'}
+              src={product.thumbnail || '/placeholder.webp'}
               alt={product.name}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -183,7 +183,7 @@ function CategoryGridWithEditor({
                 {products.slice(0, 4).map((product, idx) => (
                   <div key={idx} className="relative">
                     <Image
-                      src={product.thumbnail || '/placeholder.jpg'}
+                      src={product.thumbnail || '/placeholder.webp'}
                       alt={product.name}
                       fill
                       className="object-cover"
@@ -827,7 +827,7 @@ export default function CategoryLandingPage() {
                         ) : subCatProducts.length > 0 ? (
                           // Single product image with EditableImage for admin
                           <EditableImage
-                            src={subCatProducts[0].thumbnail || '/placeholder.jpg'}
+                            src={subCatProducts[0].thumbnail || '/placeholder.webp'}
                             alt={subCat.name}
                             configKey={`categoryImages.${subCat.id}`}
                             fill

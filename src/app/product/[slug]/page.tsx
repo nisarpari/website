@@ -23,7 +23,7 @@ function RelatedProductCard({ product }: {
     >
       <div className="relative aspect-square">
         <ProductImage
-          src={product.thumbnail || '/placeholder.jpg'}
+          src={product.thumbnail || '/placeholder.webp'}
           alt={product.name}
           fill
           sizes="(max-width: 768px) 160px, 192px"
@@ -265,7 +265,7 @@ function EnhancedYouMightAlsoLike({
             >
               <div className="relative aspect-square">
                 <ProductImage
-                  src={p.thumbnail || '/placeholder.jpg'}
+                  src={p.thumbnail || '/placeholder.webp'}
                   alt={p.name}
                   fill
                   sizes="(max-width: 768px) 160px, 192px"
@@ -498,7 +498,7 @@ export default function ProductDetailPage() {
       return product.images;
     }
 
-    return gallery.length > 0 ? gallery : ['/placeholder.jpg'];
+    return gallery.length > 0 ? gallery : ['/placeholder.webp'];
   };
 
   const images = buildImageGallery();
@@ -639,7 +639,7 @@ export default function ProductDetailPage() {
         {/* Image Gallery */}
         <div className="relative aspect-[4/3] bg-white">
           <Image
-            src={images[selectedImage] || '/placeholder.jpg'}
+            src={images[selectedImage] || '/placeholder.webp'}
             alt={product.name}
             fill
             sizes="100vw"
@@ -838,7 +838,7 @@ export default function ProductDetailPage() {
             <div>
               <div className="relative aspect-square rounded-2xl overflow-hidden mb-4 product-detail-image">
                 <ProductImage
-                  src={images[selectedImage] || '/placeholder.jpg'}
+                  src={images[selectedImage] || '/placeholder.webp'}
                   alt={product.name}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"

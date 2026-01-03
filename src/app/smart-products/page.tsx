@@ -267,7 +267,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
       >
         <div className="relative aspect-square bg-gradient-to-br from-bella-50 to-white dark:from-navy dark:to-navy-light overflow-hidden">
           <ProductImage
-            src={product.thumbnail || product.image || '/placeholder.jpg'}
+            src={product.thumbnail || product.image || '/placeholder.webp'}
             alt={product.name}
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
@@ -469,7 +469,7 @@ export default function SmartProductsPage() {
                       <Link href={`/product/${product.slug}`} className="block group">
                         <div className="aspect-square rounded-xl md:rounded-2xl bg-white shadow-lg p-2 md:p-4 flex items-center justify-center overflow-hidden">
                           <ProductImage
-                            src={product.thumbnail || product.image || '/placeholder.jpg'}
+                            src={product.thumbnail || product.image || '/placeholder.webp'}
                             alt={product.name}
                             width={150}
                             height={150}
@@ -530,7 +530,7 @@ export default function SmartProductsPage() {
               <Link href={`/product/${showcaseToilets[0].slug}`} className="block group">
                 <div className="aspect-[16/9] max-w-2xl mx-auto relative bg-gradient-to-br from-bella-50 to-white dark:from-navy-light dark:to-navy rounded-2xl overflow-hidden">
                   <ProductImage
-                    src={showcaseToilets[0].image || showcaseToilets[0].thumbnail || '/placeholder.jpg'}
+                    src={showcaseToilets[0].image || showcaseToilets[0].thumbnail || '/placeholder.webp'}
                     alt={showcaseToilets[0].name}
                     fill
                     className="object-contain p-8 group-hover:scale-105 transition-transform duration-500"
@@ -627,7 +627,7 @@ export default function SmartProductsPage() {
                     <Link href={`/product/${product.slug}`} className="block w-full h-full">
                       <div className="absolute inset-0 bg-gradient-to-br from-bella-100 to-bella-50 dark:from-navy dark:to-navy-light" />
                       <ProductImage
-                        src={product.image || product.thumbnail || '/placeholder.jpg'}
+                        src={product.image || product.thumbnail || '/placeholder.webp'}
                         alt={product.name}
                         fill
                         className="object-contain p-6 transition-transform duration-700 group-hover:scale-110"
