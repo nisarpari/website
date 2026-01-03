@@ -56,8 +56,7 @@ async function fetchProductDetails(productId: number): Promise<ProductWithDetail
         id: img.id,
         name: img.name,
         url: getOptimizedImageUrl(
-          `${ODOO_CONFIG.imageBaseUrl}/web/image/product.image/${img.id}/image_1920`,
-          { width: 1920 }
+          `${ODOO_CONFIG.imageBaseUrl}/web/image/product.image/${img.id}/image_1920`
         )
       }));
     } catch {
@@ -81,8 +80,7 @@ async function fetchProductDetails(productId: number): Promise<ProductWithDetail
         name: p.name,
         price: p.list_price,
         thumbnail: getOptimizedImageUrl(
-          `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${p.id}/image_512`,
-          { width: 512 }
+          `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${p.id}/image_512`
         ),
         slug: p.website_url ? p.website_url.replace('/shop/', '') : `${p.name.toLowerCase().replace(/\s+/g, '-')}-${p.id}`
       }));
@@ -107,8 +105,7 @@ async function fetchProductDetails(productId: number): Promise<ProductWithDetail
         name: p.name,
         price: p.list_price,
         thumbnail: getOptimizedImageUrl(
-          `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${p.id}/image_512`,
-          { width: 512 }
+          `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${p.id}/image_512`
         ),
         slug: p.website_url ? p.website_url.replace('/shop/', '') : `${p.name.toLowerCase().replace(/\s+/g, '-')}-${p.id}`
       }));

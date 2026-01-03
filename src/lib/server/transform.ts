@@ -73,14 +73,12 @@ export function transformProduct(product: OdooProduct): TransformedProduct {
     categoryId: product.categ_id ? product.categ_id[0] : null,
     // eCommerce public categories
     publicCategoryIds: product.public_categ_ids || [],
-    // Images (use Cloudflare Image Transformations for WebP conversion)
+    // Images served directly from Cloudflare CDN
     image: getOptimizedImageUrl(
-      `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${product.id}/image_1920`,
-      { width: 1920 }
+      `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${product.id}/image_1920`
     ),
     thumbnail: getOptimizedImageUrl(
-      `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${product.id}/image_512`,
-      { width: 512 }
+      `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${product.id}/image_512`
     ),
     additionalImageIds: product.product_template_image_ids || [],
     // Description
