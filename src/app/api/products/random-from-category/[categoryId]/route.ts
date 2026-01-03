@@ -41,7 +41,7 @@ export async function GET(
       id: p.id,
       name: p.name,
       price: p.list_price,
-      thumbnail: `${ODOO_CONFIG.baseUrl}/web/image/product.template/${p.id}/image_512`,
+      thumbnail: `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${p.id}/image_512`,
       slug: p.website_url ? p.website_url.replace('/shop/', '') : `${p.name.toLowerCase().replace(/\s+/g, '-')}-${p.id}`
     }));
 

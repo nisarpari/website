@@ -73,9 +73,9 @@ export function transformProduct(product: OdooProduct): TransformedProduct {
     categoryId: product.categ_id ? product.categ_id[0] : null,
     // eCommerce public categories
     publicCategoryIds: product.public_categ_ids || [],
-    // Images
-    image: `${ODOO_CONFIG.baseUrl}/web/image/product.template/${product.id}/image_1920`,
-    thumbnail: `${ODOO_CONFIG.baseUrl}/web/image/product.template/${product.id}/image_512`,
+    // Images (use CDN URL for caching via Cloudflare)
+    image: `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${product.id}/image_1920`,
+    thumbnail: `${ODOO_CONFIG.imageBaseUrl}/web/image/product.template/${product.id}/image_512`,
     additionalImageIds: product.product_template_image_ids || [],
     // Description
     description: product.description_sale || '',
