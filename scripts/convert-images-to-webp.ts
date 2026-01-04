@@ -54,50 +54,59 @@ function parseArgs() {
   return options;
 }
 
-// Odoo JSON-RPC API call
+// Odoo JSON-2 API call (Odoo 19+)
 async function odooApiCall<T = unknown>(
   model: string,
   method: string,
   args: unknown[] = [],
   kwargs: Record<string, unknown> = {}
 ): Promise<T> {
-  const url = `${STAGING_CONFIG.baseUrl}/jsonrpc`;
+  const url = `${STAGING_CONFIG.baseUrl}/json/2/${model}/${method}`;
 
-  const body = {
-    jsonrpc: '2.0',
-    method: 'call',
-    params: {
-      service: 'object',
-      method: 'execute_kw',
-      args: [
-        STAGING_CONFIG.database,
-        2, // User ID (2 is typically admin)
-        STAGING_CONFIG.apiKey,
-        model,
-        method,
-        args,
-        kwargs
-      ]
-    },
-    id: Date.now()
+  // Build request body for JSON-2 API
+  const body: Record<string, unknown> = {};
+
+  // Handle domain argument (for search methods)
+  if (args.length > 0 && Array.isArray(args[0])) {
+    body.domain = args[0];
+  }
+
+  // Handle ids argument (for read, write methods)
+  if (args.length > 0 && (typeof args[0] === 'number' || (Array.isArray(args[0]) && typeof args[0][0] === 'number' && !Array.isArray(args[0][0])))) {
+    body.ids = Array.isArray(args[0]) ? args[0] : [args[0]];
+  }
+
+  // Handle values argument (for write methods - second arg)
+  if (args.length > 1 && typeof args[1] === 'object' && !Array.isArray(args[1])) {
+    body.values = args[1];
+  }
+
+  // Add kwargs as named parameters
+  for (const [key, value] of Object.entries(kwargs)) {
+    body[key] = value;
+  }
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Authorization': `Bearer ${STAGING_CONFIG.apiKey}`,
   };
+
+  if (STAGING_CONFIG.database) {
+    headers['X-Odoo-Database'] = STAGING_CONFIG.database;
+  }
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers,
     body: JSON.stringify(body)
   });
 
-  const data = await response.json();
-
-  if (data.error) {
-    const errorMessage = data.error.data?.message || data.error.message || JSON.stringify(data.error);
-    throw new Error(errorMessage);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Odoo API error (${response.status}): ${errorText}`);
   }
 
-  return data.result !== undefined ? data.result : data;
+  return await response.json() as T;
 }
 
 // Convert base64 image to WebP and return new base64
